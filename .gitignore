@@ -1,0 +1,12 @@
+# Exclude
+
+/*
+
+# Include
+
+!/src
+!/test
+
+!/.gitignore
+
+!/README.md
