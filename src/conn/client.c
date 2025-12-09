@@ -164,10 +164,12 @@ connClientOnMessage(ConnClient* self, RnMemoryArena* arena, ConnMessage message)
 
             if (self->state != ConnClientState_WaitingTurn) break;
 
-            if (self->clientCode == message.turn.clientCode)
-                self->state = ConnClientState_SendingMove;
-            else
+            if (self->clientCode != message.turn.clientCode) {
                 self->state = ConnClientState_WaitingMove;
+
+                connClientRead(self, arena);
+            } else
+                self->state = ConnClientState_SendingMove;
         } break;
 
         case ConnMessage_Move: {
@@ -177,6 +179,23 @@ connClientOnMessage(ConnClient* self, RnMemoryArena* arena, ConnMessage message)
             if (self->state != ConnClientState_WaitingMove) break;
 
             self->state = ConnClientState_WaitingTurn;
+
+            connClientRead(self, arena);
+        } break;
+
+        case ConnMessage_Result: {
+            printf("(Result) { clientCode = %lu }\n",
+                message.result.clientCode);
+
+            if (message.result.clientCode != 0) {
+                if (message.result.clientCode == self->clientCode)
+                    printf("Vittoria!\n");
+                else
+                    printf("Sconfitta...\n");
+            }
+            else printf("Pareggio.\n");
+
+            self->state = ConnClientState_Stopping;
         } break;
 
         default: break;
@@ -268,6 +287,8 @@ connClientUpdate(ConnClient* self, RnMemoryArena* arena)
             connMessageMove(clientCode, column));
 
         self->state = ConnClientState_WaitingTurn;
+
+        connClientRead(self, arena);
     }
 }
 

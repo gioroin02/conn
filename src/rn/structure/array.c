@@ -106,14 +106,12 @@ __rnArrayClear__(void* tag)
 }
 
 b32
-__rnArrayTagExtend__(void* tag, void* values, ssize index, ssize step)
+__rnArrayTagMoveRight__(void* tag, void* values, ssize index, ssize step)
 {
     RnArrayTag* self = ((RnArrayTag*) tag);
 
     if (self == 0 || values == 0 || step <= 0 || index < 0 || index > self->count)
         return 0;
-
-    if (index == self->count) return 1;
 
     ssize start = step * self->count;
     ssize stop  = step * index;
@@ -139,7 +137,7 @@ __rnArrayTagRemove__(void* tag, void* values, ssize index, void* value, ssize st
 
     if (value != 0) {
         for (ssize i = 0; i < step; i += 1)
-            ((u8*) value)[i] = ((u8*) values)[i + index];
+            ((u8*) value)[i] = ((u8*) values)[i + index * step];
     }
 
     for (ssize i = start; i < stop; i += 1)

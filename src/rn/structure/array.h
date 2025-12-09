@@ -26,46 +26,33 @@
 #define rnArrayIsIndex(self, index) __rnArrayTagIsIndex__(&(self)->arrayTag, index)
 #define rnArrayClear(self)          __rnArrayClear__(&(self)->arrayTag)
 
-#define rnArrayInsert(self, index, value) (     \
-    __rnArrayTagExtend__(                       \
-        &(self)->arrayTag,                      \
-        (self)->values,                         \
-        rnEval(index),                          \
-        sizeof(*(self)->values)                 \
-    ) != 0 ? (                                  \
-        (self)->values[rnEval(index)] = value,  \
-        (self)->arrayTag.count        += 1      \
-    ), 1                                        \
-    :  0                                        \
-)
-
-#define rnArrayPushFront(self, value) rnArrayInsert(self, 0, value)
-#define rnArrayPushBack(self, value)  rnArrayInsert(self, rnArrayCount(self), value)
-
-#define rnArrayRemove(self, index, value) ( \
-    __rnArrayTagRemove__(                   \
+#define rnArrayInsert(self, index, value) ( \
+    __rnArrayTagMoveRight__(                \
         &(self)->arrayTag,                  \
         (self)->values,                     \
-        rnEval(index),                      \
-        value,                              \
+        index,                              \
         sizeof(*(self)->values)             \
-    )                                       \
+    ) != 0 ? (                              \
+        (self)->values[index]   = value,    \
+        (self)->arrayTag.count += 1         \
+    ), 1                                    \
+    :  0                                    \
 )
+
+#define rnArrayPushFront(self, value) rnArrayInsert(self, 0,                  value)
+#define rnArrayPushBack(self, value)  rnArrayInsert(self, rnArrayCount(self), value)
+
+#define rnArrayRemove(self, index, value) \
+    (__rnArrayTagRemove__(&(self)->arrayTag, (self)->values, index, value, sizeof(*(self)->values)))
 
 #define rnArrayPopFront(self, value) rnArrayRemove(self, 0,                 value)
 #define rnArrayPopBack(self, value)  rnArrayRemove(self, rnArrayBack(self), value)
 
-#define rnArrayGet(self, index, other) (     \
-    rnArrayIsIndex(self, rnEval(index)) != 0 \
-    ? ((self)->values[rnEval(index)])        \
-    : other                                  \
-)
+#define rnArrayGet(self, index, other) \
+    (rnArrayIsIndex(self, index) != 0 ? (self)->values[index] : other)
 
-#define rnArrayGetRef(self, index) (         \
-    rnArrayIsIndex(self, rnEval(index)) != 0 \
-    ? &((self)->values[rnEval(index)])       \
-    : 0                                      \
-)
+#define rnArrayGetRef(self, index) \
+    (rnArrayIsIndex(self, index) != 0 ? &(self)->values[index] : 0)
 
 void*
 __rnArrayTagCreate__(void* tag, void* values, RnMemoryArena* arena, ssize size, ssize step);
@@ -95,7 +82,7 @@ void
 __rnArrayClear__(void* tag);
 
 b32
-__rnArrayTagExtend__(void* tag, void* values, ssize index, ssize step);
+__rnArrayTagMoveRight__(void* tag, void* values, ssize index, ssize step);
 
 b32
 __rnArrayTagRemove__(void* tag, void* values, ssize index, void* value, ssize step);
