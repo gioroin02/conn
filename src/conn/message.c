@@ -3,6 +3,8 @@
 
 #include "./message.h"
 
+#include <stdio.h>
+
 ConnMessage
 connMessageDecode(u8* values, ssize size)
 {
@@ -160,6 +162,45 @@ connMessageResult(u32 code)
             .clientCode = code,
         }
     };
+}
+
+ssize
+connMessageToString(ConnMessage message, u8* values, ssize size)
+{
+    ssize result = 0;
+
+    switch (message.kind) {
+        case ConnMessage_Join: {
+            result = snprintf(((char*) values), size, "(Join) {.clientFlags = %u}",
+                message.join.clientFlags);
+        } break;
+
+        case ConnMessage_Data: {
+            result = snprintf(((char*) values), size, "(Data) {.clientFlags = %u, .clientCode = %lu, .clientSymbol = '%c'}",
+                message.data.clientFlags, message.data.clientCode, message.data.clientSymbol);
+        } break;
+
+        case ConnMessage_Turn: {
+            result = snprintf(((char*) values), size, "(Turn) {.clientCode = %lu}",
+                message.turn.clientCode);
+        } break;
+
+        case ConnMessage_Move: {
+            result = snprintf(((char*) values), size, "(Move) {.clientCode = %lu, .column = %lu}",
+                message.move.clientCode, message.move.column);
+        } break;
+
+        case ConnMessage_Result: {
+            result = snprintf(((char*) values), size, "(Result) {.clientCode = %lu}",
+                message.result.clientCode);
+        } break;
+
+        default: result = snprintf(((char*) values), size, "(None) {}"); break;
+    }
+
+    if (result >= 0 && result < size) return result;
+
+    return 0;
 }
 
 #endif // CONN_MESSAGE_C

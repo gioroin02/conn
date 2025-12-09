@@ -43,10 +43,53 @@ typedef struct ConnServer
     RnSocketTCP*     listener;
     ArrayConnSession sessions;
 
+    ConnBoard board;
+
     ssize playerCount;
     ssize playerTurn;
 }
 ConnServer;
+
+void
+connMessageShow(ConnMessage message)
+{
+    u8    buffer[1024] = {0};
+    ssize count        = connMessageToString(message, buffer, 1024);
+
+    if (count != 0)
+        printf("%.*s\n", ((int) count), buffer);
+}
+
+void
+connBoardShow(ConnBoard* self)
+{
+    char* colors[] = {"\x1b[0m", "\x1b[34m", "\x1b[31m"};
+
+    for (ssize i = 0; i < self->width; i += 1)
+        printf("%s", i == 0 ? "+----+" : "----+");
+
+    printf("\n");
+
+    for (ssize r = 0; r < self->height; r += 1) {
+        printf("|");
+
+        for (ssize c = 0; c < self->width; c += 1) {
+            u32 value = self->values[self->width * r + c];
+
+            if (value != 0)
+                printf("%s%3lu%s |", colors[value], value, colors[0]);
+            else
+                printf("    |");
+        }
+
+        printf("\n");
+
+        for (ssize i = 0; i < self->width; i += 1)
+            printf("%s", i == 0 ? "+----+" : "----+");
+
+        printf("\n");
+    }
+}
 
 void
 connServerAccept(ConnServer* self, RnMemoryArena* arena)
@@ -66,6 +109,9 @@ connServerWrite(ConnServer* self, RnMemoryArena* arena, ConnSession* session, Co
 
     if (rnArrayIsEmpty(&session->messages) != 0) {
         ssize stop = connMessageEncode(message, session->writing, CONN_MESSAGE_SIZE);
+
+        printf("0x%016llx ", ((usize) session));
+        connMessageShow(message);
 
         RnSocketTCP* socket = session->socket;
         u8*          values = session->writing;
@@ -136,6 +182,8 @@ connServerCreate(ConnServer* self, RnMemoryArena* arena)
 
     rnArrayCreate(&self->sessions, arena, 2);
 
+    connBoardCreate(&self->board, arena, 7, 5);
+
     rnAsyncIOQueueCreate(self->queue);
     rnSocketTCPCreate(self->listener, address, port);
 
@@ -181,9 +229,6 @@ connServerOnMessage(ConnServer* self, RnMemoryArena* arena, ConnSession* session
 {
     switch (message.kind) {
         case ConnMessage_Join: {
-            printf("0x%016llx (Join) { clientFlags = %u }\n",
-                ((usize) session), message.join.clientFlags);
-
             if (self->state != ConnServerState_Starting) break;
 
             if (session->player.code == 0) {
@@ -214,17 +259,25 @@ connServerOnMessage(ConnServer* self, RnMemoryArena* arena, ConnSession* session
         } break;
 
         case ConnMessage_Move: {
-            printf("0x%016llx (Move) { clientCode = %lu, column = %lu }\n",
-                ((usize) session), message.move.clientCode, message.move.column);
-
             if (self->state != ConnServerState_WaitingMove) break;
+
+            u32 clientCode = message.move.clientCode;
+            u32 column     = message.move.column;
+
+            connBoardInsert(&self->board, column, clientCode);
+            connBoardShow(&self->board);
 
             connServerBroadcast(self, arena, session, message);
 
-            // TODO(gio): play move and decide if turn or result
-            if (rand() % 10 == 0) {
+            u32 winner = 0;
+            b32 full   = connBoardIsFull(&self->board);
+
+            if (connBoardIsWinner(&self->board, column, clientCode) != 0)
+                winner = clientCode;
+
+            if (winner != 0 || full != 0) {
                 connServerBroadcast(self, arena, 0,
-                    connMessageResult(self->playerTurn));
+                    connMessageResult(winner));
 
                 self->state = ConnServerState_Stopping;
             }
@@ -232,8 +285,6 @@ connServerOnMessage(ConnServer* self, RnMemoryArena* arena, ConnSession* session
         } break;
 
         case ConnMessage_Quit: {
-            printf("0x%016llx (Quit) {}\n", ((usize) session));
-
             connServerBroadcast(self, arena, 0,
                 connMessageResult(0));
 
@@ -288,6 +339,9 @@ connServerUpdateMessage(ConnServer* self, RnMemoryArena* arena)
 
                 ssize stop = connMessageEncode(message, session->writing, CONN_MESSAGE_SIZE);
 
+                printf("0x%016llx ", ((usize) session));
+                connMessageShow(message);
+
                 RnSocketTCP* socket = session->socket;
                 u8*          values = session->writing;
                 ssize        start  = 0;
@@ -313,7 +367,11 @@ connServerUpdateMessage(ConnServer* self, RnMemoryArena* arena)
 
                     if (status == 0) self->state = ConnServerState_Error;
                 }
-                else connServerOnMessage(self, arena, session, message);
+                else {
+                    printf("0x%016llx ", ((usize) session));
+                    connMessageShow(message);
+                    connServerOnMessage(self, arena, session, message);
+                }
             } break;
 
             default: break;

@@ -2,25 +2,10 @@
 #define CONN_MESSAGE_H
 
 #include "./memory.h"
+#include "./game.h"
 
 #define CONN_MESSAGE_SIZE_HEADER ((ssize) 8)
 #define CONN_MESSAGE_SIZE        ((ssize) sizeof(ConnMessage))
-
-typedef enum ConnClientFlag
-{
-    ConnClient_None     = 0,
-    ConnClient_Player   = 1 << 0,
-    ConnClient_Computer = 1 << 1,
-}
-ConnClientFlag;
-
-typedef struct ConnPlayer
-{
-    ConnClientFlag flags;
-    u32            code;
-    u8             symbol;
-}
-ConnPlayer;
 
 typedef enum ConnMessageKind
 {
@@ -105,5 +90,8 @@ connMessageMove(u32 code, u32 column);
 
 ConnMessage
 connMessageResult(u32 code);
+
+ssize
+connMessageToString(ConnMessage message, u8* values, ssize size);
 
 #endif // CONN_MESSAGE_H

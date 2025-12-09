@@ -17,6 +17,7 @@ typedef enum ConnClientState
     ConnClientState_Stopping,
 
     ConnClientState_WaitingTurn,
+    ConnClientState_ChoosingMove,
     ConnClientState_SendingMove,
     ConnClientState_WaitingMove,
 }
@@ -36,10 +37,53 @@ typedef struct ConnClient
     u32 clientCode;
     u32 column;
 
+    ConnBoard board;
+
     u8 writing[CONN_MESSAGE_SIZE];
     u8 reading[CONN_MESSAGE_SIZE];
 }
 ConnClient;
+
+void
+connMessageShow(ConnMessage message)
+{
+    u8    buffer[1024] = {0};
+    ssize count        = connMessageToString(message, buffer, 1024);
+
+    if (count != 0)
+        printf("%.*s\n", ((int) count), buffer);
+}
+
+void
+connBoardShow(ConnBoard* self)
+{
+    char* colors[] = {"\x1b[0m", "\x1b[34m", "\x1b[31m"};
+
+    for (ssize i = 0; i < self->width; i += 1)
+        printf("%s", i == 0 ? "+----+" : "----+");
+
+    printf("\n");
+
+    for (ssize r = 0; r < self->height; r += 1) {
+        printf("|");
+
+        for (ssize c = 0; c < self->width; c += 1) {
+            u32 value = self->values[self->width * r + c];
+
+            if (value != 0)
+                printf("%s%3lu%s |", colors[value], value, colors[0]);
+            else
+                printf("    |");
+        }
+
+        printf("\n");
+
+        for (ssize i = 0; i < self->width; i += 1)
+            printf("%s", i == 0 ? "+----+" : "----+");
+
+        printf("\n");
+    }
+}
 
 void
 connClientConnect(ConnClient* self, RnMemoryArena* arena)
@@ -60,6 +104,8 @@ connClientWrite(ConnClient* self, RnMemoryArena* arena, ConnMessage message)
 
     if (rnArrayIsEmpty(&self->messages) != 0) {
         ssize stop = connMessageEncode(message, self->writing, CONN_MESSAGE_SIZE);
+
+        connMessageShow(message);
 
         RnSocketTCP* socket = self->socket;
         u8*          values = self->writing;
@@ -96,6 +142,7 @@ connClientCreate(ConnClient* self, RnMemoryArena* arena)
     rnArrayCreate(&self->messages, arena, 16);
 
     // TODO(gio): move to accept/reject message
+    connBoardCreate(&self->board, arena, 7, 5);
     rnArrayCreate(&self->players, arena, 2);
 
     rnAsyncIOQueueCreate(self->queue);
@@ -137,9 +184,6 @@ connClientOnMessage(ConnClient* self, RnMemoryArena* arena, ConnMessage message)
 {
     switch (message.kind) {
         case ConnMessage_Data: {
-            printf("(Data) { clientFlags = %u, clientCode = %lu, clientSymbol = '%c' }\n",
-                message.data.clientFlags, message.data.clientCode, message.data.clientSymbol);
-
             if (message.data.clientCode > 0) {
                 ConnPlayer value = {
                     .flags  = message.data.clientFlags,
@@ -159,9 +203,6 @@ connClientOnMessage(ConnClient* self, RnMemoryArena* arena, ConnMessage message)
         } break;
 
         case ConnMessage_Turn: {
-            printf("(Turn) { clientCode = %lu }\n",
-                message.turn.clientCode);
-
             if (self->state != ConnClientState_WaitingTurn) break;
 
             if (self->clientCode != message.turn.clientCode) {
@@ -169,14 +210,16 @@ connClientOnMessage(ConnClient* self, RnMemoryArena* arena, ConnMessage message)
 
                 connClientRead(self, arena);
             } else
-                self->state = ConnClientState_SendingMove;
+                self->state = ConnClientState_ChoosingMove;
         } break;
 
         case ConnMessage_Move: {
-            printf("(Move) { clientCode = %lu, column = %lu }\n",
-                message.move.clientCode, message.move.column);
-
             if (self->state != ConnClientState_WaitingMove) break;
+
+            connBoardInsert(&self->board,
+                message.move.column, message.move.clientCode);
+
+            connBoardShow(&self->board);
 
             self->state = ConnClientState_WaitingTurn;
 
@@ -184,9 +227,6 @@ connClientOnMessage(ConnClient* self, RnMemoryArena* arena, ConnMessage message)
         } break;
 
         case ConnMessage_Result: {
-            printf("(Result) { clientCode = %lu }\n",
-                message.result.clientCode);
-
             if (message.result.clientCode != 0) {
                 if (message.result.clientCode == self->clientCode)
                     printf("Vittoria!\n");
@@ -238,6 +278,8 @@ connClientUpdateMessage(ConnClient* self, RnMemoryArena* arena)
 
                 ssize stop = connMessageEncode(message, self->writing, CONN_MESSAGE_SIZE);
 
+                connMessageShow(message);
+
                 RnSocketTCP* socket = self->socket;
                 u8*          values = self->writing;
                 ssize        start  = 0;
@@ -262,7 +304,10 @@ connClientUpdateMessage(ConnClient* self, RnMemoryArena* arena)
 
                     if (status == 0) self->state = ConnClientState_Error;
                 }
-                else connClientOnMessage(self, arena, message);
+                else {
+                    connMessageShow(message);
+                    connClientOnMessage(self, arena, message);
+                }
             } break;
 
             default: break;
@@ -277,7 +322,14 @@ connClientUpdate(ConnClient* self, RnMemoryArena* arena)
 {
     connClientUpdateMessage(self, arena);
 
-    self->column = (rand() % 10) + 1;
+    if (self->state == ConnClientState_ChoosingMove) {
+        do {
+            self->column = rand() % self->board.width;
+        }
+        while (connBoardInsert(&self->board, self->column, self->clientCode) == 0);
+
+        self->state = ConnClientState_SendingMove;
+    }
 
     if (self->state == ConnClientState_SendingMove) {
         u32 clientCode = self->clientCode;
@@ -285,6 +337,8 @@ connClientUpdate(ConnClient* self, RnMemoryArena* arena)
 
         connClientWrite(self, arena,
             connMessageMove(clientCode, column));
+
+        connBoardShow(&self->board);
 
         self->state = ConnClientState_WaitingTurn;
 
