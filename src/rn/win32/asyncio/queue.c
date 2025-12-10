@@ -126,8 +126,8 @@ rnWin32AsyncIOQueueSubmit(RnWin32AsyncIOQueue* self, RnWin32AsyncIOTask* task)
         case RnAsyncIOEvent_Write: {
             RnWin32AsyncIOTaskWrite write = task->write;
 
-            int status = WSASend(write.socket->handle,
-                &write.buffer, 1, 0, write.flags, &task->overlap, 0);
+            int status = WSASend(write.socket->handle, &write.buffer, 1,
+                0, write.flags, &task->overlap, 0);
 
             if (status == SOCKET_ERROR && WSAGetLastError() != ERROR_IO_PENDING)
                 return 0;
@@ -136,8 +136,8 @@ rnWin32AsyncIOQueueSubmit(RnWin32AsyncIOQueue* self, RnWin32AsyncIOTask* task)
         case RnAsyncIOEvent_Read: {
             RnWin32AsyncIOTaskRead read = task->read;
 
-            int status = WSARecv(read.socket->handle,
-                &read.buffer, 1, 0, &read.flags, &task->overlap, 0);
+            int status = WSARecv(read.socket->handle, &read.buffer, 1,
+                0, &read.flags, &task->overlap, 0);
 
             if (status == SOCKET_ERROR && WSAGetLastError() != ERROR_IO_PENDING)
                 return 0;

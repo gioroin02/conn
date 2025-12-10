@@ -15,6 +15,9 @@
     #define __rnSocketUDPWrite__   rnWin32SocketUDPWrite
     #define __rnSocketUDPRead__    rnWin32SocketUDPRead
 
+    #define __rnSocketUDPGetAddress__ rnWin32SocketUDPGetAddress
+    #define __rnSocketUDPGetPort__    rnWin32SocketUDPGetPort
+
 #else
 
     #error "Unknown platform"
@@ -61,6 +64,18 @@ ssize
 rnSocketUDPRead(RnSocketUDP* self, u8* values, ssize size, RnAddressIP* address, u16* port)
 {
     return __rnSocketUDPRead__(self, values, size, address, port);
+}
+
+RnAddressIP
+rnSocketUDPGetAddress(RnSocketUDP* self)
+{
+    return __rnSocketUDPGetAddress__(self);
+}
+
+u16
+rnSocketUDPGetPort(RnSocketUDP* self)
+{
+    return __rnSocketUDPGetPort__(self);
 }
 
 #endif // RN_SYSTEM_NETWORK_SOCKET_UDP_C

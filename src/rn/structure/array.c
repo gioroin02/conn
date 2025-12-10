@@ -18,11 +18,12 @@ __rnArrayTagCreate__(void* tag, void* values, RnMemoryArena* arena, ssize size, 
     if (self == 0 || values != 0 || step <= 0 || size <= 0)
         return 0;
 
-    u8* memory = rnMemoryArenaReserve(arena, size, step, &size);
-
-    if (memory != 0) self->size = size / step;
-
     self->count = 0;
+    self->size  = 0;
+
+    u8* memory = rnMemoryArenaReserve(arena, size, step, 0);
+
+    if (memory != 0) self->size = size;
 
     return memory;
 }
@@ -100,13 +101,32 @@ __rnArrayTagIsIndex__(void* tag, ssize index)
 }
 
 void
-__rnArrayClear__(void* tag)
+__rnArrayTagClear__(void* tag)
 {
-    ((RnArrayTag*) tag)->count = 0;
+    RnArrayTag* self = ((RnArrayTag*) tag);
+
+    if (self != 0)
+        self->count = 0;
 }
 
 b32
-__rnArrayTagMoveRight__(void* tag, void* values, ssize index, ssize step)
+__rnArrayTagCopy__(void* tag, void* values, ssize index, void* value, ssize step)
+{
+    RnArrayTag* self = ((RnArrayTag*) tag);
+
+    if (self == 0 || values == 0 || step <= 0 || index < 0 || index >= self->count)
+        return 0;
+
+    if (value == 0) return 1;
+
+    for (ssize i = 0; i < step; i += 1)
+        ((u8*) value)[i] = ((u8*) values)[i + index * step];
+
+    return 1;
+}
+
+b32
+__rnArrayTagSlideRight__(void* tag, void* values, ssize index, ssize step)
 {
     RnArrayTag* self = ((RnArrayTag*) tag);
 
@@ -119,29 +139,28 @@ __rnArrayTagMoveRight__(void* tag, void* values, ssize index, ssize step)
     for (ssize i = start; i > stop; i -= 1)
         ((u8*) values)[i + step - 1] = ((u8*) values)[i - 1];
 
+    for (ssize i = 0; i < step; i += 1)
+        ((u8*) values)[i + index * step] = 0;
+
     return 1;
 }
 
 b32
-__rnArrayTagRemove__(void* tag, void* values, ssize index, void* value, ssize step)
+__rnArrayTagSlideLeft__(void* tag, void* values, ssize index, ssize step)
 {
     RnArrayTag* self = ((RnArrayTag*) tag);
 
     if (self == 0 || values == 0 || step <= 0 || index < 0 || index >= self->count)
         return 0;
 
-    self->count -= 1;
-
     ssize start = step * index;
     ssize stop  = step * self->count;
 
-    if (value != 0) {
-        for (ssize i = 0; i < step; i += 1)
-            ((u8*) value)[i] = ((u8*) values)[i + index * step];
-    }
-
     for (ssize i = start; i < stop; i += 1)
         ((u8*) values)[i] = ((u8*) values)[i + step];
+
+    for (ssize i = 0; i < step; i += 1)
+        ((u8*) values)[i + self->count * step] = 0;
 
     return 1;
 }

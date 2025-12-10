@@ -24,26 +24,53 @@
 #define rnArrayIsEmpty(self)        __rnArrayTagIsEmpty__(&(self)->arrayTag)
 #define rnArrayIsFull(self)         __rnArrayTagIsFull__(&(self)->arrayTag)
 #define rnArrayIsIndex(self, index) __rnArrayTagIsIndex__(&(self)->arrayTag, index)
-#define rnArrayClear(self)          __rnArrayClear__(&(self)->arrayTag)
+#define rnArrayClear(self)          __rnArrayTagClear__(&(self)->arrayTag)
+
+#define rnArrayCopy(self, index, value) ( \
+    __rnArrayTagCopy__(                   \
+        &(self)->arrayTag,                \
+        (self)->values,                   \
+        index,                            \
+        value,                            \
+        sizeof(*(self)->values))          \
+)
+
+#define rnArraySlideRight(self, index) ( \
+    __rnArrayTagSlideRight__(            \
+        &(self)->arrayTag,               \
+        (self)->values,                  \
+        index,                           \
+        sizeof(*(self)->values))         \
+)
+
+#define rnArraySlideLeft(self, index) ( \
+    __rnArrayTagSlideLeft__(            \
+        &(self)->arrayTag,              \
+        (self)->values,                 \
+        index,                          \
+        sizeof(*(self)->values))        \
+)
 
 #define rnArrayInsert(self, index, value) ( \
-    __rnArrayTagMoveRight__(                \
-        &(self)->arrayTag,                  \
-        (self)->values,                     \
-        index,                              \
-        sizeof(*(self)->values)             \
-    ) != 0 ? (                              \
+    rnArraySlideRight(self, index) != 0     \
+    ? (                                     \
         (self)->values[index]   = value,    \
         (self)->arrayTag.count += 1         \
     ), 1                                    \
     :  0                                    \
 )
 
+#define rnArrayRemove(self, index, value) ( \
+    rnArrayCopy(self, index, value) != 0    \
+    ? (                                     \
+        rnArraySlideLeft(self, index),      \
+        (self)->arrayTag.count -= 1         \
+    ), 1                                    \
+    :  0                                    \
+)
+
 #define rnArrayPushFront(self, value) rnArrayInsert(self, 0,                  value)
 #define rnArrayPushBack(self, value)  rnArrayInsert(self, rnArrayCount(self), value)
-
-#define rnArrayRemove(self, index, value) \
-    (__rnArrayTagRemove__(&(self)->arrayTag, (self)->values, index, value, sizeof(*(self)->values)))
 
 #define rnArrayPopFront(self, value) rnArrayRemove(self, 0,                 value)
 #define rnArrayPopBack(self, value)  rnArrayRemove(self, rnArrayBack(self), value)
@@ -79,12 +106,15 @@ b32
 __rnArrayTagIsIndex__(void* tag, ssize index);
 
 void
-__rnArrayClear__(void* tag);
+__rnArrayTagClear__(void* tag);
 
 b32
-__rnArrayTagMoveRight__(void* tag, void* values, ssize index, ssize step);
+__rnArrayTagCopy__(void* tag, void* values, ssize index, void* value, ssize step);
 
 b32
-__rnArrayTagRemove__(void* tag, void* values, ssize index, void* value, ssize step);
+__rnArrayTagSlideRight__(void* tag, void* values, ssize index, ssize step);
+
+b32
+__rnArrayTagSlideLeft__(void* tag, void* values, ssize index, ssize step);
 
 #endif // RN_STRUCTURE_ARRAY_H

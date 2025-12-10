@@ -63,29 +63,29 @@ connMessageShow(ConnMessage message)
 void
 connBoardShow(ConnBoard* self)
 {
-    char* colors[] = {"\x1b[0m", "\x1b[34m", "\x1b[31m"};
+    char* colors[] = {"\x1b[0m", "\x1b[44m", "\x1b[41m"};
 
     for (ssize i = 0; i < self->width; i += 1)
-        printf("%s", i == 0 ? "+----+" : "----+");
+        printf("%s", i == 0 ? "+-----+" : "-----+");
 
     printf("\n");
 
     for (ssize r = 0; r < self->height; r += 1) {
-        printf("|");
+        printf("| ");
 
         for (ssize c = 0; c < self->width; c += 1) {
-            u32 value = self->values[self->width * r + c];
+            u32 value = connBoardGet(self, c, r);
 
             if (value != 0)
-                printf("%s%3lu%s |", colors[value], value, colors[0]);
+                printf("%s %lu %s | ", colors[value], value, colors[0]);
             else
-                printf("    |");
+                printf("    | ");
         }
 
         printf("\n");
 
         for (ssize i = 0; i < self->width; i += 1)
-            printf("%s", i == 0 ? "+----+" : "----+");
+            printf("%s", i == 0 ? "+-----+" : "-----+");
 
         printf("\n");
     }

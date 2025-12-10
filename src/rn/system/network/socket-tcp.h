@@ -35,4 +35,10 @@ rnSocketTCPWrite(RnSocketTCP* self, u8* values, ssize size);
 ssize
 rnSocketTCPRead(RnSocketTCP* self, u8* values, ssize size);
 
+RnAddressIP
+rnSocketTCPGetAddress(RnSocketTCP* self);
+
+u16
+rnSocketTCPGetPort(RnSocketTCP* self);
+
 #endif // RN_SYSTEM_NETWORK_SOCKET_TCP_H

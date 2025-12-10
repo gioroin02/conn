@@ -3,7 +3,7 @@
 
 #include "./import.h"
 
-#define RN_MEMORY_DEFAULT_ALIGNMENT ((ssize) 16ll)
+#define RN_MEMORY_DEFAULT_ALIGNMENT ((ssize) 16)
 
 #define RN_MEMORY_KB ((ssize) 1000ll)
 #define RN_MEMORY_MB ((ssize) 1000ll * 1000ll)

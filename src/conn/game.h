@@ -48,6 +48,9 @@ connBoardHeight(ConnBoard* self, ssize column, ssize* height);
 b32
 connBoardInsert(ConnBoard* self, ssize column, u32 value);
 
+u32
+connBoardGet(ConnBoard* self, ssize column, ssize row);
+
 b32
 connBoardIsWinner(ConnBoard* self, ssize column, u32 value);
 

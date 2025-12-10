@@ -3,25 +3,19 @@
 
 #include "./task.h"
 
+#define RN_WIN32_ASYNCIO_ACCEPT_LENGTH ((sizeof(RnSockAddrStorage) + 16) * 2)
+
 RnWin32AsyncIOTask*
 rnWin32AsyncIOTaskAccept(RnMemoryArena* arena, void* ctxt, RnWin32SocketTCP* listener, RnWin32SocketTCP* socket)
 {
-    ssize length = (sizeof(RnSockAddrStorage) + 16) * 2;
-
-    RnAddressIPKind kind = RnAddressIP_None;
+    RnAddressIP address = rnAddressIPEmpty(rnSocketTCPGetAddress(listener).kind);
 
     RnWin32AsyncIOTask* result =
         rnMemoryArenaReserveOneOf(arena, RnWin32AsyncIOTask);
 
-    switch (listener->storage.ss_family) {
-        case AF_INET:  kind = RnAddressIP_IPv4; break;
-        case AF_INET6: kind = RnAddressIP_IPv6; break;
+    if (result == 0 || rnSocketTCPCreate(socket, address, 0) == 0) return 0;
 
-        default: break;
-    }
-
-    if (result == 0 || rnSocketTCPCreate(socket, rnAddressIPEmpty(kind), 0) == 0)
-        return 0;
+    ssize size = RN_WIN32_ASYNCIO_ACCEPT_LENGTH;
 
     *result = (RnWin32AsyncIOTask) {
         .kind = RnAsyncIOEvent_Accept,
@@ -30,8 +24,8 @@ rnWin32AsyncIOTaskAccept(RnMemoryArena* arena, void* ctxt, RnWin32SocketTCP* lis
         .accept = {
             .listener = listener,
             .socket   = socket,
-            .buffer   = rnMemoryArenaReserveManyOf(arena, u8, length),
-            .size     = length,
+            .buffer   = rnMemoryArenaReserveManyOf(arena, u8, size),
+            .size     = size,
         },
     };
 
@@ -45,17 +39,8 @@ rnWin32AsyncIOTaskAccept(RnMemoryArena* arena, void* ctxt, RnWin32SocketTCP* lis
 RnWin32AsyncIOTask*
 rnWin32AsyncIOTaskConnect(RnMemoryArena* arena, void* ctxt, RnWin32SocketTCP* socket, RnAddressIP address, u16 port)
 {
-    RnAddressIPKind kind = RnAddressIP_None;
-
     RnWin32AsyncIOTask* result =
         rnMemoryArenaReserveOneOf(arena, RnWin32AsyncIOTask);
-
-    switch (socket->storage.ss_family) {
-        case AF_INET:  kind = RnAddressIP_IPv4; break;
-        case AF_INET6: kind = RnAddressIP_IPv6; break;
-
-        default: break;
-    }
 
     if (result == 0 || rnSocketTCPBind(socket) == 0) return 0;
 

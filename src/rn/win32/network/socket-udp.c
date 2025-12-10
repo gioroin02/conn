@@ -15,15 +15,13 @@ rnWin32SocketUDPCreate(RnWin32SocketUDP* self, RnAddressIP address, u16 port)
     RnSockAddrStorage storage = {0};
     ssize             length  = 0;
 
-    if (self == 0 || address.kind == RnAddressIP_None)
+    if (self == 0 || address.kind == RnAddressIP_None || rnWin32NetworkStart() == 0)
         return 0;
-
-    if (rnWin32NetworkStart() == 0) return 0;
 
     storage = rnSockAddrStorageMake(address, port, &length);
 
-    SOCKET handle = WSASocketA(storage.ss_family,
-        SOCK_DGRAM, IPPROTO_UDP, 0, 0, WSA_FLAG_OVERLAPPED);
+    SOCKET handle = WSASocketA(storage.ss_family, SOCK_DGRAM, IPPROTO_UDP,
+        0, 0, WSA_FLAG_OVERLAPPED);
 
     if (handle == INVALID_SOCKET) return 0;
 
@@ -62,10 +60,8 @@ rnWin32SocketUDPBind(RnWin32SocketUDP* self)
 
     if (length == 0) return 0;
 
-    int status = bind(self->handle,
-        ((RnSockAddr*) &self->storage), length);
-
-    if (status == SOCKET_ERROR) return 0;
+    if (bind(self->handle, ((RnSockAddr*) &self->storage), length) == SOCKET_ERROR)
+        return 0;
 
     return 1;
 }
@@ -76,17 +72,12 @@ rnWin32SocketUDPBindTo(RnWin32SocketUDP* self, RnAddressIP address, u16 port)
     RnSockAddrStorage storage = {0};
     ssize             length  = 0;
 
-    if (self == 0) return 0;
-
     storage = rnSockAddrStorageMake(address, port, &length);
 
-    if (storage.ss_family != self->storage.ss_family)
+    if (self == 0 || storage.ss_family != self->storage.ss_family) return 0;
+
+    if (bind(self->handle, ((RnSockAddr*) &storage), length) == SOCKET_ERROR)
         return 0;
-
-    int status = bind(self->handle,
-        ((RnSockAddr*) &storage), length);
-
-    if (status == SOCKET_ERROR) return 0;
 
     self->storage = storage;
 
@@ -123,18 +114,27 @@ rnWin32SocketUDPRead(RnWin32SocketUDP* self, u8* values, ssize size, RnAddressIP
 
     RnSockAddrStorage storage = {0};
 
-    count = recvfrom(self->handle, ((char*) values),
-        ((int) size), 0, ((RnSockAddr*) &storage), &length);
+    count = recvfrom(self->handle, ((char*) values), ((int) size),
+        0, ((RnSockAddr*) &storage), &length);
 
     if (count <= 0 || count > size) return 0;
 
-    if (address != 0)
-        *address = rnSockAddrStorageGetAddress(&storage);
-
-    if (port != 0)
-        *port = rnSockAddrStorageGetPort(&storage);
+    if (address != 0) *address = rnSockAddrStorageGetAddress(&storage);
+    if (port != 0)    *port    = rnSockAddrStorageGetPort(&storage);
 
     return count;
+}
+
+RnAddressIP
+rnWin32SocketUDPGetAddress(RnWin32SocketUDP* self)
+{
+    return rnSockAddrStorageGetAddress(&self->storage);
+}
+
+u16
+rnWin32SocketUDPGetPort(RnWin32SocketUDP* self)
+{
+    return rnSockAddrStorageGetPort(&self->storage);
 }
 
 #endif // RN_WIN32_NETWORK_SOCKET_UDP_C

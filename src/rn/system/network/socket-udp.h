@@ -26,4 +26,10 @@ rnSocketUDPWrite(RnSocketUDP* self, u8* values, ssize size, RnAddressIP address,
 ssize
 rnSocketUDPRead(RnSocketUDP* self, u8* values, ssize size, RnAddressIP* address, u16* port);
 
+RnAddressIP
+rnSocketUDPGetAddress(RnSocketUDP* self);
+
+u16
+rnSocketUDPGetPort(RnSocketUDP* self);
+
 #endif // RN_SYSTEM_NETWORK_SOCKET_UDP_H

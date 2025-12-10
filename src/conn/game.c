@@ -3,47 +3,23 @@
 
 #include "./game.h"
 
-typedef union ConnBoardVec2
+static ssize
+connBoardCountConsecutive(ConnBoard* self, ssize column, ssize row, ssize dx, ssize dy, u32* value)
 {
-    ssize values[2];
-
-    struct
-    {
-        ssize v0;
-        ssize v1;
-    };
-} ConnBoardVec2;
-
-#define CONN_BOARD_DIRS ((ssize) 8)
-
-static const ConnBoardVec2 gConnBoardDirs[CONN_BOARD_DIRS] = {
-    {+1,  0}, {+1, +1}, { 0, +1}, {-1, +1},
-    {-1,  0}, {-1, -1}, { 0, -1}, {+1, -1},
-};
-
-ssize
-connBoardCountConsecutive(ConnBoard* self, ssize column, ssize row, ConnBoardVec2 vec)
-{
-    if (self == 0) return 0;
-
-    if (column < 0 || column >= self->width)  return 0;
-    if (row    < 0 || row    >= self->height) return 0;
+    if (self == 0 || (dx == 0 && dy == 0)) return 0;
 
     ssize result = 0;
-    u32   value  = self->values[row * self->width + column];
-    u32   other  = 0;
+    u32   pivot  = connBoardGet(self, column, row);
+    u32   other  = pivot;
 
-    do {
-        if (column < 0 || column >= self->width)  break;
-        if (row    < 0 || row    >= self->height) break;
+    for (; pivot == other; result += 1) {
+        column += dx;
+        row    += dy;
 
-        column += vec.v0;
-        row    += vec.v1;
-        result += 1;
-
-        other = self->values[row * self->width + column];
+        other = connBoardGet(self, column, row);
     }
-    while (value == other);
+
+    if (value != 0) * value = pivot;
 
     return result;
 }
@@ -126,10 +102,26 @@ connBoardInsert(ConnBoard* self, ssize column, u32 value)
     return 1;
 }
 
+u32
+connBoardGet(ConnBoard* self, ssize column, ssize row)
+{
+    if (self == 0) return 0;
+
+    if (column < 0 || column >= self->width)  return 0;
+    if (row    < 0 || row    >= self->height) return 0;
+
+    return self->values[row * self->width + column];
+}
+
 b32
 connBoardIsWinner(ConnBoard* self, ssize column, u32 code)
 {
-    if (self == 0 || column < 0 || column >= self->width)
+    #define DIRS ((ssize) 8)
+
+    static ssize dirsCos[DIRS] = {+1, +1,  0, -1, -1, -1,  0, +1};
+    static ssize dirsSin[DIRS] = { 0, +1, +1, +1,  0, -1, -1, -1};
+
+    if (self == 0 || column < 0 || column >= self->width || code == 0)
         return 0;
 
     ssize height = 0;
@@ -138,11 +130,14 @@ connBoardIsWinner(ConnBoard* self, ssize column, u32 code)
 
     ssize row = height + 1;
 
-    for (ssize i = 0; i < CONN_BOARD_DIRS; i += 1) {
-        ssize j = (i + CONN_BOARD_DIRS / 2) % CONN_BOARD_DIRS;
+    for (ssize i = 0; i < DIRS; i += 1) {
+        ssize j = (i + DIRS / 2) % DIRS;
 
-        ssize forw = connBoardCountConsecutive(self, column, row, gConnBoardDirs[i]);
-        ssize back = connBoardCountConsecutive(self, column, row, gConnBoardDirs[j]);
+        ssize forw = connBoardCountConsecutive(self,
+            column, row, dirsCos[i], dirsSin[i], 0);
+
+        ssize back = connBoardCountConsecutive(self,
+            column, row, dirsCos[j], dirsSin[j], 0);
 
         if (forw + back > 4) return 1;
     }

@@ -18,6 +18,9 @@
     #define __rnSocketTCPWrite__   rnWin32SocketTCPWrite
     #define __rnSocketTCPRead__    rnWin32SocketTCPRead
 
+    #define __rnSocketTCPGetAddress__ rnWin32SocketTCPGetAddress
+    #define __rnSocketTCPGetPort__    rnWin32SocketTCPGetPort
+
 #else
 
     #error "Unknown platform"
@@ -82,6 +85,18 @@ ssize
 rnSocketTCPRead(RnSocketTCP* self, u8* values, ssize size)
 {
     return __rnSocketTCPRead__(self, values, size);
+}
+
+RnAddressIP
+rnSocketTCPGetAddress(RnSocketTCP* self)
+{
+    return __rnSocketTCPGetAddress__(self);
+}
+
+u16
+rnSocketTCPGetPort(RnSocketTCP* self)
+{
+    return __rnSocketTCPGetPort__(self);
 }
 
 #endif // RN_SYSTEM_NETWORK_SOCKET_TCP_C

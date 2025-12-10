@@ -31,4 +31,10 @@ rnWin32SocketUDPWrite(RnWin32SocketUDP* self, u8* values, ssize size, RnAddressI
 ssize
 rnWin32SocketUDPRead(RnWin32SocketUDP* self, u8* values, ssize size, RnAddressIP* address, u16* port);
 
+RnAddressIP
+rnWin32SocketUDPGetAddress(RnWin32SocketUDP* self);
+
+u16
+rnWin32SocketUDPGetPort(RnWin32SocketUDP* self);
+
 #endif // RN_WIN32_NETWORK_SOCKET_UDP_H

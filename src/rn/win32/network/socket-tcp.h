@@ -40,4 +40,10 @@ rnWin32SocketTCPWrite(RnWin32SocketTCP* self, u8* values, ssize size);
 ssize
 rnWin32SocketTCPRead(RnWin32SocketTCP* self, u8* values, ssize size);
 
+RnAddressIP
+rnWin32SocketTCPGetAddress(RnWin32SocketTCP* self);
+
+u16
+rnWin32SocketTCPGetPort(RnWin32SocketTCP* self);
+
 #endif // RN_WIN32_NETWORK_SOCKET_TCP_H

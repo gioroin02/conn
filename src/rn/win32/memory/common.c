@@ -29,7 +29,7 @@ rnWin32MemoryReserve(ssize size)
 
     if (size <= 0) return result;
 
-    memory = VirtualAlloc(0, ((DWORD) size),
+    memory = VirtualAlloc(0, size,
         MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
     if (memory != 0)
