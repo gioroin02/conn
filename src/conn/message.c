@@ -8,7 +8,7 @@
 ConnMessage
 connMessageDecode(u8* values, ssize size)
 {
-    ConnMessage result = {0};
+    ConnMessage result;
 
     if (size < CONN_MESSAGE_SIZE_HEADER) return result;
 
@@ -21,26 +21,25 @@ connMessageDecode(u8* values, ssize size)
 
     switch (result.kind) {
         case ConnMessage_Join:
-            result.join.clientFlags = ((ConnClientFlag) connMemoryReadU32(values, 12, size));
+            result.join.flag = ((ConnClientFlag) connMemoryReadU32(values, 12, size));
         break;
 
         case ConnMessage_Data: {
-            result.data.clientFlags  = ((ConnClientFlag) connMemoryReadU32(values, 12, size));
-            result.data.clientCode   = connMemoryReadU32(values, 16, size);
-            result.data.clientSymbol = connMemoryReadU8(values, 20, size);
+            result.data.flag   = ((ConnClientFlag) connMemoryReadU32(values, 12, size));
+            result.data.client = connMemoryReadU32(values, 16, size);
         } break;
 
         case ConnMessage_Turn:
-            result.turn.clientCode = connMemoryReadU32(values, 12, size);
+            result.turn.client = connMemoryReadU32(values, 12, size);
         break;
 
         case ConnMessage_Move: {
-            result.move.clientCode = connMemoryReadU32(values, 12, size);
-            result.move.column     = connMemoryReadU32(values, 16, size);
+            result.move.client = connMemoryReadU32(values, 12, size);
+            result.move.column = connMemoryReadU32(values, 16, size);
         } break;
 
         case ConnMessage_Result:
-            result.result.clientCode = connMemoryReadU32(values, 12, size);
+            result.result.client = connMemoryReadU32(values, 12, size);
         break;
 
         default: break;
@@ -57,7 +56,7 @@ connMessageEncode(ConnMessage message, u8* values, ssize size)
 
     switch (message.kind) {
         case ConnMessage_Join:   length += 4; break;
-        case ConnMessage_Data:   length += 9; break;
+        case ConnMessage_Data:   length += 8; break;
         case ConnMessage_Turn:   length += 4; break;
         case ConnMessage_Move:   length += 8; break;
         case ConnMessage_Result: length += 4; break;
@@ -73,26 +72,25 @@ connMessageEncode(ConnMessage message, u8* values, ssize size)
 
     switch (message.kind) {
         case ConnMessage_Join:
-            connMemoryWriteU32(message.join.clientFlags, values, 12, size);
+            connMemoryWriteU32(message.join.flag, values, 12, size);
         break;
 
         case ConnMessage_Data: {
-            connMemoryWriteU32(message.data.clientFlags, values, 12, size);
-            connMemoryWriteU32(message.data.clientCode,  values, 16, size);
-            connMemoryWriteU8(message.data.clientSymbol, values, 20, size);
+            connMemoryWriteU32(message.data.flag,   values, 12, size);
+            connMemoryWriteU32(message.data.client, values, 16, size);
         } break;
 
         case ConnMessage_Turn:
-            connMemoryWriteU32(message.turn.clientCode, values, 12, size);
+            connMemoryWriteU32(message.turn.client, values, 12, size);
         break;
 
         case ConnMessage_Move: {
-            connMemoryWriteU32(message.move.clientCode, values, 12, size);
-            connMemoryWriteU32(message.move.column,     values, 16, size);
+            connMemoryWriteU32(message.move.client, values, 12, size);
+            connMemoryWriteU32(message.move.column, values, 16, size);
         } break;
 
         case ConnMessage_Result:
-            connMemoryWriteU32(message.result.clientCode, values, 12, size);
+            connMemoryWriteU32(message.result.client, values, 12, size);
         break;
 
         default: break;
@@ -108,21 +106,20 @@ connMessageJoin(ConnClientFlag flags)
         .kind = ConnMessage_Join,
 
         .join = {
-            .clientFlags = flags,
+            .flag = flags,
         }
     };
 }
 
 ConnMessage
-connMessageData(ConnPlayer player)
+connMessageData(ConnClientFlag flag, u32 client)
 {
     return (ConnMessage) {
         .kind = ConnMessage_Data,
 
         .data = {
-            .clientFlags  = player.flags,
-            .clientCode   = player.code,
-            .clientSymbol = player.symbol,
+            .flag   = flag,
+            .client = client,
         }
     };
 }
@@ -134,7 +131,7 @@ connMessageTurn(u32 code)
         .kind = ConnMessage_Turn,
 
         .turn = {
-            .clientCode = code,
+            .client = code,
         }
     };
 }
@@ -146,7 +143,7 @@ connMessageMove(u32 code, u32 column)
         .kind = ConnMessage_Move,
 
         .move = {
-            .clientCode = code,
+            .client = code,
             .column     = column,
         }
     };
@@ -159,7 +156,7 @@ connMessageResult(u32 code)
         .kind = ConnMessage_Result,
 
         .result = {
-            .clientCode = code,
+            .client = code,
         }
     };
 }
@@ -171,28 +168,28 @@ connMessageToString(ConnMessage message, u8* values, ssize size)
 
     switch (message.kind) {
         case ConnMessage_Join: {
-            result = snprintf(((char*) values), size, "(Join) {.clientFlags = %u}",
-                message.join.clientFlags);
+            result = snprintf(((char*) values), size, "(Join) {.flag = %u}",
+                message.join.flag);
         } break;
 
         case ConnMessage_Data: {
-            result = snprintf(((char*) values), size, "(Data) {.clientFlags = %u, .clientCode = %lu, .clientSymbol = '%c'}",
-                message.data.clientFlags, message.data.clientCode, message.data.clientSymbol);
+            result = snprintf(((char*) values), size, "(Data) {.flag = %u, .client = %lu}",
+                message.data.flag, message.data.client);
         } break;
 
         case ConnMessage_Turn: {
-            result = snprintf(((char*) values), size, "(Turn) {.clientCode = %lu}",
-                message.turn.clientCode);
+            result = snprintf(((char*) values), size, "(Turn) {.client = %lu}",
+                message.turn.client);
         } break;
 
         case ConnMessage_Move: {
-            result = snprintf(((char*) values), size, "(Move) {.clientCode = %lu, .column = %lu}",
-                message.move.clientCode, message.move.column);
+            result = snprintf(((char*) values), size, "(Move) {.client = %lu, .column = %lu}",
+                message.move.client, message.move.column);
         } break;
 
         case ConnMessage_Result: {
-            result = snprintf(((char*) values), size, "(Result) {.clientCode = %lu}",
-                message.result.clientCode);
+            result = snprintf(((char*) values), size, "(Result) {.client = %lu}",
+                message.result.client);
         } break;
 
         default: result = snprintf(((char*) values), size, "(None) {}"); break;

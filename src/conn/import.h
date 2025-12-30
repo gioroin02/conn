@@ -1,12 +1,14 @@
 #ifndef CONN_IMPORT_H
 #define CONN_IMPORT_H
 
-#include "../rn/base/memory/export.h"
+#include "../pax/base/memory/export.h"
 
-#include "../rn/structure/export.h"
+#include "../pax/structure/export.h"
 
-#include "../rn/system/memory/export.h"
-#include "../rn/system/network/export.h"
-#include "../rn/system/asyncio/export.h"
+#include "../pax/system/memory/export.h"
+#include "../pax/system/network/export.h"
+
+#include "../pax/system/async/export.h"
+#include "../pax/system/async/network/export.h"
 
 #endif // CONN_IMPORT_H

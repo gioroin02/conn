@@ -1,74 +1,40 @@
 #ifndef CONN_CLIENT_C
 #define CONN_CLIENT_C
 
-#include "./message.h"
+#include "client.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-
-typedef enum ConnClientState
-{
-    ConnClientState_None,
-
-    ConnClientState_Error,
-
-    ConnClientState_Starting,
-    ConnClientState_Stopping,
-
-    ConnClientState_WaitingTurn,
-    ConnClientState_ChoosingMove,
-    ConnClientState_SendingMove,
-    ConnClientState_WaitingMove,
-}
-ConnClientState;
-
-typedef RnArray(ConnMessage) ArrayConnMessage;
-typedef RnArray(ConnPlayer)  ArrayConnPlayer;
-
-typedef struct ConnClient
-{
-    ConnClientState  state;
-    RnAsyncIOQueue*  queue;
-    RnSocketTCP*     socket;
-    ArrayConnMessage messages;
-    ArrayConnPlayer  players;
-
-    u32 clientCode;
-    u32 column;
-
-    ConnBoard board;
-
-    u8 writing[CONN_MESSAGE_SIZE];
-    u8 reading[CONN_MESSAGE_SIZE];
-}
-ConnClient;
-
-void
+static void
 connMessageShow(ConnMessage message)
 {
-    u8    buffer[1024] = {0};
-    ssize count        = connMessageToString(message, buffer, 1024);
+    u8 buffer[1024];
 
-    if (count != 0)
-        printf("%.*s\n", ((int) count), buffer);
+    pxMemorySet(buffer, sizeof buffer, 0x00);
+
+    ssize count = connMessageToString(message, buffer, 1024);
+
+    if (count > 0)
+        printf("%.*s", ((int) count), buffer);
 }
 
-void
+static void
 connBoardShow(ConnBoard* self)
 {
+    ssize index = 0;
+    ssize row   = 0;
+    ssize col   = 0;
+
     char* colors[] = {"\x1b[0m", "\x1b[44m", "\x1b[41m"};
 
-    for (ssize i = 0; i < self->width; i += 1)
-        printf("%s", i == 0 ? "+-----+" : "-----+");
+    for (index = 0; index < self->width; index += 1)
+        printf("%s", index == 0 ? "+-----+" : "-----+");
 
     printf("\n");
 
-    for (ssize r = 0; r < self->height; r += 1) {
+    for (row = 0; row < self->height; row += 1) {
         printf("| ");
 
-        for (ssize c = 0; c < self->width; c += 1) {
-            u32 value = connBoardGet(self, c, r);
+        for (col = 0; col < self->width; col += 1) {
+            u32 value = connBoardGet(self, col, row);
 
             if (value != 0)
                 printf("%s %lu %s | ", colors[value], value, colors[0]);
@@ -78,164 +44,251 @@ connBoardShow(ConnBoard* self)
 
         printf("\n");
 
-        for (ssize i = 0; i < self->width; i += 1)
-            printf("%s", i == 0 ? "+-----+" : "-----+");
+        for (index = 0; index < self->width; index += 1)
+            printf("%s", index == 0 ? "+-----+" : "-----+");
 
         printf("\n");
     }
 }
 
-void
-connClientConnect(ConnClient* self, RnMemoryArena* arena)
+ConnClient
+connClientMake()
 {
-    RnAddressIP address = rnAddressIPv4Local();
-    u16         port    = 50000;
+    ConnClient result;
 
-    b32 status = rnAsyncIOQueueSubmit(self->queue,
-        rnAsyncIOTaskConnect(arena, 0, self->socket, address, port));
+    pxMemorySet(&result, sizeof result, 0xAB);
 
-    if (status == 0) self->state = ConnClientState_Error;
-}
-
-void
-connClientWrite(ConnClient* self, RnMemoryArena* arena, ConnMessage message)
-{
-    if (rnArrayIsFull(&self->messages) != 0) self->state = ConnClientState_Error;
-
-    if (rnArrayIsEmpty(&self->messages) != 0) {
-        ssize stop = connMessageEncode(message, self->writing, CONN_MESSAGE_SIZE);
-
-        connMessageShow(message);
-
-        RnSocketTCP* socket = self->socket;
-        u8*          values = self->writing;
-        ssize        start  = 0;
-
-        b32 status = rnAsyncIOQueueSubmit(self->queue,
-            rnAsyncIOTaskWrite(arena, 0, socket, values, start, stop));
-
-        if (status == 0) self->state = ConnClientState_Error;
-    }
-    else rnArrayPushBack(&self->messages, message);
-}
-
-void
-connClientRead(ConnClient* self, RnMemoryArena* arena)
-{
-    RnSocketTCP* socket = self->socket;
-    u8*          values = self->reading;
-    ssize        start  = 0;
-    ssize        stop   = CONN_MESSAGE_SIZE;
-
-    b32 status = rnAsyncIOQueueSubmit(self->queue,
-        rnAsyncIOTaskRead(arena, 0, socket, values, start, stop));
-
-    if (status == 0) self->state = ConnClientState_Error;
-}
-
-void
-connClientCreate(ConnClient* self, RnMemoryArena* arena)
-{
-    self->queue  = rnAsyncIOQueueReserve(arena);
-    self->socket = rnSocketTCPReserve(arena);
-
-    rnArrayCreate(&self->messages, arena, 16);
-
-    // TODO(gio): move to accept/reject message
-    connBoardCreate(&self->board, arena, 7, 5);
-    rnArrayCreate(&self->players, arena, 2);
-
-    rnAsyncIOQueueCreate(self->queue);
-
-    self->state = ConnClientState_Starting;
-}
-
-void
-connClientStart(ConnClient* self, RnMemoryArena* arena)
-{
-    rnSocketTCPCreate(self->socket, rnAddressIPv4Empty(), 0);
-
-    connClientConnect(self, arena);
-}
-
-void
-connClientStop(ConnClient* self)
-{
-    rnSocketTCPDestroy(self->socket);
-}
-
-void
-connClientDestroy(ConnClient* self)
-{
-    rnAsyncIOQueueDestroy(self->queue);
+    return result;
 }
 
 b32
-connClientIsActive(ConnClient* self)
+connClientStateIsEqual(ConnClient* self, ConnClientState state)
 {
-    if (self->state == ConnClientState_Stopping) return 0;
-    if (self->state == ConnClientState_Error)    return 0;
+    return self->state_curr == state ? 1 : 0;
+}
+
+b32
+connClientStateIsActive(ConnClient* self)
+{
+    if (connClientStateIsEqual(self, ConnClientState_Stopping) != 0) return 0;
+    if (connClientStateIsEqual(self, ConnClientState_Error) != 0)    return 0;
 
     return 1;
 }
 
 void
-connClientOnMessage(ConnClient* self, RnMemoryArena* arena, ConnMessage message)
+connClientStateSet(ConnClient* self, ConnClientState state)
 {
-    switch (message.kind) {
-        case ConnMessage_Data: {
-            if (message.data.clientCode > 0) {
-                ConnPlayer value = {
-                    .flags  = message.data.clientFlags,
-                    .code   = message.data.clientCode,
-                    .symbol = message.data.clientSymbol,
-                };
+    self->state_prev = self->state_curr;
+    self->state_curr = state;
 
-                rnArrayInsert(&self->players, value.code - 1, value);
+    connClientOnStateChange(self, self->state_prev, self->state_curr);
+}
 
-                if (self->clientCode == 0)
-                    self->clientCode = value.code;
+void
+connClientStateSetError(ConnClient* self)
+{
+    connClientStateSet(self, ConnClientState_Error);
+}
+
+b32
+connClientCreate(ConnClient* self, PxMemoryArena* arena)
+{
+    self->async  = pxAsyncReserve(arena);
+    self->socket = pxSocketTcpReserve(arena);
+    self->client = 0;
+    self->column = 0;
+
+    pxMemorySet(self->writing, sizeof self->writing, 0x00);
+    pxMemorySet(self->reading, sizeof self->reading, 0x00);
+
+    if (pxAsyncCreate(self->async, arena, pxMemoryKiB(32)) == 0)
+        return 0;
+
+    if (pxSocketTcpCreate(self->socket, pxAddressIp4Empty(), 0) == 0)
+        return 0;
+
+    if (pxArrayCreate(&self->messages, arena, 16) == 0) return 0;
+    if (pxArrayCreate(&self->players, arena, 2) == 0)   return 0;
+
+    if (connBoardCreate(&self->board, arena, 7, 5) == 0) return 0;
+
+    self->state_curr = ConnClientState_None;
+    self->state_prev = ConnClientState_None;
+
+    connClientStateSet(self, ConnClientState_Starting);
+
+    return 1;
+}
+
+void
+connClientDestroy(ConnClient* self)
+{
+    pxSocketTcpDestroy(self->socket);
+    pxAsyncDestroy(self->async);
+}
+
+void
+connClientStart(ConnClient* self)
+{
+    connClientTcpConnect(self, pxAddressIp4Local(), 50000);
+}
+
+void
+connClientStop(ConnClient* self) {}
+
+void
+connClientUpdate(ConnClient* self)
+{
+    connClientPollEvents(self);
+
+    if (connClientStateIsEqual(self, ConnClientState_ChoosingMove) != 0) {
+        b32 status = 0;
+
+        while (status == 0) {
+            self->column = rand() % self->board.width;
+
+            status = connBoardInsert(&self->board,
+                self->column, self->client);
+        }
+
+        connClientStateSet(self, ConnClientState_SendingMove);
+    }
+
+    if (connClientStateIsEqual(self, ConnClientState_SendingMove) != 0) {
+        u32 client = self->client;
+        u32 column = self->column;
+
+        connClientTcpWrite(self,
+            connMessageMove(client, column));
+
+        connBoardShow(&self->board);
+
+        connClientStateSet(self, ConnClientState_WaitingTurn);
+
+        connClientTcpRead(self);
+    }
+}
+
+void
+connClientTcpConnect(ConnClient* self, PxAddressIp address, u16 port)
+{
+    b32 status = pxSocketTcpConnectAsync(
+        self->async, PX_NULL, self->socket, address, port);
+
+    if (status == 0) connClientStateSetError(self);
+}
+
+void
+connClientTcpWrite(ConnClient* self, ConnMessage message)
+{
+    PxSocketTcp* socket = self->socket;
+    u8*          values = self->writing;
+    ssize        start  = 0;
+    ssize        stop   = 0;
+
+    stop = connMessageEncode(message, self->writing, CONN_MESSAGE_SIZE);
+
+    if (pxArrayIsFull(&self->messages) != 0) connClientStateSetError(self);
+
+    if (pxArrayIsEmpty(&self->messages) != 0) {
+        b32 status = pxSocketTcpWriteAsync(
+            self->async, PX_NULL, socket, values, start, stop);
+
+        if (status != 0)
+            connClientOnTcpWrite(self, message);
+        else
+            connClientStateSetError(self);
+    }
+    else pxArrayInsertBack(&self->messages, message);
+}
+
+void
+connClientTcpRead(ConnClient* self)
+{
+    PxSocketTcp* socket = self->socket;
+    u8*          values = self->reading;
+    ssize        start  = 0;
+    ssize        stop   = CONN_MESSAGE_SIZE;
+
+    b32 status = pxSocketTcpReadAsync(
+        self->async, PX_NULL, socket, values, start, stop);
+
+    if (status == 0) connClientStateSetError(self);
+}
+
+void
+connClientPollEvents(ConnClient* self)
+{
+    PxAsyncEventFamily family = PxAsyncEventFamily_None;
+    void*              event  = PX_NULL;
+    void*              tag    = PX_NULL;
+
+    do {
+        family = pxAsyncPoll(self->async, &tag, &event, 10);
+
+        switch (family) {
+            case PxAsyncEventFamily_Tcp:
+                connClientOnTcpEvent(self, (PxSocketTcpEvent*) event);
+            break;
+
+            default: break;
+        }
+
+        pxAsyncReturn(self->async, event);
+    }
+    while (family != PxAsyncEventFamily_None);
+}
+
+void
+connClientOnTcpEvent(ConnClient* self, PxSocketTcpEvent* event)
+{
+    switch (event->kind) {
+        case PxSocketTcpEvent_Error: connClientStateSetError(self); break;
+
+        case PxSocketTcpEvent_Connect: {
+            if (event->connect.status != 0)
+                connClientOnTcpConnect(self);
+            else
+                connClientStateSetError(self);
+        } break;
+
+        case PxSocketTcpEvent_Write: {
+            PxSocketTcp* socket = self->socket;
+            u8*          values = self->writing;
+            ssize        start  = 0;
+            ssize        stop   = 0;
+
+            ConnMessage message;
+
+            if (pxArrayRemoveFront(&self->messages, &message) == 0) break;
+
+            stop = connMessageEncode(message, self->writing, CONN_MESSAGE_SIZE);
+
+            b32 status = pxSocketTcpWriteAsync(
+                self->async, PX_NULL, socket, values, start, stop);
+
+            if (status != 0)
+                connClientOnTcpWrite(self, message);
+            else
+                connClientStateSetError(self);
+        } break;
+
+        case PxSocketTcpEvent_Read: {
+            PxSocketTcp* socket = event->read.socket;
+            u8*          values = event->read.values;
+            ssize        start  = event->read.stop;
+            ssize        stop   = CONN_MESSAGE_SIZE;
+
+            ConnMessage message = connMessageDecode(event->read.values, event->read.stop);
+
+            if (message.length <= 0 || event->read.stop < message.length) {
+                b32 status = pxSocketTcpReadAsync(
+                    self->async, PX_NULL, socket, values, start, stop);
+
+                if (status == 0) connClientStateSetError(self);
             }
-
-            connClientRead(self, arena);
-
-            self->state = ConnClientState_WaitingTurn;
-        } break;
-
-        case ConnMessage_Turn: {
-            if (self->state != ConnClientState_WaitingTurn) break;
-
-            if (self->clientCode != message.turn.clientCode) {
-                self->state = ConnClientState_WaitingMove;
-
-                connClientRead(self, arena);
-            } else
-                self->state = ConnClientState_ChoosingMove;
-        } break;
-
-        case ConnMessage_Move: {
-            if (self->state != ConnClientState_WaitingMove) break;
-
-            connBoardInsert(&self->board,
-                message.move.column, message.move.clientCode);
-
-            connBoardShow(&self->board);
-
-            self->state = ConnClientState_WaitingTurn;
-
-            connClientRead(self, arena);
-        } break;
-
-        case ConnMessage_Result: {
-            if (message.result.clientCode != 0) {
-                if (message.result.clientCode == self->clientCode)
-                    printf("Vittoria!\n");
-                else
-                    printf("Sconfitta...\n");
-            }
-            else printf("Pareggio.\n");
-
-            self->state = ConnClientState_Stopping;
+            else connClientOnTcpRead(self, message);
         } break;
 
         default: break;
@@ -243,126 +296,91 @@ connClientOnMessage(ConnClient* self, RnMemoryArena* arena, ConnMessage message)
 }
 
 void
-connClientUpdateMessage(ConnClient* self, RnMemoryArena* arena)
+connClientOnTcpConnect(ConnClient* self)
 {
-    RnAsyncIOEvent event = {0};
+    printf("[DEBUG] Connected!\n");
 
-    while (rnAsyncIOQueuePoll(self->queue, &event, 10) != 0) {
-        switch (event.kind) {
-            case RnAsyncIOEvent_Error: self->state = ConnClientState_Error; break;
+    connClientTcpWrite(self,
+        connMessageJoin(ConnClient_Player));
 
-            case RnAsyncIOEvent_Connect: {
-                b32 status = 0;
+    connClientTcpRead(self);
+}
 
-                if (event.connect.status != 0) {
-                    printf("[INFO] Connected!\n");
+void
+connClientOnTcpWrite(ConnClient* self, ConnMessage message)
+{
+    printf("[DEBUG] Wrote message: ");
+        connMessageShow(message);
+    printf("\n");
+}
 
-                    // TODO(gio): Maybe add an "onConnect" function?
-                    connClientWrite(self, arena,
-                        connMessageJoin(ConnClient_Player));
+void
+connClientOnTcpRead(ConnClient* self, ConnMessage message)
+{
+    printf("[DEBUG] Read message: ");
+        connMessageShow(message);
+    printf("\n");
 
-                    connClientRead(self, arena);
+    switch (message.kind) {
+        case ConnMessage_Data: {
+            if (message.data.client > 0) {
+                ConnPlayer value = connPlayerMake(
+                    message.data.flag, message.data.client);
 
-                    status = 1;
-                }
+                pxArrayInsert(&self->players, value.client - 1, value);
 
-                if (status == 0) self->state = ConnClientState_Error;
-            } break;
+                if (self->client == 0) self->client = value.client;
+            }
 
-            case RnAsyncIOEvent_Write: {
-                if (rnArrayIsEmpty(&self->messages) != 0) break;
+            connClientTcpRead(self);
 
-                ConnMessage message = {0};
+            connClientStateSet(self, ConnClientState_WaitingTurn);
+        } break;
 
-                rnArrayPopFront(&self->messages, &message);
+        case ConnMessage_Turn: {
+            if (connClientStateIsEqual(self, ConnClientState_WaitingTurn) == 0) break;
 
-                ssize stop = connMessageEncode(message, self->writing, CONN_MESSAGE_SIZE);
+            if (self->client != message.turn.client) {
+                connClientStateSet(self, ConnClientState_WaitingMove);
 
-                connMessageShow(message);
+                connClientTcpRead(self);
+            } else
+                connClientStateSet(self, ConnClientState_ChoosingMove);
+        } break;
 
-                RnSocketTCP* socket = self->socket;
-                u8*          values = self->writing;
-                ssize        start  = 0;
+        case ConnMessage_Move: {
+            if (connClientStateIsEqual(self, ConnClientState_WaitingMove) == 0) break;
 
-                b32 status = rnAsyncIOQueueSubmit(self->queue,
-                    rnAsyncIOTaskWrite(arena, 0, socket, values, start, stop));
+            connBoardInsert(&self->board,
+                message.move.column, message.move.client);
 
-                if (status == 0) self->state = ConnClientState_Error;
-            } break;
+            connBoardShow(&self->board);
 
-            case RnAsyncIOEvent_Read: {
-                ConnMessage message = connMessageDecode(event.read.values, event.read.stop);
+            connClientStateSet(self, ConnClientState_WaitingTurn);
 
-                if (message.length <= 0 || event.read.stop < message.length) {
-                    RnSocketTCP* socket = event.read.socket;
-                    u8*          values = event.read.values;
-                    ssize        start  = event.read.stop;
-                    ssize        stop   = CONN_MESSAGE_SIZE;
+            connClientTcpRead(self);
+        } break;
 
-                    b32 status = rnAsyncIOQueueSubmit(self->queue,
-                        rnAsyncIOTaskRead(arena, event.ctxt, socket, values, start, stop));
+        case ConnMessage_Result: {
+            if (message.result.client != 0) {
+                if (message.result.client == self->client)
+                    printf("Vittoria!\n");
+                else
+                    printf("Sconfitta...\n");
+            }
+            else printf("Pareggio.\n");
 
-                    if (status == 0) self->state = ConnClientState_Error;
-                }
-                else {
-                    connMessageShow(message);
-                    connClientOnMessage(self, arena, message);
-                }
-            } break;
+            connClientStateSet(self, ConnClientState_Stopping);
+        } break;
 
-            default: break;
-        }
-
-        if (connClientIsActive(self) == 0) break;
+        default: break;
     }
 }
 
 void
-connClientUpdate(ConnClient* self, RnMemoryArena* arena)
+connClientOnStateChange(ConnClient* self, ConnClientState previous, ConnClientState current)
 {
-    connClientUpdateMessage(self, arena);
 
-    if (self->state == ConnClientState_ChoosingMove) {
-        do {
-            self->column = rand() % self->board.width;
-        }
-        while (connBoardInsert(&self->board, self->column, self->clientCode) == 0);
-
-        self->state = ConnClientState_SendingMove;
-    }
-
-    if (self->state == ConnClientState_SendingMove) {
-        u32 clientCode = self->clientCode;
-        u32 column     = self->column;
-
-        connClientWrite(self, arena,
-            connMessageMove(clientCode, column));
-
-        connBoardShow(&self->board);
-
-        self->state = ConnClientState_WaitingTurn;
-
-        connClientRead(self, arena);
-    }
-}
-
-int
-main(int argc, char** argv)
-{
-    srand(time(0));
-
-    RnMemoryArena arena = rnSystemMemoryReserve(rnMemoryMiB(2));
-
-    ConnClient client = {0};
-
-    connClientCreate(&client, &arena);
-    connClientStart(&client, &arena);
-
-    while (connClientIsActive(&client) != 0)
-        connClientUpdate(&client, &arena);
-
-    connClientStop(&client);
-    connClientDestroy(&client);
 }
 
 #endif // CONN_CLIENT_C

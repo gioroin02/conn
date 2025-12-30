@@ -1,80 +1,40 @@
 #ifndef CONN_SERVER_C
 #define CONN_SERVER_C
 
-#include "./message.h"
+#include "server.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-
-typedef enum ConnServerState
-{
-    ConnServerState_None,
-
-    ConnServerState_Error,
-
-    ConnServerState_Starting,
-    ConnServerState_Stopping,
-
-    ConnServerState_SendingTurn,
-    ConnServerState_WaitingMove,
-}
-ConnServerState;
-
-typedef RnArray(ConnMessage) ArrayConnMessage;
-
-typedef struct ConnSession
-{
-    RnSocketTCP*     socket;
-    ArrayConnMessage messages;
-    ConnPlayer       player;
-
-    u8 writing[CONN_MESSAGE_SIZE];
-    u8 reading[CONN_MESSAGE_SIZE];
-}
-ConnSession;
-
-typedef RnArray(ConnSession) ArrayConnSession;
-
-typedef struct ConnServer
-{
-    ConnServerState  state;
-    RnAsyncIOQueue*  queue;
-    RnSocketTCP*     listener;
-    ArrayConnSession sessions;
-
-    ConnBoard board;
-
-    ssize playerCount;
-    ssize playerTurn;
-}
-ConnServer;
-
-void
+static void
 connMessageShow(ConnMessage message)
 {
-    u8    buffer[1024] = {0};
-    ssize count        = connMessageToString(message, buffer, 1024);
+    u8 buffer[1024];
 
-    if (count != 0)
-        printf("%.*s\n", ((int) count), buffer);
+    pxMemorySet(buffer, sizeof buffer, 0x00);
+
+    ssize count = connMessageToString(message, buffer, 1024);
+
+    if (count > 0)
+        printf("%.*s", ((int) count), buffer);
 }
 
-void
+static void
 connBoardShow(ConnBoard* self)
 {
+    ssize index = 0;
+    ssize row   = 0;
+    ssize col   = 0;
+
     char* colors[] = {"\x1b[0m", "\x1b[44m", "\x1b[41m"};
 
-    for (ssize i = 0; i < self->width; i += 1)
-        printf("%s", i == 0 ? "+-----+" : "-----+");
+    for (index = 0; index < self->width; index += 1)
+        printf("%s", index == 0 ? "+-----+" : "-----+");
 
     printf("\n");
 
-    for (ssize r = 0; r < self->height; r += 1) {
+    for (row = 0; row < self->height; row += 1) {
         printf("| ");
 
-        for (ssize c = 0; c < self->width; c += 1) {
-            u32 value = connBoardGet(self, c, r);
+        for (col = 0; col < self->width; col += 1) {
+            u32 value = connBoardGet(self, col, row);
 
             if (value != 0)
                 printf("%s %lu %s | ", colors[value], value, colors[0]);
@@ -84,211 +44,282 @@ connBoardShow(ConnBoard* self)
 
         printf("\n");
 
-        for (ssize i = 0; i < self->width; i += 1)
-            printf("%s", i == 0 ? "+-----+" : "-----+");
+        for (index = 0; index < self->width; index += 1)
+            printf("%s", index == 0 ? "+-----+" : "-----+");
 
         printf("\n");
     }
 }
 
-void
-connServerAccept(ConnServer* self, RnMemoryArena* arena)
+ConnServer
+connServerMake()
 {
-    RnSocketTCP* socket = rnSocketTCPReserve(arena);
+    ConnServer result;
 
-    b32 status = rnAsyncIOQueueSubmit(self->queue,
-        rnAsyncIOTaskAccept(arena, 0, self->listener, socket));
+    pxMemorySet(&result, sizeof result, 0xAB);
 
-    if (status == 0) self->state = ConnServerState_Error;
-}
-
-void
-connServerWrite(ConnServer* self, RnMemoryArena* arena, ConnSession* session, ConnMessage message)
-{
-    if (rnArrayIsFull(&session->messages) != 0) self->state = ConnServerState_Error;
-
-    if (rnArrayIsEmpty(&session->messages) != 0) {
-        ssize stop = connMessageEncode(message, session->writing, CONN_MESSAGE_SIZE);
-
-        printf("0x%016llx ", ((usize) session));
-        connMessageShow(message);
-
-        RnSocketTCP* socket = session->socket;
-        u8*          values = session->writing;
-        ssize        start  = 0;
-
-        b32 status = rnAsyncIOQueueSubmit(self->queue,
-            rnAsyncIOTaskWrite(arena, session, socket, values, start, stop));
-
-        if (status == 0) self->state = ConnServerState_Error;
-    }
-    else rnArrayPushBack(&session->messages, message);
-}
-
-void
-connServerBroadcast(ConnServer* self, RnMemoryArena* arena, ConnSession* session, ConnMessage message)
-{
-    for (ssize i = 0; i < rnArrayCount(&self->sessions); i += 1) {
-        ConnSession* value = rnArrayGetRef(&self->sessions, i);
-
-        if (value != 0 && value != session)
-            connServerWrite(self, arena, value, message);
-    }
-}
-
-void
-connServerRead(ConnServer* self, RnMemoryArena* arena, ConnSession* session)
-{
-    RnSocketTCP* socket = session->socket;
-    u8*          values = session->reading;
-    ssize        start  = 0;
-    ssize        stop   = CONN_MESSAGE_SIZE;
-
-    b32 status = rnAsyncIOQueueSubmit(self->queue,
-        rnAsyncIOTaskRead(arena, session, socket, values, start, stop));
-
-    if (status == 0) self->state = ConnServerState_Error;
+    return result;
 }
 
 b32
-connSessionCreate(ConnSession* self, RnMemoryArena* arena, RnSocketTCP* socket)
+connServerStateIsEqual(ConnServer* self, ConnServerState state)
 {
-    if (self == 0 || socket == 0) return 0;
+    return self->state_curr == state ? 1 : 0;
+}
 
-    rnArrayCreate(&self->messages, arena, 16);
-
-    self->socket = socket;
-
-    if (rnArraySize(&self->messages) == 0)
-        return 0;
+b32
+connServerStateIsActive(ConnServer* self)
+{
+    if (connServerStateIsEqual(self, ConnServerState_Stopping) != 0) return 0;
+    if (connServerStateIsEqual(self, ConnServerState_Error) != 0)    return 0;
 
     return 1;
 }
 
 void
-connSessionDestroy(ConnSession* self)
+connServerStateSet(ConnServer* self, ConnServerState state)
 {
-    rnSocketTCPDestroy(self->socket);
+    self->state_prev = self->state_curr;
+    self->state_curr = state;
+
+    connServerOnStateChange(self, self->state_prev, self->state_curr);
 }
 
 void
-connServerCreate(ConnServer* self, RnMemoryArena* arena)
+connServerStateSetError(ConnServer* self)
 {
-    RnAddressIP address = rnAddressIPv4Empty();
+    connServerStateSet(self, ConnServerState_Error);
+}
+
+b32
+connServerCreate(ConnServer* self, PxMemoryArena* arena)
+{
+    self->async        = pxAsyncReserve(arena);
+    self->listener     = pxSocketTcpReserve(arena);
+    self->player_count = 0;
+    self->player_turn  = 0;
+
+    if (pxAsyncCreate(self->async, arena, pxMemoryKiB(32)) == 0)
+        return 0;
+
+    PxAddressIp address = pxAddressIp4Empty();
     u16         port    = 50000;
 
-    self->queue    = rnAsyncIOQueueReserve(arena);
-    self->listener = rnSocketTCPReserve(arena);
+    if (pxSocketTcpCreate(self->listener, address, port) == 0)
+        return 0;
 
-    rnArrayCreate(&self->sessions, arena, 2);
+    pxSocketTcpBind(self->listener);
+    pxSocketTcpListen(self->listener);
 
-    connBoardCreate(&self->board, arena, 7, 5);
+    if (pxArrayCreate(&self->sessions, arena, 2) == 0) return 0;
 
-    rnAsyncIOQueueCreate(self->queue);
-    rnSocketTCPCreate(self->listener, address, port);
+    ssize index = 0;
 
-    rnSocketTCPBind(self->listener);
-    rnSocketTCPListen(self->listener);
+    for (index = 0; index < pxArraySize(&self->sessions); index += 1) {
+        if (pxArrayAddBack(&self->sessions) == 0) return 0;
 
-    self->state = ConnServerState_Starting;
-}
+        ssize        back  = pxArrayBack(&self->sessions);
+        ConnSession* value = pxArrayGetPtr(&self->sessions, back);
 
-void
-connServerStart(ConnServer* self, RnMemoryArena* arena)
-{
-    connServerAccept(self, arena);
-}
+        if (value == PX_NULL) return 0;
 
-void
-connServerStop(ConnServer* self)
-{
-    ConnSession value = {0};
+        if (connSessionCreate(value, arena) == 0) return 0;
+    }
 
-    while (rnArrayPopBack(&self->sessions, &value) != 0)
-        connSessionDestroy(&value);
+    if (connBoardCreate(&self->board, arena, 7, 5) == 0)
+        return 0;
+
+    self->state_curr = ConnServerState_None;
+    self->state_prev = ConnServerState_None;
+
+    connServerStateSet(self, ConnServerState_Starting);
+
+    return 1;
 }
 
 void
 connServerDestroy(ConnServer* self)
 {
-    rnSocketTCPDestroy(self->listener);
-    rnAsyncIOQueueDestroy(self->queue);
-}
-
-b32
-connServerIsActive(ConnServer* self)
-{
-    if (self->state == ConnServerState_Stopping) return 0;
-    if (self->state == ConnServerState_Error)    return 0;
-
-    return 1;
+    pxSocketTcpDestroy(self->listener);
+    pxAsyncDestroy(self->async);
 }
 
 void
-connServerOnMessage(ConnServer* self, RnMemoryArena* arena, ConnSession* session, ConnMessage message)
+connServerStart(ConnServer* self)
 {
-    switch (message.kind) {
-        case ConnMessage_Join: {
-            if (self->state != ConnServerState_Starting) break;
+    ConnSession* value = pxArrayGetPtr(&self->sessions, 0);
 
-            if (session->player.code == 0) {
-                // TODO(gio): Add accept/welcome message
+    if (value != 0)
+        connServerTcpAccept(self, value);
+    else
+        connServerStateSetError(self);
+}
 
-                session->player.flags  = message.join.clientFlags;
-                session->player.code   = ((u32) self->playerCount + 1);
-                session->player.symbol = ((u8)  self->playerCount + 'a');
+void
+connServerStop(ConnServer* self)
+{
+    ConnSession value;
 
-                connServerBroadcast(self, arena, 0, connMessageData(session->player));
+    while (pxArrayRemoveBack(&self->sessions, &value) != 0)
+        connSessionDestroy(&value);
+}
 
-                for (ssize i = 0; i < self->playerCount; i += 1) {
-                    ConnSession* value = rnArrayGetRef(&self->sessions, i);
+void
+connServerUpdate(ConnServer* self)
+{
+    connServerPollEvents(self);
 
-                    connServerWrite(self, arena, session,
-                        connMessageData(value->player));
-                }
+    if (connServerStateIsEqual(self, ConnServerState_SendingTurn) != 0) {
+        self->player_turn = (self->player_turn % self->player_count) + 1;
 
-                self->playerCount += 1;
+        ConnSession* session = pxArrayGetPtr(&self->sessions, self->player_turn - 1);
 
-                // TODO(gio): Maybe move elsewhere?
-                if (self->playerCount == 2)
-                    self->state = ConnServerState_SendingTurn;
+        connServerTcpBroadcast(self, 0,
+            connMessageTurn(self->player_turn));
+
+        connServerTcpRead(self, session);
+
+        connServerStateSet(self, ConnServerState_WaitingMove);
+    }
+}
+
+void
+connServerTcpAccept(ConnServer* self, ConnSession* session)
+{
+    b32 status = pxSocketTcpAcceptAsync(
+        self->async, session, self->listener, session->socket);
+
+    if (status == 0) connServerStateSetError(self);
+}
+
+void
+connServerTcpBroadcast(ConnServer* self, ConnSession* session, ConnMessage message)
+{
+    ssize index = 0;
+
+    for (index = 0; index < self->player_count; index += 1) {
+        ConnSession* value = pxArrayGetPtr(&self->sessions, index);
+
+        if (value != 0 && value != session)
+            connServerTcpWrite(self, value, message);
+    }
+}
+
+void
+connServerTcpWrite(ConnServer* self, ConnSession* session, ConnMessage message)
+{
+    PxSocketTcp* socket = session->socket;
+    u8*          values = session->writing;
+    ssize        start  = 0;
+    ssize        stop   = 0;
+
+    stop = connMessageEncode(message, session->writing, CONN_MESSAGE_SIZE);
+
+    if (pxArrayIsFull(&session->messages) != 0) connServerStateSetError(self);
+
+    if (pxArrayIsEmpty(&session->messages) != 0) {
+        b32 status = pxSocketTcpWriteAsync(
+            self->async, session, socket, values, start, stop);
+
+        if (status != 0)
+            connServerOnTcpWrite(self, session, message);
+        else
+            connServerStateSetError(self);
+    }
+    else pxArrayInsertBack(&session->messages, message);
+}
+
+void
+connServerTcpRead(ConnServer* self, ConnSession* session)
+{
+    PxSocketTcp* socket = session->socket;
+    u8*          values = session->reading;
+    ssize        start  = 0;
+    ssize        stop   = CONN_MESSAGE_SIZE;
+
+    b32 status = pxSocketTcpReadAsync(
+        self->async, session, socket, values, start, stop);
+
+    if (status == 0) connServerStateSetError(self);
+}
+
+void
+connServerPollEvents(ConnServer* self)
+{
+    PxAsyncEventFamily family = PxAsyncEventFamily_None;
+    void*              event  = PX_NULL;
+    void*              tag    = PX_NULL;
+
+    do {
+        family = pxAsyncPoll(self->async, &tag, &event, 10);
+
+        switch (family) {
+            case PxAsyncEventFamily_Tcp:
+                connServerOnTcpEvent(self, tag, (PxSocketTcpEvent*) event);
+            break;
+
+            default: break;
+        }
+
+        pxAsyncReturn(self->async, event);
+    }
+    while (family != PxAsyncEventFamily_None);
+}
+
+void
+connServerOnTcpEvent(ConnServer* self, ConnSession* session, PxSocketTcpEvent* event)
+{
+    switch (event->kind) {
+        case PxSocketTcpEvent_Error: connServerStateSetError(self); break;
+
+        case PxSocketTcpEvent_Accept: {
+            if (event->accept.socket != 0) {
+                connServerOnTcpAccept(self, session);
+
+                ssize        index = self->player_count + 1;
+                ConnSession* value = pxArrayGetPtr(&self->sessions, index);
+
+                if (value != 0) connServerTcpAccept(self, value);
             }
-            else {
-                // TODO(gio): Add reject message
-            }
+            else connServerStateSetError(self);
         } break;
 
-        case ConnMessage_Move: {
-            if (self->state != ConnServerState_WaitingMove) break;
+        case PxSocketTcpEvent_Write: {
+            PxSocketTcp* socket = session->socket;
+            u8*          values = session->writing;
+            ssize        start  = 0;
+            ssize        stop   = 0;
 
-            u32 clientCode = message.move.clientCode;
-            u32 column     = message.move.column;
+            ConnMessage message;
 
-            connBoardInsert(&self->board, column, clientCode);
-            connBoardShow(&self->board);
+            if (pxArrayRemoveFront(&session->messages, &message) == 0) break;
 
-            connServerBroadcast(self, arena, session, message);
+            stop = connMessageEncode(message, session->writing, CONN_MESSAGE_SIZE);
 
-            u32 winner = 0;
-            b32 full   = connBoardIsFull(&self->board);
+            b32 status = pxSocketTcpWriteAsync(
+                self->async, session, socket, values, start, stop);
 
-            if (connBoardIsWinner(&self->board, column, clientCode) != 0)
-                winner = clientCode;
-
-            if (winner != 0 || full != 0) {
-                connServerBroadcast(self, arena, 0,
-                    connMessageResult(winner));
-
-                self->state = ConnServerState_Stopping;
-            }
-            else self->state = ConnServerState_SendingTurn;
+            if (status != 0)
+                connServerOnTcpWrite(self, session, message);
+            else
+                connServerStateSetError(self);
         } break;
 
-        case ConnMessage_Quit: {
-            connServerBroadcast(self, arena, 0,
-                connMessageResult(0));
+        case PxSocketTcpEvent_Read: {
+            PxSocketTcp* socket = event->read.socket;
+            u8*          values = event->read.values;
+            ssize        start  = event->read.stop;
+            ssize        stop   = CONN_MESSAGE_SIZE;
 
-            self->state = ConnServerState_Stopping;
+            ConnMessage  message = connMessageDecode(event->read.values, event->read.stop);
+
+            if (message.length <= 0 || event->read.stop < message.length) {
+                b32 status = pxSocketTcpReadAsync(
+                    self->async, session, socket, values, start, stop);
+
+                if (status == 0) connServerStateSetError(self);
+            }
+            else connServerOnTcpRead(self, session, message);
         } break;
 
         default: break;
@@ -296,127 +327,126 @@ connServerOnMessage(ConnServer* self, RnMemoryArena* arena, ConnSession* session
 }
 
 void
-connServerUpdateMessage(ConnServer* self, RnMemoryArena* arena)
+connServerOnTcpAccept(ConnServer* self, ConnSession* session)
 {
-    RnAsyncIOEvent event = {0};
+    printf("[DEBUG] Accepted 0x%016llx!\n", (usize) session);
 
-    while (rnAsyncIOQueuePoll(self->queue, &event, 10) != 0) {
-        switch (event.kind) {
-            case RnAsyncIOEvent_Error: self->state = ConnServerState_Error; break;
+    connServerTcpRead(self, session);
+}
 
-            case RnAsyncIOEvent_Accept: {
-                b32 status = 0;
+void
+connServerOnTcpWrite(ConnServer* self, ConnSession* session, ConnMessage message)
+{
+    printf("[DEBUG] Wrote message to 0x%016llx: ", (usize) session);
+        connMessageShow(message);
+    printf("\n");
+}
 
-                if (event.accept.socket != 0) {
-                    if (rnArrayPushBack(&self->sessions, (ConnSession) {0}) != 0) {
-                        ssize        index   = rnArrayBack(&self->sessions);
-                        ConnSession* session = rnArrayGetRef(&self->sessions, index);
+void
+connServerOnTcpRead(ConnServer* self, ConnSession* session, ConnMessage message)
+{
+    printf("[DEBUG] Read message from 0x%016llx: ", (usize) session);
+        connMessageShow(message);
+    printf("\n");
 
-                        if (connSessionCreate(session, arena, event.accept.socket) != 0) {
-                            printf("[INFO] Accepted!\n");
+    switch (message.kind) {
+        case ConnMessage_Join: {
+            if (connServerStateIsEqual(self, ConnServerState_Starting) == 0) break;
 
-                            // TODO(gio): Maybe add an "onAccept" function?
-                            connServerRead(self, arena, session);
+            if (session->player.client == 0) {
+                // TODO(gio): Add accept message
 
-                            if (rnArrayIsFull(&self->sessions) == 0)
-                                connServerAccept(self, arena);
+                session->player.flag    = message.join.flag;
+                session->player.client = ((u32) self->player_count + 1);
 
-                            status = 1;
-                        }
-                    }
+                self->player_count += 1;
+
+                connServerTcpBroadcast(self, PX_NULL,
+                    connMessageData(session->player.flag, session->player.client));
+
+                ssize index = 0;
+
+                for (index = 0; index < self->player_count; index += 1) {
+                    ConnSession* value = pxArrayGetPtr(&self->sessions, index);
+
+                    if (value == session) break;
+
+                    connServerTcpWrite(self, session,
+                        connMessageData(value->player.flag, value->player.client));
                 }
 
-                if (status == 0) self->state = ConnServerState_Error;
-            } break;
+                // TODO(gio): Maybe move elsewhere?
+                if (self->player_count == pxArraySize(&self->sessions))
+                    connServerStateSet(self, ConnServerState_SendingTurn);
+            }
+            else {
+                // TODO(gio): Add reject message
+            }
+        } break;
 
-            case RnAsyncIOEvent_Write: {
-                ConnSession* session = ((ConnSession*) event.ctxt);
-                ConnMessage  message = {0};
+        case ConnMessage_Move: {
+            if (connServerStateIsEqual(self, ConnServerState_WaitingMove) == 0) break;
 
-                if (rnArrayIsEmpty(&session->messages) != 0) break;
+            u32 client = message.move.client;
+            u32 column = message.move.column;
 
-                rnArrayPopFront(&session->messages, &message);
+            connBoardInsert(&self->board, column, client);
+            connBoardShow(&self->board);
 
-                ssize stop = connMessageEncode(message, session->writing, CONN_MESSAGE_SIZE);
+            connServerTcpBroadcast(self, session, message);
 
-                printf("0x%016llx ", ((usize) session));
-                connMessageShow(message);
+            u32 winner = 0;
+            b32 full   = connBoardIsFull(&self->board);
 
-                RnSocketTCP* socket = session->socket;
-                u8*          values = session->writing;
-                ssize        start  = 0;
+            if (connBoardIsWinner(&self->board, column, client) != 0)
+                winner = client;
 
-                b32 status = rnAsyncIOQueueSubmit(self->queue,
-                    rnAsyncIOTaskWrite(arena, session, socket, values, start, stop));
+            if (winner != 0 || full != 0) {
+                connServerTcpBroadcast(self, PX_NULL,
+                    connMessageResult(winner));
 
-               if (status == 0) self->state = ConnServerState_Error;
-            } break;
+                connServerStateSet(self, ConnServerState_Stopping);
+            }
+            else connServerStateSet(self, ConnServerState_SendingTurn);
+        } break;
 
-            case RnAsyncIOEvent_Read: {
-                ConnSession* session = ((ConnSession*) event.ctxt);
-                ConnMessage  message = connMessageDecode(event.read.values, event.read.stop);
+        case ConnMessage_Quit: {
+            connServerTcpBroadcast(self, PX_NULL,
+                connMessageResult(0));
 
-                if (message.length <= 0 || event.read.stop < message.length) {
-                    RnSocketTCP* socket = event.read.socket;
-                    u8*          values = event.read.values;
-                    ssize        start  = event.read.stop;
-                    ssize        stop   = CONN_MESSAGE_SIZE;
+            connServerStateSet(self, ConnServerState_Stopping);
+        } break;
 
-                    b32 status = rnAsyncIOQueueSubmit(self->queue,
-                        rnAsyncIOTaskRead(arena, event.ctxt, socket, values, start, stop));
-
-                    if (status == 0) self->state = ConnServerState_Error;
-                }
-                else {
-                    printf("0x%016llx ", ((usize) session));
-                    connMessageShow(message);
-                    connServerOnMessage(self, arena, session, message);
-                }
-            } break;
-
-            default: break;
-        }
-
-        if (connServerIsActive(self) == 0) break;
+        default: break;
     }
 }
 
 void
-connServerUpdate(ConnServer* self, RnMemoryArena* arena)
+connServerOnStateChange(ConnServer* self, ConnServerState previous, ConnServerState current)
 {
-    connServerUpdateMessage(self, arena);
 
-    if (self->state == ConnServerState_SendingTurn) {
-        self->playerTurn = (self->playerTurn % self->playerCount) + 1;
-
-        ConnSession* session = rnArrayGetRef(&self->sessions, self->playerTurn - 1);
-
-        connServerBroadcast(self, arena, 0,
-            connMessageTurn(self->playerTurn));
-
-        connServerRead(self, arena, session);
-
-        self->state = ConnServerState_WaitingMove;
-    }
 }
 
-int
-main(int argc, char** argv)
+b32
+connSessionCreate(ConnSession* self, PxMemoryArena* arena)
 {
-    srand(time(0));
+    self->socket = pxSocketTcpReserve(arena);
+    self->player = connPlayerMake(0, 0);
 
-    RnMemoryArena arena = rnSystemMemoryReserve(rnMemoryMiB(2));
+    if (self->socket == PX_NULL) return 0;
 
-    ConnServer server = {0};
+    pxMemorySet(self->reading, sizeof self->reading, 0x00);
+    pxMemorySet(self->writing, sizeof self->writing, 0x00);
 
-    connServerCreate(&server, &arena);
-    connServerStart(&server, &arena);
+    if (pxArrayCreate(&self->messages, arena, 16) == 0) return 0;
 
-    while (connServerIsActive(&server) != 0)
-        connServerUpdate(&server, &arena);
+    return 1;
+}
 
-    connServerStop(&server);
-    connServerDestroy(&server);
+void
+connSessionDestroy(ConnSession* self)
+{
+    pxSocketTcpDestroy(self->socket);
 }
 
 #endif // CONN_SERVER_C

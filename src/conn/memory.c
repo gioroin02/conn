@@ -11,8 +11,7 @@ connMemoryReadU8(u8* values, ssize index, ssize size)
     if (values == 0 || index < 0 || index >= size)
         return result;
 
-    for (ssize i = 0; i < sizeof(result); i += 1)
-        ((u8*) &result)[i] = values[index + i];
+    pxMemoryCopy(&result, sizeof result, &values[index]);
 
     return result;
 }
@@ -25,8 +24,7 @@ connMemoryReadU16(u8* values, ssize index, ssize size)
     if (values == 0 || index < 0 || index >= size)
         return result;
 
-    for (ssize i = 0; i < sizeof(result); i += 1)
-        ((u8*) &result)[i] = values[index + i];
+    pxMemoryCopy(&result, sizeof result, &values[index]);
 
     return result;
 }
@@ -39,8 +37,7 @@ connMemoryReadU32(u8* values, ssize index, ssize size)
     if (values == 0 || index < 0 || index >= size)
         return result;
 
-    for (ssize i = 0; i < sizeof(result); i += 1)
-        ((u8*) &result)[i] = values[index + i];
+    pxMemoryCopy(&result, sizeof result, &values[index]);
 
     return result;
 }
@@ -53,8 +50,7 @@ connMemoryReadU64(u8* values, ssize index, ssize size)
     if (values == 0 || index < 0 || index >= size)
         return result;
 
-    for (ssize i = 0; i < sizeof(result); i += 1)
-        ((u8*) &result)[i] = values[index + i];
+    pxMemoryCopy(&result, sizeof result, &values[index]);
 
     return result;
 }
@@ -65,8 +61,7 @@ connMemoryWriteU8(u8 value, u8* values, ssize index, ssize size)
     if (values == 0 || index < 0 || index >= size)
         return 0;
 
-    for (ssize i = 0; i < sizeof(value); i += 1)
-        values[index + i] = ((u8*) &value)[i];
+    pxMemoryCopy(&values[index], sizeof value, &value);
 
     return sizeof(value);
 }
@@ -77,8 +72,7 @@ connMemoryWriteU16(u16 value, u8* values, ssize index, ssize size)
     if (values == 0 || index < 0 || index >= size)
         return 0;
 
-    for (ssize i = 0; i < sizeof(value); i += 1)
-        values[index + i] = ((u8*) &value)[i];
+    pxMemoryCopy(&values[index], sizeof value, &value);
 
     return sizeof(value);
 }
@@ -89,8 +83,7 @@ connMemoryWriteU32(u32 value, u8* values, ssize index, ssize size)
     if (values == 0 || index < 0 || index >= size)
         return 0;
 
-    for (ssize i = 0; i < sizeof(value); i += 1)
-        values[index + i] = ((u8*) &value)[i];
+    pxMemoryCopy(&values[index], sizeof value, &value);
 
     return sizeof(value);
 }
@@ -101,8 +94,7 @@ connMemoryWriteU64(u64 value, u8* values, ssize index, ssize size)
     if (values == 0 || index < 0 || index >= size)
         return 0;
 
-    for (ssize i = 0; i < sizeof(value); i += 1)
-        values[index + i] = ((u8*) &value)[i];
+    pxMemoryCopy(&values[index], sizeof value, &value);
 
     return sizeof(value);
 }

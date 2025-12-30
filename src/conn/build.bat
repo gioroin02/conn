@@ -1,21 +1,18 @@
 @echo off
 
-set "compiler=zig cc --std=c99"
+set "compiler=zig cc"
 
-set "base=src\rn\base\export.c"
-set "base_memory=src\rn\base\memory\export.c"
-set "structure=src\rn\structure\export.c"
-set "system_memory=src\rn\system\memory\export.c"
-set "system_network=src\rn\system\network\export.c"
-set "system_asyncio=src\rn\system\asyncio\export.c"
+set "impl=%impl% src\pax\base\export.c"
+set "impl=%impl% src\pax\structure\export.c"
+set "impl=%impl% src\pax\system\memory\export.c"
+set "impl=%impl% src\pax\system\network\export.c"
+set "impl=%impl% src\pax\system\async\export.c"
+set "impl=%impl% src\pax\system\async\network\export.c"
 
-set "conn=src\conn\export.c"
+set "impl=%impl% src\conn\export.c"
 
-set "server=src\conn\server.c"
-set "client=src\conn\client.c"
+set "server=src\conn\server.c src\conn\main_server.c"
+set "client=src\conn\client.c src\conn\main_client.c"
 
-%compiler% %base% %base_memory% %structure% %system_memory% %system_network% ^
-    %system_asyncio% %conn% %server% -lws2_32 -o bin\server.exe
-
-%compiler% %base% %base_memory% %structure% %system_memory% %system_network% ^
-    %system_asyncio% %conn% %client% -lws2_32 -o bin\client.exe
+%compiler% --std=c89 %impl% %server% -lws2_32 -o bin\server.exe
+%compiler% --std=c89 %impl% %client% -lws2_32 -o bin\client.exe

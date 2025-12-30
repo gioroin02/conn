@@ -21,14 +21,16 @@ ConnClientFlag;
 
 typedef struct ConnPlayer
 {
-    ConnClientFlag flags;
-    u32            code;
-    u8             symbol;
+    ConnClientFlag flag;
+    u32            client;
 }
 ConnPlayer;
 
+ConnPlayer
+connPlayerMake(ConnClientFlag flag, u32 client);
+
 ssize
-connBoardCreate(ConnBoard* self, RnMemoryArena* arena, ssize width, ssize height);
+connBoardCreate(ConnBoard* self, PxMemoryArena* arena, ssize width, ssize height);
 
 void
 connBoardClear(ConnBoard* self);

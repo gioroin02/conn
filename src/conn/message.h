@@ -21,34 +21,33 @@ ConnMessageKind;
 
 typedef struct ConnMessageJoin
 {
-    ConnClientFlag clientFlags;
+    ConnClientFlag flag;
 }
 ConnMessageJoin;
 
 typedef struct ConnMessageData
 {
-    ConnClientFlag clientFlags;
-    u32            clientCode;
-    u8             clientSymbol;
+    ConnClientFlag flag;
+    u32            client;
 }
 ConnMessageData;
 
 typedef struct ConnMessageTurn
 {
-    u32 clientCode;
+    u32 client;
 }
 ConnMessageTurn;
 
 typedef struct ConnMessageMove
 {
-    u32 clientCode;
+    u32 client;
     u32 column;
 }
 ConnMessageMove;
 
 typedef struct ConnMessageResult
 {
-    u32 clientCode;
+    u32 client;
 }
 ConnMessageResult;
 
@@ -77,19 +76,19 @@ ssize
 connMessageEncode(ConnMessage message, u8* values, ssize size);
 
 ConnMessage
-connMessageJoin(ConnClientFlag flags);
+connMessageJoin(ConnClientFlag flag);
 
 ConnMessage
-connMessageData(ConnPlayer player);
+connMessageData(ConnClientFlag flag, u32 client);
 
 ConnMessage
-connMessageTurn(u32 code);
+connMessageTurn(u32 client);
 
 ConnMessage
-connMessageMove(u32 code, u32 column);
+connMessageMove(u32 client, u32 column);
 
 ConnMessage
-connMessageResult(u32 code);
+connMessageResult(u32 client);
 
 ssize
 connMessageToString(ConnMessage message, u8* values, ssize size);

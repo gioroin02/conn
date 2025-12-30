@@ -12,24 +12,37 @@ connBoardCountConsecutive(ConnBoard* self, ssize column, ssize row, ssize dx, ss
     u32   pivot  = connBoardGet(self, column, row);
     u32   other  = pivot;
 
-    for (; pivot == other; result += 1) {
+    for (result = 0; pivot == other; result += 1) {
         column += dx;
         row    += dy;
 
         other = connBoardGet(self, column, row);
     }
 
-    if (value != 0) * value = pivot;
+    if (value != 0) *value = pivot;
+
+    return result;
+}
+
+ConnPlayer
+connPlayerMake(ConnClientFlag flag, u32 client)
+{
+    ConnPlayer result;
+
+    pxMemorySet(&result, sizeof result, 0xAB);
+
+    result.flag   = flag;
+    result.client = client;
 
     return result;
 }
 
 ssize
-connBoardCreate(ConnBoard* self, RnMemoryArena* arena, ssize width, ssize height)
+connBoardCreate(ConnBoard* self, PxMemoryArena* arena, ssize width, ssize height)
 {
     if (self == 0) return 0;
 
-    self->values = rnMemoryArenaReserveManyOf(arena, u32, width * height);
+    self->values = pxMemoryArenaReserveManyOf(arena, u32, width * height);
 
     self->width  = width;
     self->height = height;
@@ -40,17 +53,20 @@ connBoardCreate(ConnBoard* self, RnMemoryArena* arena, ssize width, ssize height
 void
 connBoardClear(ConnBoard* self)
 {
-    for (ssize i = 0; i < self->width * self->height; i += 1)
-        self->values[i] = 0;
+    ssize index = 0;
+
+    for (index = 0; index < self->width * self->height; index += 1)
+        self->values[index] = 0;
 }
 
 ssize
 connBoardCount(ConnBoard* self)
 {
     ssize result = 0;
+    ssize index  = 0;
 
-    for (ssize i = 0; i < self->width * self->height; i += 1) {
-        if (self->values[i] != 0)
+    for (index = 0; index < self->width * self->height; index += 1) {
+        if (self->values[index] != 0)
             result += 1;
     }
 
@@ -72,14 +88,16 @@ connBoardIsFull(ConnBoard* self)
 b32
 connBoardHeight(ConnBoard* self, ssize column, ssize* height)
 {
+    ssize index = 0;
+
     if (self == 0 || column < 0 || column >= self->width)
         return 0;
 
-    for (ssize i = self->height; i > 0; i -= 1) {
-        if (self->values[(i - 1) * self->width + column] != 0)
+    for (index = self->height; index > 0; index -= 1) {
+        if (self->values[(index - 1) * self->width + column] != 0)
             continue;
 
-        if (height != 0) *height = i - 1;
+        if (height != 0) *height = index - 1;
 
         return 1;
     }
@@ -90,10 +108,10 @@ connBoardHeight(ConnBoard* self, ssize column, ssize* height)
 b32
 connBoardInsert(ConnBoard* self, ssize column, u32 value)
 {
+    ssize height = 0;
+
     if (self == 0 || column < 0 || column >= self->width || value == 0)
         return 0;
-
-    ssize height = 0;
 
     if (connBoardHeight(self, column, &height) == 0) return 0;
 
@@ -128,16 +146,17 @@ connBoardIsWinner(ConnBoard* self, ssize column, u32 code)
 
     if (connBoardHeight(self, column, &height) == 0) return 0;
 
-    ssize row = height + 1;
+    ssize row   = height + 1;
+    ssize index = 0;
 
-    for (ssize i = 0; i < DIRS; i += 1) {
-        ssize j = (i + DIRS / 2) % DIRS;
+    for (index = 0; index < DIRS; index += 1) {
+        ssize oppos = (index + DIRS / 2) % DIRS;
 
         ssize forw = connBoardCountConsecutive(self,
-            column, row, dirsCos[i], dirsSin[i], 0);
+            column, row, dirsCos[index], dirsSin[index], 0);
 
         ssize back = connBoardCountConsecutive(self,
-            column, row, dirsCos[j], dirsSin[j], 0);
+            column, row, dirsCos[oppos], dirsSin[oppos], 0);
 
         if (forw + back > 4) return 1;
     }
