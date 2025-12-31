@@ -36,7 +36,7 @@ connBoardShow(ConnBoard* self)
         for (col = 0; col < self->width; col += 1) {
             u32 value = connBoardGet(self, col, row);
 
-            if (value != 0)
+            if (value >= 0 && value < 0)
                 printf("%s %lu %s | ", colors[value], value, colors[0]);
             else
                 printf("    | ");
@@ -99,7 +99,7 @@ connServerCreate(ConnServer* self, PxMemoryArena* arena)
     self->player_count = 0;
     self->player_turn  = 0;
 
-    if (pxAsyncCreate(self->async, arena, pxMemoryKiB(32)) == 0)
+    if (pxAsyncCreate(self->async, arena, pxMemoryKiB(64)) == 0)
         return 0;
 
     PxAddressIp address = pxAddressIp4Empty();
@@ -247,23 +247,31 @@ void
 connServerPollEvents(ConnServer* self)
 {
     PxAsyncEventFamily family = PxAsyncEventFamily_None;
-    void*              event  = PX_NULL;
-    void*              tag    = PX_NULL;
 
-    do {
+    while (connServerStateIsActive(self) != 0) {
+        void* event = PX_NULL;
+        void* tag   = PX_NULL;
+
         family = pxAsyncPoll(self->async, &tag, &event, 10);
 
+        if (family == PxAsyncEventFamily_None) break;
+
         switch (family) {
-            case PxAsyncEventFamily_Tcp:
-                connServerOnTcpEvent(self, tag, (PxSocketTcpEvent*) event);
-            break;
+            case PxAsyncEventFamily_Tcp: {
+                PxSocketTcpEvent tcp;
+
+                pxMemoryCopy(&tcp, sizeof tcp, event);
+
+                b32 status = pxAsyncReturn(self->async, event);
+
+                if (status == 0) connServerStateSetError(self);
+
+                connServerOnTcpEvent(self, tag, &tcp);
+            } break;
 
             default: break;
         }
-
-        pxAsyncReturn(self->async, event);
     }
-    while (family != PxAsyncEventFamily_None);
 }
 
 void

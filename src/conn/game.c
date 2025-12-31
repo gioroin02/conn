@@ -47,6 +47,8 @@ connBoardCreate(ConnBoard* self, PxMemoryArena* arena, ssize width, ssize height
     self->width  = width;
     self->height = height;
 
+    connBoardClear(self);
+
     return self->width * self->height;
 }
 

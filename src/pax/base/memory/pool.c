@@ -69,7 +69,7 @@ pxMemoryPoolReserve(PxMemoryPool* self, ssize count, ssize size)
     ssize size_header = pxMemoryAlignSizeForw(
         PX_MEMORY_POOL_NODE_SIZE, PX_MEMORY_DEFAULT_ALIGNMENT);
 
-    if (count <= 0 || size <= 0 || count > PX_MAX_SSIZE / size)
+    if (count <= 0 || size <= 0 || count > PX_MAX_SSIZE / size - size_header)
         return PX_NULL;
 
     ssize             bytes = count * size;
@@ -107,10 +107,10 @@ pxMemoryPoolRelease(PxMemoryPool* self, void* pntr)
     u8*   head = ((u8*) pntr) - size_header;
     ssize dist = head - self->pntr_base;
 
-    if (dist < 0 || self->pntr_base + dist >= self->pntr_next)
+    if (head < self->pntr_base || head >= self->pntr_next)
         return 0;
 
-    if (dist % self->step != 0) return 0;
+    if (dist % (size_header + self->step) != 0) return 0;
 
     PxMemoryPoolNode* node = (PxMemoryPoolNode*) head;
 

@@ -273,29 +273,37 @@ pxWin32SocketTcpTaskRead(PxMemoryPool* pool, void* tag, PxWin32SocketTcp* socket
 b32
 pxWin32SocketTcpAcceptAsync(PxWin32Async* async, void* tag, PxWin32SocketTcp* self, PxWin32SocketTcp* value)
 {
-    return pxAsyncSubmit(async, pxWin32SocketTcpTaskAccept(
-        &async->pool, tag, self, value));
+    PxWin32AsyncTask* task = pxWin32SocketTcpTaskAccept(
+        &async->pool, tag, self, value);
+
+    return pxAsyncSubmit(async, task);
 }
 
 b32
 pxWin32SocketTcpConnectAsync(PxWin32Async* async, void* tag, PxWin32SocketTcp* self, PxAddressIp address, u16 port)
 {
-    return pxAsyncSubmit(async, pxWin32SocketTcpTaskConnect(
-        &async->pool, tag, self, address, port));
+    PxWin32AsyncTask* task = pxWin32SocketTcpTaskConnect(
+        &async->pool, tag, self, address, port);
+
+    return pxAsyncSubmit(async, task);
 }
 
 b32
 pxWin32SocketTcpWriteAsync(PxWin32Async* async, void* tag, PxWin32SocketTcp* self, u8* values, ssize start, ssize stop)
 {
-    return pxAsyncSubmit(async, pxWin32SocketTcpTaskWrite(
-        &async->pool, tag, self, values, start, stop));
+    PxWin32AsyncTask* task = pxWin32SocketTcpTaskWrite(
+        &async->pool, tag, self, values, start, stop);
+
+    return pxAsyncSubmit(async, task);
 }
 
 b32
 pxWin32SocketTcpReadAsync(PxWin32Async* async, void* tag, PxWin32SocketTcp* self, u8* values, ssize start, ssize stop)
 {
-    return pxAsyncSubmit(async, pxWin32SocketTcpTaskRead(
-        &async->pool, tag, self, values, start, stop));
+    PxWin32AsyncTask* task = pxWin32SocketTcpTaskRead(
+        &async->pool, tag, self, values, start, stop);
+
+    return pxAsyncSubmit(async, task);
 }
 
 #endif // PX_WIN32_ASYNC_NETWORK_SOCKET_TCP_C

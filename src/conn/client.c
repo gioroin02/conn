@@ -36,7 +36,7 @@ connBoardShow(ConnBoard* self)
         for (col = 0; col < self->width; col += 1) {
             u32 value = connBoardGet(self, col, row);
 
-            if (value != 0)
+            if (value >= 0 && value < 3)
                 printf("%s %lu %s | ", colors[value], value, colors[0]);
             else
                 printf("    | ");
@@ -102,7 +102,7 @@ connClientCreate(ConnClient* self, PxMemoryArena* arena)
     pxMemorySet(self->writing, sizeof self->writing, 0x00);
     pxMemorySet(self->reading, sizeof self->reading, 0x00);
 
-    if (pxAsyncCreate(self->async, arena, pxMemoryKiB(32)) == 0)
+    if (pxAsyncCreate(self->async, arena, pxMemoryKiB(64)) == 0)
         return 0;
 
     if (pxSocketTcpCreate(self->socket, pxAddressIp4Empty(), 0) == 0)
@@ -221,23 +221,31 @@ void
 connClientPollEvents(ConnClient* self)
 {
     PxAsyncEventFamily family = PxAsyncEventFamily_None;
-    void*              event  = PX_NULL;
-    void*              tag    = PX_NULL;
 
-    do {
+    while (connClientStateIsActive(self) != 0) {
+        void* event = PX_NULL;
+        void* tag   = PX_NULL;
+
         family = pxAsyncPoll(self->async, &tag, &event, 10);
 
+        if (family == PxAsyncEventFamily_None) break;
+
         switch (family) {
-            case PxAsyncEventFamily_Tcp:
-                connClientOnTcpEvent(self, (PxSocketTcpEvent*) event);
-            break;
+            case PxAsyncEventFamily_Tcp: {
+                PxSocketTcpEvent tcp;
+
+                pxMemoryCopy(&tcp, sizeof tcp, event);
+
+                b32 status = pxAsyncReturn(self->async, event);
+
+                if (status == 0) connClientStateSetError(self);
+
+                connClientOnTcpEvent(self, &tcp);
+            } break;
 
             default: break;
         }
-
-        pxAsyncReturn(self->async, event);
     }
-    while (family != PxAsyncEventFamily_None);
 }
 
 void

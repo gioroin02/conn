@@ -118,7 +118,7 @@ pxWin32AsyncDestroy(PxWin32Async* self)
 b32
 pxWin32AsyncSubmit(PxWin32Async* self, PxWin32AsyncTask* task)
 {
-    if (pxWin32AsyncTaskPrepare(task, self) == 0)
+    if (task == PX_NULL || pxWin32AsyncTaskPrepare(task, self) == 0)
         return 0;
 
     pxWin32AsyncInsertBack(self, task);

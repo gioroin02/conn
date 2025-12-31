@@ -5,7 +5,7 @@ main(int argc, char** argv)
 {
     srand(time(0));
 
-    PxMemoryArena arena = pxSystemMemoryReserve(pxMemoryMiB(2));
+    PxMemoryArena arena = pxSystemMemoryReserve(pxMemoryMiB(4));
 
     ConnClient client = connClientMake();
 
