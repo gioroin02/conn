@@ -33,10 +33,12 @@ typedef struct ConnClient
     ConnMessageArray messages;
     ConnPlayerArray  players;
 
+    ConnBoard board;
+
     u32 client;
     u32 column;
 
-    ConnBoard board;
+    ssize player_count;
 
     u8 writing[CONN_MESSAGE_SIZE];
     u8 reading[CONN_MESSAGE_SIZE];
@@ -45,9 +47,6 @@ typedef struct ConnClient
     ConnClientState state_prev;
 }
 ConnClient;
-
-ConnClient
-connClientMake();
 
 b32
 connClientStateIsEqual(ConnClient* self, ConnClientState state);

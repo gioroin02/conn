@@ -36,7 +36,7 @@ connBoardShow(ConnBoard* self)
         for (col = 0; col < self->width; col += 1) {
             u32 value = connBoardGet(self, col, row);
 
-            if (value >= 0 && value < 3)
+            if (value > 0 && value < 3)
                 printf("%s %lu %s | ", colors[value], value, colors[0]);
             else
                 printf("    | ");
@@ -49,16 +49,6 @@ connBoardShow(ConnBoard* self)
 
         printf("\n");
     }
-}
-
-ConnClient
-connClientMake()
-{
-    ConnClient result;
-
-    pxMemorySet(&result, sizeof result, 0xAB);
-
-    return result;
 }
 
 b32
@@ -94,10 +84,13 @@ connClientStateSetError(ConnClient* self)
 b32
 connClientCreate(ConnClient* self, PxMemoryArena* arena)
 {
-    self->async  = pxAsyncReserve(arena);
-    self->socket = pxSocketTcpReserve(arena);
-    self->client = 0;
-    self->column = 0;
+    pxMemorySet(self, sizeof *self, 0xAB);
+
+    self->async        = pxAsyncReserve(arena);
+    self->socket       = pxSocketTcpReserve(arena);
+    self->client       = 0;
+    self->column       = 0;
+    self->player_count = 0;
 
     pxMemorySet(self->writing, sizeof self->writing, 0x00);
     pxMemorySet(self->reading, sizeof self->reading, 0x00);
@@ -110,6 +103,11 @@ connClientCreate(ConnClient* self, PxMemoryArena* arena)
 
     if (pxArrayCreate(&self->messages, arena, 16) == 0) return 0;
     if (pxArrayCreate(&self->players, arena, 2) == 0)   return 0;
+
+    ssize index = 0;
+
+    for (index = 0; index < pxArraySize(&self->players); index += 1)
+        pxArrayAddBack(&self->players);
 
     if (connBoardCreate(&self->board, arena, 7, 5) == 0) return 0;
 
@@ -234,9 +232,7 @@ connClientPollEvents(ConnClient* self)
             case PxAsyncEventFamily_Tcp: {
                 PxSocketTcpEvent tcp;
 
-                pxMemoryCopy(&tcp, sizeof tcp, event);
-
-                b32 status = pxAsyncReturn(self->async, event);
+                b32 status = pxAsyncReturn(self->async, event, &tcp, sizeof tcp);
 
                 if (status == 0) connClientStateSetError(self);
 
@@ -331,18 +327,26 @@ connClientOnTcpRead(ConnClient* self, ConnMessage message)
 
     switch (message.kind) {
         case ConnMessage_Data: {
+            if (connClientStateIsEqual(self, ConnClientState_Starting) == 0) break;
+
             if (message.data.client > 0) {
-                ConnPlayer value = connPlayerMake(
-                    message.data.flag, message.data.client);
+                ConnPlayer  player = connPlayerMake(message.data.flag, message.data.client);
+                ConnPlayer* value  = pxArrayGetPtr(&self->players, player.client - 1);
 
-                pxArrayInsert(&self->players, value.client - 1, value);
+                if (value != PX_NULL)
+                    *value = player;
+                else
+                    connClientStateSetError(self);
 
-                if (self->client == 0) self->client = value.client;
+                if (self->client == 0) self->client = player.client;
+
+                self->player_count += 1;
             }
 
-            connClientTcpRead(self);
+            if (self->player_count == pxArraySize(&self->players))
+                connClientStateSet(self, ConnClientState_WaitingTurn);
 
-            connClientStateSet(self, ConnClientState_WaitingTurn);
+            connClientTcpRead(self);
         } break;
 
         case ConnMessage_Turn: {

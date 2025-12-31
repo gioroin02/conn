@@ -52,9 +52,6 @@ typedef struct ConnServer
 }
 ConnServer;
 
-ConnServer
-connServerMake();
-
 b32
 connServerStateIsEqual(ConnServer* self, ConnServerState state);
 

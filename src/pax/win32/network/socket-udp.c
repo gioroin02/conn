@@ -12,6 +12,8 @@ pxWin32SocketUdpReserve(PxMemoryArena* arena)
 b32
 pxWin32SocketUdpCreate(PxWin32SocketUdp* self, PxAddressIp address, u16 port)
 {
+    pxMemorySet(self, sizeof *self, 0xAB);
+
     ssize length = 0;
 
     PxWin32SockAddrStorage storage =

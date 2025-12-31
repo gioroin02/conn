@@ -7,7 +7,7 @@ main(int argc, char** argv)
 
     PxMemoryArena arena = pxSystemMemoryReserve(pxMemoryMiB(4));
 
-    ConnServer server = connServerMake();
+    ConnServer server;
 
     if (connServerCreate(&server, &arena) == 0) return 1;
 

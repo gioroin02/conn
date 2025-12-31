@@ -12,6 +12,8 @@ pxWin32SocketTcpReserve(PxMemoryArena* arena)
 b32
 pxWin32SocketTcpCreate(PxWin32SocketTcp* self, PxAddressIp address, u16 port)
 {
+    pxMemorySet(self, sizeof *self, 0xAB);
+
     ssize length = 0;
 
     PxWin32SockAddrStorage storage =
@@ -24,8 +26,6 @@ pxWin32SocketTcpCreate(PxWin32SocketTcp* self, PxAddressIp address, u16 port)
 
     if (handle == INVALID_SOCKET) return 0;
 
-    pxMemorySet(self, sizeof *self, 0xAB);
-
     self->handle  = handle;
     self->storage = storage;
 
@@ -35,6 +35,8 @@ pxWin32SocketTcpCreate(PxWin32SocketTcp* self, PxAddressIp address, u16 port)
 b32
 pxWin32SocketTcpAccept(PxWin32SocketTcp* self, PxWin32SocketTcp* value)
 {
+    pxMemorySet(value, sizeof *value, 0xAB);
+
     PxWin32SockAddrStorage storage;
 
     pxMemorySet(&storage, sizeof storage, 0xAB);
@@ -47,8 +49,6 @@ pxWin32SocketTcpAccept(PxWin32SocketTcp* self, PxWin32SocketTcp* value)
         (PxWin32SockAddr*) &storage, &length);
 
     if (handle == INVALID_SOCKET) return 0;
-
-    pxMemorySet(value, sizeof *value, 0xAB);
 
     value->handle  = handle;
     value->storage = storage;

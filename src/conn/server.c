@@ -36,7 +36,7 @@ connBoardShow(ConnBoard* self)
         for (col = 0; col < self->width; col += 1) {
             u32 value = connBoardGet(self, col, row);
 
-            if (value >= 0 && value < 0)
+            if (value > 0 && value < 3)
                 printf("%s %lu %s | ", colors[value], value, colors[0]);
             else
                 printf("    | ");
@@ -49,16 +49,6 @@ connBoardShow(ConnBoard* self)
 
         printf("\n");
     }
-}
-
-ConnServer
-connServerMake()
-{
-    ConnServer result;
-
-    pxMemorySet(&result, sizeof result, 0xAB);
-
-    return result;
 }
 
 b32
@@ -94,6 +84,8 @@ connServerStateSetError(ConnServer* self)
 b32
 connServerCreate(ConnServer* self, PxMemoryArena* arena)
 {
+    pxMemorySet(self, sizeof *self, 0xAB);
+
     self->async        = pxAsyncReserve(arena);
     self->listener     = pxSocketTcpReserve(arena);
     self->player_count = 0;
@@ -177,9 +169,9 @@ connServerUpdate(ConnServer* self)
         connServerTcpBroadcast(self, 0,
             connMessageTurn(self->player_turn));
 
-        connServerTcpRead(self, session);
-
         connServerStateSet(self, ConnServerState_WaitingMove);
+
+        connServerTcpRead(self, session);
     }
 }
 
@@ -200,7 +192,7 @@ connServerTcpBroadcast(ConnServer* self, ConnSession* session, ConnMessage messa
     for (index = 0; index < self->player_count; index += 1) {
         ConnSession* value = pxArrayGetPtr(&self->sessions, index);
 
-        if (value != 0 && value != session)
+        if (value != PX_NULL && value != session)
             connServerTcpWrite(self, value, message);
     }
 }
@@ -260,9 +252,7 @@ connServerPollEvents(ConnServer* self)
             case PxAsyncEventFamily_Tcp: {
                 PxSocketTcpEvent tcp;
 
-                pxMemoryCopy(&tcp, sizeof tcp, event);
-
-                b32 status = pxAsyncReturn(self->async, event);
+                b32 status = pxAsyncReturn(self->async, event, &tcp, sizeof tcp);
 
                 if (status == 0) connServerStateSetError(self);
 
@@ -377,7 +367,7 @@ connServerOnTcpRead(ConnServer* self, ConnSession* session, ConnMessage message)
                 for (index = 0; index < self->player_count; index += 1) {
                     ConnSession* value = pxArrayGetPtr(&self->sessions, index);
 
-                    if (value == session) break;
+                    if (value == session) continue;
 
                     connServerTcpWrite(self, session,
                         connMessageData(value->player.flag, value->player.client));
@@ -410,19 +400,19 @@ connServerOnTcpRead(ConnServer* self, ConnSession* session, ConnMessage message)
                 winner = client;
 
             if (winner != 0 || full != 0) {
+                connServerStateSet(self, ConnServerState_Stopping);
+
                 connServerTcpBroadcast(self, PX_NULL,
                     connMessageResult(winner));
-
-                connServerStateSet(self, ConnServerState_Stopping);
             }
             else connServerStateSet(self, ConnServerState_SendingTurn);
         } break;
 
         case ConnMessage_Quit: {
+            connServerStateSet(self, ConnServerState_Stopping);
+
             connServerTcpBroadcast(self, PX_NULL,
                 connMessageResult(0));
-
-            connServerStateSet(self, ConnServerState_Stopping);
         } break;
 
         default: break;

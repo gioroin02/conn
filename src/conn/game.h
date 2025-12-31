@@ -29,7 +29,7 @@ ConnPlayer;
 ConnPlayer
 connPlayerMake(ConnClientFlag flag, u32 client);
 
-ssize
+b32
 connBoardCreate(ConnBoard* self, PxMemoryArena* arena, ssize width, ssize height);
 
 void
@@ -37,6 +37,9 @@ connBoardClear(ConnBoard* self);
 
 ssize
 connBoardCount(ConnBoard* self);
+
+ssize
+connBoardSize(ConnBoard* self);
 
 b32
 connBoardIsEmpty(ConnBoard* self);

@@ -51,9 +51,9 @@ pxAsyncPoll(PxAsync* self, void** tag, void** event, ssize timeout)
 }
 
 b32
-pxAsyncReturn(PxAsync* self, void* event)
+pxAsyncReturn(PxAsync* self, void* event, void* pntr, ssize size)
 {
-    return __pxAsyncReturn__(self, event);
+    return __pxAsyncReturn__(self, event, pntr, size);
 }
 
 #endif // PX_SYSTEM_ASYNC_COMMON_C

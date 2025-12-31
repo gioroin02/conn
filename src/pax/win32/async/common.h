@@ -54,6 +54,6 @@ PxAsyncEventFamily
 pxWin32AsyncPoll(PxWin32Async* self, void** tag, void** event, ssize timeout);
 
 b32
-pxWin32AsyncReturn(PxWin32Async* self, void* event);
+pxWin32AsyncReturn(PxWin32Async* self, void* event, void* pntr, ssize size);
 
 #endif // PX_WIN32_ASYNC_COMMON_H

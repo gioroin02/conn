@@ -160,9 +160,12 @@ pxWin32AsyncPoll(PxWin32Async* self, void** tag, void** event, ssize timeout)
 }
 
 b32
-pxWin32AsyncReturn(PxWin32Async* self, void* event)
+pxWin32AsyncReturn(PxWin32Async* self, void* event, void* pntr, ssize size)
 {
-    return pxMemoryPoolRelease(&self->pool, event);
+    if (pxMemoryCopy(pntr, size, event) != PX_NULL)
+        return pxMemoryPoolRelease(&self->pool, event);
+
+    return 0;
 }
 
 #endif // PX_WIN32_ASYNC_COMMON_C
