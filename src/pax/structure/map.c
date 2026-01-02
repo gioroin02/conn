@@ -56,9 +56,9 @@ b32
 __pxMapCreate__(PxMapTag* self, void** pntr_keys, ssize step_key, void** pntr_values, ssize step_value,
     PxMemoryArena* arena, ssize size, void* proc_hash, void* proc_is_equal)
 {
-    void* mark = pxMemoryArenaTell(arena);
-
     pxMemorySet(self, sizeof *self, 0xAB);
+
+    void* mark = pxMemoryArenaTell(arena);
 
     ssize* indices = pxMemoryArenaReserveManyOf(arena, ssize, size);
     u8*    keys    = pxMemoryArenaReserve(arena, size, step_key);

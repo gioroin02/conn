@@ -157,13 +157,12 @@ pxWin32AsyncTaskSocketTcp(PxMemoryPool* pool, void* tag, ssize size_body, void**
     void*             event  = pxMemoryPoolReserve(pool, 1, pool->step);
 
     if (result != PX_NULL && body != PX_NULL && event != PX_NULL) {
-        result->family        = PxAsyncEventFamily_Tcp;
-        result->pntr_body     = body;
-        result->pntr_event    = event;
-        result->pntr_tag      = tag;
-        result->proc_prepare  = pxWin32SocketTcpTaskPrepare;
-        result->proc_complete = pxWin32SocketTcpTaskComplete;
-        result->pending_next  = PX_NULL;
+        result->family       = PxAsyncEventFamily_Tcp;
+        result->pntr_body    = body;
+        result->pntr_event   = event;
+        result->pntr_tag     = tag;
+        result->proc         = pxWin32SocketTcpTaskComplete;
+        result->pending_next = PX_NULL;
 
         pxMemorySet(&result->overlap, sizeof result->overlap, 0x00);
 
@@ -276,6 +275,9 @@ pxWin32SocketTcpAcceptAsync(PxWin32Async* async, void* tag, PxWin32SocketTcp* se
     PxWin32AsyncTask* task = pxWin32SocketTcpTaskAccept(
         &async->pool, tag, self, value);
 
+    if (pxWin32SocketTcpTaskPrepare(task, async) == 0)
+        return 0;
+
     return pxAsyncSubmit(async, task);
 }
 
@@ -284,6 +286,9 @@ pxWin32SocketTcpConnectAsync(PxWin32Async* async, void* tag, PxWin32SocketTcp* s
 {
     PxWin32AsyncTask* task = pxWin32SocketTcpTaskConnect(
         &async->pool, tag, self, address, port);
+
+    if (pxWin32SocketTcpTaskPrepare(task, async) == 0)
+        return 0;
 
     return pxAsyncSubmit(async, task);
 }
@@ -294,6 +299,9 @@ pxWin32SocketTcpWriteAsync(PxWin32Async* async, void* tag, PxWin32SocketTcp* sel
     PxWin32AsyncTask* task = pxWin32SocketTcpTaskWrite(
         &async->pool, tag, self, values, start, stop);
 
+    if (pxWin32SocketTcpTaskPrepare(task, async) == 0)
+        return 0;
+
     return pxAsyncSubmit(async, task);
 }
 
@@ -302,6 +310,9 @@ pxWin32SocketTcpReadAsync(PxWin32Async* async, void* tag, PxWin32SocketTcp* self
 {
     PxWin32AsyncTask* task = pxWin32SocketTcpTaskRead(
         &async->pool, tag, self, values, start, stop);
+
+    if (pxWin32SocketTcpTaskPrepare(task, async) == 0)
+        return 0;
 
     return pxAsyncSubmit(async, task);
 }

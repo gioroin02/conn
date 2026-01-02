@@ -8,7 +8,7 @@ typedef struct PxWin32SocketTcpTaskAccept
     PxWin32SocketTcp* listener;
     PxWin32SocketTcp* socket;
 
-    u8 buffer[256];
+    u8 buffer[sizeof (PxWin32SockAddrStorage) * 2];
 }
 PxWin32SocketTcpTaskAccept;
 

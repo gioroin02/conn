@@ -11,14 +11,13 @@ typedef struct PxWin32AsyncTask
 {
     PxAsyncEventFamily family;
 
+    OVERLAPPED overlap;
+
     void* pntr_body;
     void* pntr_event;
     void* pntr_tag;
 
-    void* proc_prepare;
-    void* proc_complete;
-
-    OVERLAPPED overlap;
+    void* proc;
 
     struct PxWin32AsyncTask* pending_next;
 }
@@ -35,8 +34,7 @@ typedef struct PxWin32Async
 }
 PxWin32Async;
 
-typedef b32 (PxWin32AsyncTaskProcPrepare)  (PxWin32AsyncTask*, PxWin32Async*);
-typedef b32 (PxWin32AsyncTaskProcComplete) (PxWin32AsyncTask*, ssize);
+typedef b32 (PxWin32AsyncTaskProc) (PxWin32AsyncTask*, ssize);
 
 PxWin32Async*
 pxWin32AsyncReserve(PxMemoryArena* arena);

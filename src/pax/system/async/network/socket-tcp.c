@@ -21,69 +21,74 @@
 PxSocketTcpEvent
 pxSocketTcpEventAccept(PxSocketTcp* listener, PxSocketTcp* socket)
 {
-    return (PxSocketTcpEvent) {
-        .kind = PxSocketTcpEvent_Accept,
+    PxSocketTcpEvent result;
 
-        .accept = {
-            .listener = listener,
-            .socket   = socket,
-        },
-    };
+    pxMemorySet(&result, sizeof result, 0xAB);
+
+    result.kind            = PxSocketTcpEvent_Accept;
+    result.accept.listener = listener;
+    result.accept.socket   = socket;
+
+    return result;
 }
 
 PxSocketTcpEvent
 pxSocketTcpEventConnect(PxSocketTcp* socket, b32 status)
 {
-    return (PxSocketTcpEvent) {
-        .kind = PxSocketTcpEvent_Connect,
+    PxSocketTcpEvent result;
 
-        .connect = {
-            .socket = socket,
-            .status = status != 0 ? 1 : 0,
-        },
-    };
+    pxMemorySet(&result, sizeof result, 0xAB);
+
+    result.kind           = PxSocketTcpEvent_Connect;
+    result.connect.socket = socket;
+    result.connect.status = status != 0 ? 1 : 0;
+
+    return result;
 }
 
 PxSocketTcpEvent
 pxSocketTcpEventWrite(PxSocketTcp* socket, u8* values, ssize start, ssize stop)
 {
-    return (PxSocketTcpEvent) {
-        .kind = PxSocketTcpEvent_Write,
+    PxSocketTcpEvent result;
 
-        .write = {
-            .socket = socket,
-            .values = values,
-            .start  = start,
-            .stop   = stop,
-        },
-    };
+    pxMemorySet(&result, sizeof result, 0xAB);
+
+    result.kind         = PxSocketTcpEvent_Write;
+    result.write.socket = socket;
+    result.write.values = values;
+    result.write.start  = start,
+    result.write.stop   = stop;
+
+    return result;
 }
 
 PxSocketTcpEvent
 pxSocketTcpEventRead(PxSocketTcp* socket, u8* values, ssize start, ssize stop)
 {
-    return (PxSocketTcpEvent) {
-        .kind = PxSocketTcpEvent_Read,
+    PxSocketTcpEvent result;
 
-        .read = {
-            .socket = socket,
-            .values = values,
-            .start  = start,
-            .stop   = stop,
-        },
-    };
+    pxMemorySet(&result, sizeof result, 0xAB);
+
+    result.kind        = PxSocketTcpEvent_Read;
+    result.read.socket = socket;
+    result.read.values = values;
+    result.read.start  = start,
+    result.read.stop   = stop;
+
+    return result;
 }
 
 PxSocketTcpEvent
 pxSocketTcpEventClose(PxSocketTcp* socket)
 {
-    return (PxSocketTcpEvent) {
-        .kind = PxSocketTcpEvent_Close,
+    PxSocketTcpEvent result;
 
-        .close = {
-            .socket = socket,
-        },
-    };
+    pxMemorySet(&result, sizeof result, 0xAB);
+
+    result.kind         = PxSocketTcpEvent_Close;
+    result.close.socket = socket;
+
+    return result;
 }
 
 b32

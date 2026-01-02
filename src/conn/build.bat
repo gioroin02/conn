@@ -3,6 +3,7 @@
 set "compiler=zig cc"
 
 set "impl=%impl% src\pax\base\export.c"
+set "impl=%impl% src\pax\base\memory\export.c"
 set "impl=%impl% src\pax\structure\export.c"
 set "impl=%impl% src\pax\system\memory\export.c"
 set "impl=%impl% src\pax\system\network\export.c"

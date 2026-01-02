@@ -331,7 +331,7 @@ connClientOnTcpRead(ConnClient* self, ConnMessage message)
 
             if (message.data.client > 0) {
                 ConnPlayer  player = connPlayerMake(message.data.flag, message.data.client);
-                ConnPlayer* value  = pxArrayGetPtr(&self->players, player.client - 1);
+                ConnPlayer* value  = pxArrayGetPntr(&self->players, player.client - 1);
 
                 if (value != PX_NULL)
                     *value = player;

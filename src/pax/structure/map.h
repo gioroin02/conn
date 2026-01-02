@@ -77,8 +77,8 @@ typedef b32   (PxMapProcIsEqual) (void*, void*);
 #define pxMapGet(self, key, other) \
     (pxMapIsKey(self, key) != 0 ? (self)->values[(self)->map_index] : (other))
 
-#define pxMapGetPtr(self, key) \
-    (pxMapIsKey(self, key) != 0 ? &(self)->values[(self)->map_index] : 0)
+#define pxMapGetPntr(self, key) \
+    (pxMapIsKey(self, key) != 0 ? &(self)->values[(self)->map_index] : PX_NULL)
 
 b32
 __pxMapCreate__(PxMapTag* self, void** pntr_keys, ssize step_key, void** pntr_values, ssize step_value,

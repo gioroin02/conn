@@ -20,9 +20,12 @@ pxWin32MemoryPageSize()
 PxMemoryArena
 pxWin32MemoryReserve(ssize size)
 {
-    PxMemoryArena result = pxMemoryArenaMake(0, 0);
-    ssize         page   = pxWin32MemoryPageSize();
-    void*         memory = PX_NULL;
+    PxMemoryArena result;
+
+    pxMemorySet(&result, sizeof result, 0xAB);
+
+    ssize page   = pxWin32MemoryPageSize();
+    void* memory = PX_NULL;
 
     if (size <= 0) return result;
 
@@ -49,7 +52,7 @@ pxWin32MemoryRelease(PxMemoryArena* arena)
 
     VirtualFree(arena, 0, MEM_RELEASE);
 
-    *arena = pxMemoryArenaMake(0, 0);
+    pxMemorySet(arena, sizeof *arena, 0xAB);
 
     return 1;
 }

@@ -111,7 +111,7 @@ connServerCreate(ConnServer* self, PxMemoryArena* arena)
         if (pxArrayAddBack(&self->sessions) == 0) return 0;
 
         ssize        back  = pxArrayBack(&self->sessions);
-        ConnSession* value = pxArrayGetPtr(&self->sessions, back);
+        ConnSession* value = pxArrayGetPntr(&self->sessions, back);
 
         if (value == PX_NULL) return 0;
 
@@ -139,7 +139,7 @@ connServerDestroy(ConnServer* self)
 void
 connServerStart(ConnServer* self)
 {
-    ConnSession* value = pxArrayGetPtr(&self->sessions, 0);
+    ConnSession* value = pxArrayGetPntr(&self->sessions, 0);
 
     if (value != 0)
         connServerTcpAccept(self, value);
@@ -164,7 +164,7 @@ connServerUpdate(ConnServer* self)
     if (connServerStateIsEqual(self, ConnServerState_SendingTurn) != 0) {
         self->player_turn = (self->player_turn % self->player_count) + 1;
 
-        ConnSession* session = pxArrayGetPtr(&self->sessions, self->player_turn - 1);
+        ConnSession* session = pxArrayGetPntr(&self->sessions, self->player_turn - 1);
 
         connServerTcpBroadcast(self, 0,
             connMessageTurn(self->player_turn));
@@ -190,7 +190,7 @@ connServerTcpBroadcast(ConnServer* self, ConnSession* session, ConnMessage messa
     ssize index = 0;
 
     for (index = 0; index < self->player_count; index += 1) {
-        ConnSession* value = pxArrayGetPtr(&self->sessions, index);
+        ConnSession* value = pxArrayGetPntr(&self->sessions, index);
 
         if (value != PX_NULL && value != session)
             connServerTcpWrite(self, value, message);
@@ -275,7 +275,7 @@ connServerOnTcpEvent(ConnServer* self, ConnSession* session, PxSocketTcpEvent* e
                 connServerOnTcpAccept(self, session);
 
                 ssize        index = self->player_count + 1;
-                ConnSession* value = pxArrayGetPtr(&self->sessions, index);
+                ConnSession* value = pxArrayGetPntr(&self->sessions, index);
 
                 if (value != 0) connServerTcpAccept(self, value);
             }
@@ -365,7 +365,7 @@ connServerOnTcpRead(ConnServer* self, ConnSession* session, ConnMessage message)
                 ssize index = 0;
 
                 for (index = 0; index < self->player_count; index += 1) {
-                    ConnSession* value = pxArrayGetPtr(&self->sessions, index);
+                    ConnSession* value = pxArrayGetPntr(&self->sessions, index);
 
                     if (value == session) continue;
 

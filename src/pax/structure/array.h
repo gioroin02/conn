@@ -112,8 +112,8 @@ PxArrayTag;
 #define pxArrayGet(self, index, other) \
     (pxArrayIsIndex(self, index) != 0 ? (self)->values[(self)->array_index] : (other))
 
-#define pxArrayGetPtr(self, index) \
-    (pxArrayIsIndex(self, index) != 0 ? &(self)->values[(self)->array_index] : 0)
+#define pxArrayGetPntr(self, index) \
+    (pxArrayIsIndex(self, index) != 0 ? &(self)->values[(self)->array_index] : PX_NULL)
 
 b32
 __pxArrayCreate__(PxArrayTag* self, void** pntr, ssize step, PxMemoryArena* arena, ssize size);

@@ -6,9 +6,9 @@
 void*
 pxMemorySet(void* pntr, ssize size, u8 value)
 {
-    ssize index = 0;
-
     if (pntr == PX_NULL) return PX_NULL;
+
+    ssize index = 0;
 
     for (index = 0; index < size; index += 1)
         ((u8*) pntr)[index] = value;
@@ -19,9 +19,9 @@ pxMemorySet(void* pntr, ssize size, u8 value)
 void*
 pxMemoryCopy(void* pntr, ssize size, void* value)
 {
-    ssize index = 0;
-
     if (pntr == PX_NULL || value == PX_NULL) return PX_NULL;
+
+    ssize index = 0;
 
     for (index = 0; index < size; index += 1)
         ((u8*) pntr)[index] = ((u8*) value)[index];
@@ -43,10 +43,10 @@ pxMemoryCopyOrSet(void* pntr, ssize size, void* value, u8 other)
 void*
 pxMemoryShiftForw(void* pntr, ssize size, ssize about, u8 value)
 {
-    ssize index = 0;
-
     if (pntr == PX_NULL || size < 0 || about < 0 || about >= size)
         return pntr;
+
+    ssize index = 0;
 
     for (index = size; index > about; index -= 1)
         ((u8*) pntr)[index - 1] = ((u8*) pntr)[index - about - 1];
@@ -60,10 +60,10 @@ pxMemoryShiftForw(void* pntr, ssize size, ssize about, u8 value)
 void*
 pxMemoryShiftBack(void* pntr, ssize size, ssize about, u8 value)
 {
-    ssize index = 0;
-
     if (pntr == PX_NULL || size < 0 || about < 0 || about >= size)
         return pntr;
+
+    ssize index = 0;
 
     for (index = 0; index < size - about; index += 1)
         ((u8*) pntr)[index] = ((u8*) pntr)[index + about];
@@ -77,9 +77,10 @@ pxMemoryShiftBack(void* pntr, ssize size, ssize about, u8 value)
 void*
 pxMemoryAlignPntrForw(void* pntr, usize align)
 {
-    usize dist = ((usize) pntr) % align;
+    if (pntr == PX_NULL || (align & (align - 1)) != 0)
+        return PX_NULL;
 
-    if (pntr == PX_NULL) return PX_NULL;
+    usize dist = ((usize) pntr) % align;
 
     if (dist != 0)
         return ((u8*) pntr) + (align - dist);
@@ -90,9 +91,10 @@ pxMemoryAlignPntrForw(void* pntr, usize align)
 void*
 pxMemoryAlignPntrBack(void* pntr, usize align)
 {
-    usize dist = ((usize) pntr) % align;
+    if (pntr == PX_NULL || (align & (align - 1)) != 0)
+        return PX_NULL;
 
-    if (pntr == PX_NULL) return PX_NULL;
+    usize dist = ((usize) pntr) % align;
 
     if (dist != 0)
         return ((u8*) pntr) - dist;
@@ -103,9 +105,10 @@ pxMemoryAlignPntrBack(void* pntr, usize align)
 ssize
 pxMemoryAlignSizeForw(ssize size, usize align)
 {
-    usize dist = ((usize) size) % align;
+    if (size <= 0 || (align & (align - 1)) != 0)
+        return 0;
 
-    if (size <= 0) return 0;
+    usize dist = ((usize) size) % align;
 
     if (dist != 0)
         return size + (align - dist);
@@ -116,9 +119,10 @@ pxMemoryAlignSizeForw(ssize size, usize align)
 ssize
 pxMemoryAlignSizeBack(ssize size, usize align)
 {
-    usize dist = ((usize) size) % align;
+    if (size <= 0 || (align & (align - 1)) != 0)
+        return 0;
 
-    if (size <= 0) return 0;
+    usize dist = ((usize) size) % align;
 
     if (dist != 0)
         return size - dist;
@@ -129,11 +133,11 @@ pxMemoryAlignSizeBack(ssize size, usize align)
 PxByteOrder
 pxGetHostByteOrder()
 {
-    u32 value = 1;
+    u8 bytes[sizeof (u16)];
 
-    u8 bytes[sizeof value];
+    u16 value = 1;
 
-    pxMemoryCopy(bytes, sizeof value, &value);
+    pxMemoryCopy(bytes, sizeof bytes, &value);
 
     if (bytes[0] == 1)
         return PxByteOrder_Reverse;

@@ -19,9 +19,12 @@ pxLinuxMemoryPageSize()
 PxMemoryArena
 pxLinuxMemoryReserve(ssize size)
 {
-    PxMemoryArena result = pxMemoryArenaMake(0, 0);
-    ssize         page   = pxLinuxMemoryPageSize();
-    void*         memory = PX_NULL;
+    PxMemoryArena result;
+
+    pxMemorySet(&result, sizeof result, 0xAB);
+
+    ssize page   = pxLinuxMemoryPageSize();
+    void* memory = PX_NULL;
 
     if (size <= 0) return result;
 
@@ -54,7 +57,7 @@ pxLinuxMemoryRelease(PxMemoryArena* arena)
         status = munmap(memory, size);
     while (status == -1 && errno == EINTR);
 
-    *arena = pxMemoryArenaMake(0, 0);
+    pxMemorySet(arena, sizeof *arena, 0xAB);
 
     return 1;
 }
