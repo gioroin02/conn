@@ -1,7 +1,9 @@
 #ifndef PX_BASE_EXPORT_H
 #define PX_BASE_EXPORT_H
 
-#include "defines.h"
-#include "types.h"
+#include "define.h"
+#include "system.h"
+
+#include "type.h"
 
 #endif // PX_BASE_EXPORT_H

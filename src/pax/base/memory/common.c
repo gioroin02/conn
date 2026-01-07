@@ -3,6 +3,48 @@
 
 #include "common.h"
 
+ssize
+pxMemoryKiB(ssize size)
+{
+    if (size < 0 || size > PX_MAX_SSIZE / PX_MEMORY_KIB)
+        return 0;
+
+    return size * PX_MEMORY_KIB;
+}
+
+ssize
+pxMemoryMiB(ssize size)
+{
+    if (size < 0 || size > PX_MAX_SSIZE / PX_MEMORY_MIB)
+        return 0;
+
+    return size * PX_MEMORY_MIB;
+}
+
+ssize
+pxMemoryGiB(ssize size)
+{
+    if (size < 0 || size > PX_MAX_SSIZE / PX_MEMORY_GIB)
+        return 0;
+
+    return size * PX_MEMORY_GIB;
+}
+
+PxByteOrder
+pxGetHostByteOrder()
+{
+    u8 bytes[sizeof (u16)];
+
+    u16 value = 1;
+
+    pxMemoryCopy(bytes, sizeof bytes, &value);
+
+    if (bytes[0] == 1)
+        return PxByteOrder_Reverse;
+
+    return PxByteOrder_Network;
+}
+
 void*
 pxMemorySet(void* pntr, ssize size, u8 value)
 {
@@ -75,7 +117,25 @@ pxMemoryShiftBack(void* pntr, ssize size, ssize about, u8 value)
 }
 
 void*
-pxMemoryAlignPntrForw(void* pntr, usize align)
+pxMemoryReverse(void* pntr, ssize size)
+{
+    if (pntr == PX_NULL || size <= 0) return PX_NULL;
+
+    ssize index = 0;
+    ssize other = 0;
+
+    for (other = size - 1; index < other; index += 1, other -= 1) {
+        u8 temp = ((u8*) pntr)[index];
+
+        ((u8*) pntr)[index] = ((u8*) pntr)[other];
+        ((u8*) pntr)[other] = temp;
+    }
+
+    return pntr;
+}
+
+void*
+pxMemoryAlignPntr(void* pntr, usize align)
 {
     if (pntr == PX_NULL || (align & (align - 1)) != 0)
         return PX_NULL;
@@ -88,22 +148,8 @@ pxMemoryAlignPntrForw(void* pntr, usize align)
     return pntr;
 }
 
-void*
-pxMemoryAlignPntrBack(void* pntr, usize align)
-{
-    if (pntr == PX_NULL || (align & (align - 1)) != 0)
-        return PX_NULL;
-
-    usize dist = ((usize) pntr) % align;
-
-    if (dist != 0)
-        return ((u8*) pntr) - dist;
-
-    return pntr;
-}
-
 ssize
-pxMemoryAlignSizeForw(ssize size, usize align)
+pxMemoryAlignSize(ssize size, usize align)
 {
     if (size <= 0 || (align & (align - 1)) != 0)
         return 0;
@@ -114,35 +160,6 @@ pxMemoryAlignSizeForw(ssize size, usize align)
         return size + (align - dist);
 
     return size;
-}
-
-ssize
-pxMemoryAlignSizeBack(ssize size, usize align)
-{
-    if (size <= 0 || (align & (align - 1)) != 0)
-        return 0;
-
-    usize dist = ((usize) size) % align;
-
-    if (dist != 0)
-        return size - dist;
-
-    return size;
-}
-
-PxByteOrder
-pxGetHostByteOrder()
-{
-    u8 bytes[sizeof (u16)];
-
-    u16 value = 1;
-
-    pxMemoryCopy(bytes, sizeof bytes, &value);
-
-    if (bytes[0] == 1)
-        return PxByteOrder_Reverse;
-
-    return PxByteOrder_Network;
 }
 
 #endif // PX_BASE_MEMORY_COMMON_C

@@ -1,0 +1,6 @@
+#ifndef PX_SYSTEM_STORAGE_EXPORT_C
+#define PX_SYSTEM_STORAGE_EXPORT_C
+
+#include "file.c"
+
+#endif // PX_SYSTEM_STORAGE_EXPORT_C

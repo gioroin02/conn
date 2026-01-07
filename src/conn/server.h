@@ -18,6 +18,7 @@ typedef enum ConnServerState
 
     ConnServerState_SendingTurn,
     ConnServerState_WaitingMove,
+    ConnServerState_Spinning,
 }
 ConnServerState;
 
@@ -29,8 +30,8 @@ typedef struct ConnSession
     ConnMessageArray messages;
     ConnPlayer       player;
 
-    u8 writing[CONN_MESSAGE_SIZE];
-    u8 reading[CONN_MESSAGE_SIZE];
+    u8 buff_tcp_write[CONN_MESSAGE_SIZE];
+    u8 buff_tcp_read[CONN_MESSAGE_SIZE];
 }
 ConnSession;
 
@@ -44,6 +45,8 @@ typedef struct ConnServer
 
     ConnBoard board;
 
+    ssize spin_count;
+    ssize client_count;
     ssize player_count;
     ssize player_turn;
 
@@ -95,7 +98,7 @@ void
 connServerPollEvents(ConnServer* self);
 
 void
-connServerOnTcpEvent(ConnServer* self, ConnSession* session, PxSocketTcpEvent* event);
+connServerOnTcpEvent(ConnServer* self, ConnSession* session, PxSocketTcpEvent event);
 
 void
 connServerOnTcpAccept(ConnServer* self, ConnSession* session);
@@ -106,8 +109,11 @@ connServerOnTcpWrite(ConnServer* self, ConnSession* session, ConnMessage message
 void
 connServerOnTcpRead(ConnServer* self, ConnSession* session, ConnMessage message);
 
-void
-connServerOnStateChange(ConnServer* self, ConnServerState previous, ConnServerState current);
+ConnServerState
+connServerOnUpdate(ConnServer* self);
+
+ConnServerState
+connServerOnStateChange(ConnServer* self);
 
 b32
 connSessionCreate(ConnSession* self, PxMemoryArena* arena);

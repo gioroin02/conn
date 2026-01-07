@@ -21,10 +21,10 @@ b32
 pxSocketUdpBindTo(PxSocketUdp* self, PxAddressIp address, u16 port);
 
 ssize
-pxSocketUdpWrite(PxSocketUdp* self, u8* values, ssize size, PxAddressIp address, u16 port);
+pxSocketUdpWrite(PxSocketUdp* self, u8* values, ssize start, ssize stop, PxAddressIp address, u16 port);
 
 ssize
-pxSocketUdpRead(PxSocketUdp* self, u8* values, ssize size, PxAddressIp* address, u16* port);
+pxSocketUdpRead(PxSocketUdp* self, u8* values, ssize start, ssize stop, PxAddressIp* address, u16* port);
 
 PxAddressIp
 pxSocketUdpGetAddress(PxSocketUdp* self);

@@ -35,6 +35,9 @@ pxMemoryArenaReserve(PxMemoryArena* self, ssize count, ssize size);
 b32
 pxMemoryArenaRelease(PxMemoryArena* self, void* pntr);
 
+b32
+pxMemoryArenaRewind(PxMemoryArena* self, void* pntr);
+
 void*
 pxMemoryArenaTell(PxMemoryArena* self);
 

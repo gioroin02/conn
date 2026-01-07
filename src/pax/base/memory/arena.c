@@ -54,7 +54,7 @@ pxMemoryArenaReserve(PxMemoryArena* self, ssize count, ssize size)
     if (next < self->pntr_base || next > self->pntr_base + self->size)
         return PX_NULL;
 
-    self->pntr_next = pxMemoryAlignPntrForw(next,
+    self->pntr_next = pxMemoryAlignPntr(next,
         PX_MEMORY_DEFAULT_ALIGNMENT);
 
     pxMemorySet(result, self->pntr_next - result, 0xAB);
@@ -63,7 +63,13 @@ pxMemoryArenaReserve(PxMemoryArena* self, ssize count, ssize size)
 }
 
 b32
-pxMemoryArenaRelease(PxMemoryArena* self, void* pntr)
+pxMemoryArenaRelease(PxMemoryArena* arena, void* pntr)
+{
+    return 0;
+}
+
+b32
+pxMemoryArenaRewind(PxMemoryArena* self, void* pntr)
 {
     if (pntr == PX_NULL) return 0;
 

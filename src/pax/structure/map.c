@@ -81,7 +81,7 @@ __pxMapCreate__(PxMapTag* self, void** pntr_keys, ssize step_key, void** pntr_va
         return 1;
     }
 
-    pxMemoryArenaRelease(arena, mark);
+    pxMemoryArenaRewind(arena, mark);
 
     return 0;
 }

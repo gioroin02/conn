@@ -34,7 +34,7 @@ pxMemoryPoolMake(void* pntr, ssize size, ssize step)
     result.list_head = PX_NULL;
     result.size      = size;
 
-    result.step = pxMemoryAlignSizeForw(step,
+    result.step = pxMemoryAlignSize(step,
         PX_MEMORY_DEFAULT_ALIGNMENT);
 
     pxMemorySet(result.pntr_base, result.size, 0xAB);
@@ -66,7 +66,7 @@ pxMemoryPoolClear(PxMemoryPool* self)
 void*
 pxMemoryPoolReserve(PxMemoryPool* self, ssize count, ssize size)
 {
-    ssize size_header = pxMemoryAlignSizeForw(
+    ssize size_header = pxMemoryAlignSize(
         PX_MEMORY_POOL_NODE_SIZE, PX_MEMORY_DEFAULT_ALIGNMENT);
 
     if (count <= 0 || size <= 0 || count > PX_MAX_SSIZE / size - size_header)
@@ -99,7 +99,7 @@ pxMemoryPoolReserve(PxMemoryPool* self, ssize count, ssize size)
 b32
 pxMemoryPoolRelease(PxMemoryPool* self, void* pntr)
 {
-    ssize size_header = pxMemoryAlignSizeForw(
+    ssize size_header = pxMemoryAlignSize(
         PX_MEMORY_POOL_NODE_SIZE, PX_MEMORY_DEFAULT_ALIGNMENT);
 
     if (pntr == PX_NULL) return 0;

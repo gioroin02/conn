@@ -5,7 +5,7 @@
 
 #if PX_SYSTEM == PX_SYSTEM_WINDOWS
 
-    #include "../../win32/memory/export.c"
+    #include "../win32/memory/export.c"
 
     #define __pxSystemMemoryPageSize__ pxWin32MemoryPageSize
     #define __pxSystemMemoryReserve__  pxWin32MemoryReserve
@@ -13,7 +13,7 @@
 
 #elif PX_SYSTEM == PX_SYSTEM_LINUX
 
-    #include "../../linux/memory/export.c"
+    #include "../linux/memory/export.c"
 
     #define __pxSystemMemoryPageSize__ pxLinuxMemoryPageSize
     #define __pxSystemMemoryReserve__  pxLinuxMemoryReserve

@@ -30,10 +30,10 @@ b32
 pxSocketTcpConnect(PxSocketTcp* self, PxAddressIp address, u16 port);
 
 ssize
-pxSocketTcpWrite(PxSocketTcp* self, u8* values, ssize size);
+pxSocketTcpWrite(PxSocketTcp* self, u8* values, ssize start, ssize stop);
 
 ssize
-pxSocketTcpRead(PxSocketTcp* self, u8* values, ssize size);
+pxSocketTcpRead(PxSocketTcp* self, u8* values, ssize start, ssize stop);
 
 PxAddressIp
 pxSocketTcpGetAddress(PxSocketTcp* self);

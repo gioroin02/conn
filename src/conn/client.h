@@ -2,6 +2,7 @@
 #define CONN_CLIENT_H
 
 #include "message.h"
+#include "command.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,23 +26,27 @@ ConnClientState;
 
 typedef PxArray(ConnMessage) ConnMessageArray;
 typedef PxArray(ConnPlayer)  ConnPlayerArray;
+typedef PxArray(ConnCommand) ConnCommandArray;
 
 typedef struct ConnClient
 {
     PxAsync*         async;
+    PxAsync*         async2;
     PxSocketTcp*     socket;
+    PxConsole*       console;
     ConnMessageArray messages;
     ConnPlayerArray  players;
+    ConnCommandArray commands;
 
     ConnBoard board;
 
-    u32 client;
-    u32 column;
-
+    u16   client;
+    u16   column;
     ssize player_count;
 
-    u8 writing[CONN_MESSAGE_SIZE];
-    u8 reading[CONN_MESSAGE_SIZE];
+    u8 buff_tcp_write[CONN_MESSAGE_SIZE];
+    u8 buff_tcp_read[CONN_MESSAGE_SIZE];
+    u8 buff_term_read[16];
 
     ConnClientState state_curr;
     ConnClientState state_prev;
@@ -85,10 +90,13 @@ void
 connClientTcpRead(ConnClient* self);
 
 void
+connClientFileRead(ConnClient* self);
+
+void
 connClientPollEvents(ConnClient* self);
 
 void
-connClientOnTcpEvent(ConnClient* self, PxSocketTcpEvent* event);
+connClientOnTcpEvent(ConnClient* self, PxSocketTcpEvent event);
 
 void
 connClientOnTcpConnect(ConnClient* self);
@@ -100,6 +108,15 @@ void
 connClientOnTcpRead(ConnClient* self, ConnMessage message);
 
 void
-connClientOnStateChange(ConnClient* self, ConnClientState previous, ConnClientState current);
+connClientOnFileEvent(ConnClient* self, PxFileEvent event);
+
+void
+connClientOnCommand(ConnClient* self, ConnCommand command);
+
+ConnClientState
+connClientOnUpdate(ConnClient* self);
+
+ConnClientState
+connClientOnStateChange(ConnClient* self);
 
 #endif // CONN_CLIENT_H

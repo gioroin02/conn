@@ -1,21 +1,25 @@
 #ifndef CONN_MESSAGE_H
 #define CONN_MESSAGE_H
 
-#include "./memory.h"
-#include "./game.h"
+#include "memory.h"
+#include "game.h"
 
-#define CONN_MESSAGE_SIZE_HEADER ((ssize) 8)
-#define CONN_MESSAGE_SIZE        ((ssize) sizeof(ConnMessage))
+#define CONN_MESSAGE_SIZE_HEADER ((ssize) 12)
+#define CONN_MESSAGE_SIZE        ((ssize) 18)
 
 typedef enum ConnMessageKind
 {
     ConnMessage_None   = 0,
-    ConnMessage_Join   = 1,
-    ConnMessage_Quit   = 2,
-    ConnMessage_Data   = 3,
-    ConnMessage_Turn   = 4,
-    ConnMessage_Move   = 5,
-    ConnMessage_Result = 6,
+    ConnMessage_Accept = 1,
+    ConnMessage_Reject = 2,
+    ConnMessage_Join   = 3,
+    ConnMessage_Quit   = 4,
+    ConnMessage_Data   = 5,
+    ConnMessage_Turn   = 6,
+    ConnMessage_Move   = 7,
+    ConnMessage_Result = 8,
+
+    ConnMessage_Count,
 }
 ConnMessageKind;
 
@@ -25,29 +29,35 @@ typedef struct ConnMessageJoin
 }
 ConnMessageJoin;
 
+typedef struct ConnMessageQuit
+{
+    u16 client;
+}
+ConnMessageQuit;
+
 typedef struct ConnMessageData
 {
     ConnClientFlag flag;
-    u32            client;
+    u16            client;
 }
 ConnMessageData;
 
 typedef struct ConnMessageTurn
 {
-    u32 client;
+    u16 client;
 }
 ConnMessageTurn;
 
 typedef struct ConnMessageMove
 {
-    u32 client;
-    u32 column;
+    u16 client;
+    u16 column;
 }
 ConnMessageMove;
 
 typedef struct ConnMessageResult
 {
-    u32 client;
+    u16 client;
 }
 ConnMessageResult;
 
@@ -61,6 +71,7 @@ typedef struct ConnMessage
     union
     {
         ConnMessageJoin   join;
+        ConnMessageQuit   quit;
         ConnMessageData   data;
         ConnMessageTurn   turn;
         ConnMessageMove   move;
@@ -79,16 +90,19 @@ ConnMessage
 connMessageJoin(ConnClientFlag flag);
 
 ConnMessage
-connMessageData(ConnClientFlag flag, u32 client);
+connMessageQuit(u16 client);
 
 ConnMessage
-connMessageTurn(u32 client);
+connMessageData(ConnClientFlag flag, u16 client);
 
 ConnMessage
-connMessageMove(u32 client, u32 column);
+connMessageTurn(u16 client);
 
 ConnMessage
-connMessageResult(u32 client);
+connMessageMove(u16 client, u16 column);
+
+ConnMessage
+connMessageResult(u16 client);
 
 ssize
 connMessageToString(ConnMessage message, u8* values, ssize size);

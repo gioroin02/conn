@@ -1,14 +1,14 @@
 #ifndef CONN_GAME_C
 #define CONN_GAME_C
 
-#include "./game.h"
+#include "game.h"
 
 static ssize
-connBoardCountConsecutive(ConnBoard* self, ssize column, ssize row, ssize dx, ssize dy, u32* value)
+connBoardCountConsecutive(ConnBoard* self, ssize column, ssize row, ssize dx, ssize dy, u16* value)
 {
     ssize result = 0;
-    u32   pivot  = connBoardGet(self, column, row);
-    u32   other  = pivot;
+    u16   pivot  = connBoardGet(self, column, row);
+    u16   other  = pivot;
 
     if (dx == 0 && dy == 0) return result;
 
@@ -25,7 +25,7 @@ connBoardCountConsecutive(ConnBoard* self, ssize column, ssize row, ssize dx, ss
 }
 
 ConnPlayer
-connPlayerMake(ConnClientFlag flag, u32 client)
+connPlayerMake(ConnClientFlag flag, u16 client)
 {
     ConnPlayer result;
 
@@ -45,7 +45,7 @@ connBoardCreate(ConnBoard* self, PxMemoryArena* arena, ssize width, ssize height
     if (width <= 0 || height <= 0 || width > PX_MAX_SSIZE / height)
         return 0;
 
-    self->values = pxMemoryArenaReserveManyOf(arena, u32, width * height);
+    self->values = pxMemoryArenaReserveManyOf(arena, u16, width * height);
 
     if (self->values == PX_NULL) return 0;
 
@@ -108,7 +108,7 @@ connBoardHeight(ConnBoard* self, ssize column, ssize* height)
 
     for (index = self->height; index > 0; index -= 1) {
         ssize row = index - 1;
-        u32   val = self->values[row * self->width + column];
+        u16   val = self->values[row * self->width + column];
 
         if (val != 0) continue;
 
@@ -121,7 +121,7 @@ connBoardHeight(ConnBoard* self, ssize column, ssize* height)
 }
 
 b32
-connBoardInsert(ConnBoard* self, ssize column, u32 value)
+connBoardInsert(ConnBoard* self, ssize column, u16 value)
 {
     ssize row = 0;
 
@@ -135,7 +135,7 @@ connBoardInsert(ConnBoard* self, ssize column, u32 value)
     return 1;
 }
 
-u32
+u16
 connBoardGet(ConnBoard* self, ssize column, ssize row)
 {
     if (column < 0 || column >= self->width)  return 0;
@@ -145,7 +145,7 @@ connBoardGet(ConnBoard* self, ssize column, ssize row)
 }
 
 b32
-connBoardIsWinner(ConnBoard* self, ssize column, u32 value)
+connBoardIsWinner(ConnBoard* self, ssize column, u16 value)
 {
     #define DIRS ((ssize) 8)
 

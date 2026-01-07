@@ -33,6 +33,6 @@ PxAsyncEventFamily
 pxAsyncPoll(PxAsync* self, void** tag, void** event, ssize timeout);
 
 b32
-pxAsyncReturn(PxAsync* self, void* event, void* pntr, ssize size);
+pxAsyncReturn(PxAsync* self, void* event);
 
 #endif // PX_SYSTEM_ASYNC_COMMON_H

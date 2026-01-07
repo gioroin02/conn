@@ -1,102 +1,142 @@
 #ifndef CONN_MEMORY_C
 #define CONN_MEMORY_C
 
-#include "./memory.h"
+#include "memory.h"
 
-u8
-connMemoryReadU8(u8* values, ssize index, ssize size)
+u8*
+connMemoryReadU8Net(u8* values, ssize* size, u8* value)
 {
-    u8 result = 0;
+    if (values == PX_NULL || size == PX_NULL || *size < sizeof *value)
+        return PX_NULL;
 
-    if (values == 0 || index < 0 || index >= size)
-        return result;
+    pxMemoryCopy(value, sizeof *value, values);
 
-    pxMemoryCopy(&result, sizeof result, &values[index]);
+    if (pxHostByteOrderIsReverse() != 0)
+        pxMemoryReverse(value, sizeof * value);
 
-    return result;
+    *size  -= sizeof *value;
+    values += sizeof *value;
+
+    return values;
 }
 
-u16
-connMemoryReadU16(u8* values, ssize index, ssize size)
+u8*
+connMemoryReadU16Net(u8* values, ssize* size, u16* value)
 {
-    u16 result = 0;
+    if (values == PX_NULL || size == PX_NULL || *size < sizeof *value)
+        return PX_NULL;
 
-    if (values == 0 || index < 0 || index >= size)
-        return result;
+    pxMemoryCopy(value, sizeof *value, values);
 
-    pxMemoryCopy(&result, sizeof result, &values[index]);
+    if (pxHostByteOrderIsReverse() != 0)
+        pxMemoryReverse(value, sizeof * value);
 
-    return result;
+    *size  -= sizeof *value;
+    values += sizeof *value;
+
+    return values;
 }
 
-u32
-connMemoryReadU32(u8* values, ssize index, ssize size)
+u8*
+connMemoryReadU32Net(u8* values, ssize* size, u32* value)
 {
-    u32 result = 0;
+    if (values == PX_NULL || size == PX_NULL || *size < sizeof *value)
+        return PX_NULL;
 
-    if (values == 0 || index < 0 || index >= size)
-        return result;
+    pxMemoryCopy(value, sizeof *value, values);
 
-    pxMemoryCopy(&result, sizeof result, &values[index]);
+    if (pxHostByteOrderIsReverse() != 0)
+        pxMemoryReverse(value, sizeof * value);
 
-    return result;
+    *size  -= sizeof *value;
+    values += sizeof *value;
+
+    return values;
 }
 
-u64
-connMemoryReadU64(u8* values, ssize index, ssize size)
+u8*
+connMemoryReadU64Net(u8* values, ssize* size, u64* value)
 {
-    u32 result = 0;
+    if (values == PX_NULL || size == PX_NULL || *size < sizeof *value)
+        return PX_NULL;
 
-    if (values == 0 || index < 0 || index >= size)
-        return result;
+    pxMemoryCopy(value, sizeof *value, values);
 
-    pxMemoryCopy(&result, sizeof result, &values[index]);
+    if (pxHostByteOrderIsReverse() != 0)
+        pxMemoryReverse(value, sizeof * value);
 
-    return result;
+    *size  -= sizeof *value;
+    values += sizeof *value;
+
+    return values;
 }
 
-ssize
-connMemoryWriteU8(u8 value, u8* values, ssize index, ssize size)
+u8*
+connMemoryWriteU8Net(u8* values, ssize* size, u8 value)
 {
-    if (values == 0 || index < 0 || index >= size)
-        return 0;
+    if (values == PX_NULL || size == PX_NULL || *size < sizeof value)
+        return PX_NULL;
 
-    pxMemoryCopy(&values[index], sizeof value, &value);
+    pxMemoryCopy(values, sizeof value, &value);
 
-    return sizeof(value);
+    if (pxHostByteOrderIsReverse() != 0)
+        pxMemoryReverse(values, sizeof value);
+
+    *size  -= sizeof value;
+    values += sizeof value;
+
+    return values;
 }
 
-ssize
-connMemoryWriteU16(u16 value, u8* values, ssize index, ssize size)
+u8*
+connMemoryWriteU16Net(u8* values, ssize* size, u16 value)
 {
-    if (values == 0 || index < 0 || index >= size)
-        return 0;
+    if (values == PX_NULL || size == PX_NULL || *size < sizeof value)
+        return PX_NULL;
 
-    pxMemoryCopy(&values[index], sizeof value, &value);
+    pxMemoryCopy(values, sizeof value, &value);
 
-    return sizeof(value);
+    if (pxHostByteOrderIsReverse() != 0)
+        pxMemoryReverse(values, sizeof value);
+
+    *size  -= sizeof value;
+    values += sizeof value;
+
+    return values;
 }
 
-ssize
-connMemoryWriteU32(u32 value, u8* values, ssize index, ssize size)
+u8*
+connMemoryWriteU32Net(u8* values, ssize* size, u32 value)
 {
-    if (values == 0 || index < 0 || index >= size)
-        return 0;
+    if (values == PX_NULL || size == PX_NULL || *size < sizeof value)
+        return PX_NULL;
 
-    pxMemoryCopy(&values[index], sizeof value, &value);
+    pxMemoryCopy(values, sizeof value, &value);
 
-    return sizeof(value);
+    if (pxHostByteOrderIsReverse() != 0)
+        pxMemoryReverse(values, sizeof value);
+
+    *size  -= sizeof value;
+    values += sizeof value;
+
+    return values;
 }
 
-ssize
-connMemoryWriteU64(u64 value, u8* values, ssize index, ssize size)
+u8*
+connMemoryWriteU64Net(u8* values, ssize* size, u64 value)
 {
-    if (values == 0 || index < 0 || index >= size)
-        return 0;
+    if (values == PX_NULL || size == PX_NULL || *size < sizeof value)
+        return PX_NULL;
 
-    pxMemoryCopy(&values[index], sizeof value, &value);
+    pxMemoryCopy(values, sizeof value, &value);
 
-    return sizeof(value);
+    if (pxHostByteOrderIsReverse() != 0)
+        pxMemoryReverse(values, sizeof value);
+
+    *size  -= sizeof value;
+    values += sizeof value;
+
+    return values;
 }
 
 #endif // CONN_MEMORY_C

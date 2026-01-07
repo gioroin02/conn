@@ -5,7 +5,7 @@
 
 #if PX_SYSTEM == PX_SYSTEM_WINDOWS
 
-    #include "../../win32/async/export.c"
+    #include "../win32/async/export.c"
 
     #define __pxAsyncReserve__ pxWin32AsyncReserve
     #define __pxAsyncCreate__  pxWin32AsyncCreate
@@ -51,9 +51,9 @@ pxAsyncPoll(PxAsync* self, void** tag, void** event, ssize timeout)
 }
 
 b32
-pxAsyncReturn(PxAsync* self, void* event, void* pntr, ssize size)
+pxAsyncReturn(PxAsync* self, void* event)
 {
-    return __pxAsyncReturn__(self, event, pntr, size);
+    return __pxAsyncReturn__(self, event);
 }
 
 #endif // PX_SYSTEM_ASYNC_COMMON_C

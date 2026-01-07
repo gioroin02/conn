@@ -5,21 +5,9 @@
 
 #define PX_MEMORY_DEFAULT_ALIGNMENT ((ssize) 16)
 
-#define PX_MEMORY_KB ((ssize) 1000ll)
-#define PX_MEMORY_MB (PX_MEMORY_KB * PX_MEMORY_KB)
-#define PX_MEMORY_GB (PX_MEMORY_MB * PX_MEMORY_KB)
-
 #define PX_MEMORY_KIB ((ssize) 1024ll)
 #define PX_MEMORY_MIB (PX_MEMORY_KIB * PX_MEMORY_KIB)
 #define PX_MEMORY_GIB (PX_MEMORY_MIB * PX_MEMORY_KIB)
-
-#define pxMemoryKB(expr) (((ssize) expr) * PX_MEMORY_KB)
-#define pxMemoryMB(expr) (((ssize) expr) * PX_MEMORY_MB)
-#define pxMemoryGB(expr) (((ssize) expr) * PX_MEMORY_GB)
-
-#define pxMemoryKiB(expr) (((ssize) expr) * PX_MEMORY_KIB)
-#define pxMemoryMiB(expr) (((ssize) expr) * PX_MEMORY_MIB)
-#define pxMemoryGiB(expr) (((ssize) expr) * PX_MEMORY_GIB)
 
 #define pxHostByteOrderIsNetwork() \
     (pxGetHostByteOrder() == PxByteOrder_Network ? 1 : 0)
@@ -34,6 +22,18 @@ typedef enum PxByteOrder
     PxByteOrder_Reverse,
 }
 PxByteOrder;
+
+ssize
+pxMemoryKiB(ssize size);
+
+ssize
+pxMemoryMiB(ssize size);
+
+ssize
+pxMemoryGiB(ssize size);
+
+PxByteOrder
+pxGetHostByteOrder();
 
 void*
 pxMemorySet(void* pntr, ssize size, u8 value);
@@ -51,18 +51,12 @@ void*
 pxMemoryShiftBack(void* pntr, ssize size, ssize about, u8 value);
 
 void*
-pxMemoryAlignPntrForw(void* pntr, usize align);
+pxMemoryReverse(void* pntr, ssize size);
 
 void*
-pxMemoryAlignPntrBack(void* pntr, usize align);
+pxMemoryAlignPntr(void* pntr, usize align);
 
 ssize
-pxMemoryAlignSizeForw(ssize size, usize align);
-
-ssize
-pxMemoryAlignSizeBack(ssize size, usize align);
-
-PxByteOrder
-pxGetHostByteOrder();
+pxMemoryAlignSize(ssize size, usize align);
 
 #endif // PX_BASE_MEMORY_COMMON_H
