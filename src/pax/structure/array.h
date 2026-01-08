@@ -115,40 +115,28 @@ PxArrayTag;
 #define pxArrayGetPntr(self, index) \
     (pxArrayIsIndex(self, index) != 0 ? &(self)->values[(self)->array_index] : PX_NULL)
 
-b32
-__pxArrayCreate__(PxArrayTag* self, void** pntr, ssize step, PxMemoryArena* arena, ssize size);
+b32 __pxArrayCreate__(PxArrayTag* self, void** pntr, ssize step, PxMemoryArena* arena, ssize size);
 
-ssize
-__pxArraySize__(PxArrayTag* self);
+ssize __pxArraySize__(PxArrayTag* self);
 
-ssize
-__pxArrayCount__(PxArrayTag* self);
+ssize __pxArrayCount__(PxArrayTag* self);
 
-ssize
-__pxArrayFront__(PxArrayTag* self);
+ssize __pxArrayFront__(PxArrayTag* self);
 
-ssize
-__pxArrayBack__(PxArrayTag* self);
+ssize __pxArrayBack__(PxArrayTag* self);
 
-b32
-__pxArrayIsEmpty__(PxArrayTag* self);
+b32 __pxArrayIsEmpty__(PxArrayTag* self);
 
-b32
-__pxArrayIsFull__(PxArrayTag* self);
+b32 __pxArrayIsFull__(PxArrayTag* self);
 
-b32
-__pxArrayIsIndex__(PxArrayTag* self, ssize index);
+b32 __pxArrayIsIndex__(PxArrayTag* self, ssize index);
 
-void
-__pxArrayClear__(PxArrayTag* self);
+void __pxArrayClear__(PxArrayTag* self);
 
-b32
-__pxArrayCopy__(PxArrayTag* self, void* values, ssize index, void* value);
+b32 __pxArrayCopy__(PxArrayTag* self, void* values, ssize index, void* value);
 
-b32
-__pxArraySlotOpen__(PxArrayTag* self, void* values, ssize index);
+b32 __pxArraySlotOpen__(PxArrayTag* self, void* values, ssize index);
 
-b32
-__pxArraySlotClose__(PxArrayTag* self, void* values, ssize index);
+b32 __pxArraySlotClose__(PxArrayTag* self, void* values, ssize index);
 
 #endif // PX_STRUCTURE_ARRAY_H

@@ -6,11 +6,11 @@
 #define PX_ADDRESS_IP4_SIZE ((ssize) 4)
 #define PX_ADDRESS_IP6_SIZE ((ssize) 8)
 
-#define pxAddressIp4Empty() pxAddressIp4Make(  0, 0, 0, 0)
-#define pxAddressIp4Local() pxAddressIp4Make(127, 0, 0, 1)
+#define pxAddressIp4Empty() pxAddressIp4Make(0x00, 0x00, 0x00, 0x00)
+#define pxAddressIp4Local() pxAddressIp4Make(0x7f, 0x00, 0x00, 0x01)
 
-#define pxAddressIp6Empty() pxAddressIp6Make(0, 0, 0, 0, 0, 0, 0, 0)
-#define pxAddressIp6Local() pxAddressIp6Make(0, 0, 0, 0, 0, 0, 0, 1)
+#define pxAddressIp6Empty() pxAddressIp6Make(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00)
+#define pxAddressIp6Local() pxAddressIp6Make(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01)
 
 typedef enum PxAddressIpKind
 {
@@ -56,22 +56,16 @@ typedef struct PxAddressIp
 }
 PxAddressIp;
 
-PxAddressIp
-pxAddressIp4Make(u8 v0, u8 v1, u8 v2, u8 v3);
+PxAddressIp pxAddressIp4Make(u8 v0, u8 v1, u8 v2, u8 v3);
 
-PxAddressIp
-pxAddressIp6Make(u16 v0, u16 v1, u16 v2, u16 v3, u16 v4, u16 v5, u16 v6, u16 v7);
+PxAddressIp pxAddressIp6Make(u16 v0, u16 v1, u16 v2, u16 v3, u16 v4, u16 v5, u16 v6, u16 v7);
 
-PxAddressIp
-pxAddressIpNone();
+PxAddressIp pxAddressIpNone();
 
-PxAddressIp
-pxAddressIpEmpty(PxAddressIpKind kind);
+PxAddressIp pxAddressIpEmpty(PxAddressIpKind kind);
 
-PxAddressIp
-pxAddressIpLocal(PxAddressIpKind kind);
+PxAddressIp pxAddressIpLocal(PxAddressIpKind kind);
 
-b32
-pxAddressIpIsEqual(PxAddressIp self, PxAddressIp value);
+b32 pxAddressIpIsEqual(PxAddressIp self, PxAddressIp value);
 
 #endif // PX_SYSTEM_NETWORK_ADDRESS_IP_H

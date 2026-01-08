@@ -28,13 +28,10 @@ typedef struct PxStr32
 }
 PxStr32;
 
-PxStr8
-pxStr8Make(u8* values, ssize size);
+PxStr8 pxStr8Make(u8* values, ssize size);
 
-PxStr16
-pxStr16Make(u16* values, ssize size);
+PxStr16 pxStr16Make(u16* values, ssize size);
 
-PxStr32
-pxStr32Make(u32* values, ssize size);
+PxStr32 pxStr32Make(u32* values, ssize size);
 
 #endif // PX_BASE_STRING_TYPE_H

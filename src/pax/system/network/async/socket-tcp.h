@@ -17,45 +17,38 @@ PxSocketTcpEventKind;
 
 typedef struct PxSocketTcpEventAccept
 {
-    PxSocketTcp* listener;
-    PxSocketTcp* socket;
+    PxSocketTcp* value;
 }
 PxSocketTcpEventAccept;
 
 typedef struct PxSocketTcpEventConnect
 {
-    PxSocketTcp* socket;
-    b32          status;
+    b32 status;
 }
 PxSocketTcpEventConnect;
 
 typedef struct PxSocketTcpEventWrite
 {
-    PxSocketTcp* socket;
-    u8*          values;
-    ssize        start;
-    ssize        stop;
+    u8*   pntr;
+    ssize start;
+    ssize stop;
 }
 PxSocketTcpEventWrite;
 
 typedef struct PxSocketTcpEventRead
 {
-    PxSocketTcp* socket;
-    u8*          values;
-    ssize        start;
-    ssize        stop;
+    u8*   pntr;
+    ssize start;
+    ssize stop;
 }
 PxSocketTcpEventRead;
-
-typedef struct PxSocketTcpEventClose
-{
-    PxSocketTcp* socket;
-}
-PxSocketTcpEventClose;
 
 typedef struct PxSocketTcpEvent
 {
     PxSocketTcpEventKind kind;
+
+    void*        ctxt;
+    PxSocketTcp* self;
 
     union
     {
@@ -63,36 +56,26 @@ typedef struct PxSocketTcpEvent
         PxSocketTcpEventConnect connect;
         PxSocketTcpEventWrite   write;
         PxSocketTcpEventRead    read;
-        PxSocketTcpEventClose   close;
     };
 }
 PxSocketTcpEvent;
 
-PxSocketTcpEvent
-pxSocketTcpEventAccept(PxSocketTcp* listener, PxSocketTcp* socket);
+PxSocketTcpEvent pxSocketTcpEventAccept(void* ctxt, PxSocketTcp* self, PxSocketTcp* value);
 
-PxSocketTcpEvent
-pxSocketTcpEventConnect(PxSocketTcp* socket, b32 status);
+PxSocketTcpEvent pxSocketTcpEventConnect(void* ctxt, PxSocketTcp* self, b32 status);
 
-PxSocketTcpEvent
-pxSocketTcpEventWrite(PxSocketTcp* socket, u8* values, ssize start, ssize stop);
+PxSocketTcpEvent pxSocketTcpEventWrite(void* ctxt, PxSocketTcp* self, u8* pntr, ssize start, ssize stop);
 
-PxSocketTcpEvent
-pxSocketTcpEventRead(PxSocketTcp* socket, u8* values, ssize start, ssize stop);
+PxSocketTcpEvent pxSocketTcpEventRead(void* ctxt, PxSocketTcp* self, u8* pntr, ssize start, ssize stop);
 
-PxSocketTcpEvent
-pxSocketTcpEventClose(PxSocketTcp* socket);
+PxSocketTcpEvent pxSocketTcpEventClose(void* ctxt, PxSocketTcp* self);
 
-b32
-pxSocketTcpAcceptAsync(PxAsync* async, void* tag, PxSocketTcp* self, PxSocketTcp* value);
+b32 pxSocketTcpAcceptAsync(PxAsync* async, void* ctxt, PxSocketTcp* self, PxSocketTcp* value);
 
-b32
-pxSocketTcpConnectAsync(PxAsync* async, void* tag, PxSocketTcp* self, PxAddressIp address, u16 port);
+b32 pxSocketTcpConnectAsync(PxAsync* async, void* ctxt, PxSocketTcp* self, PxAddressIp address, u16 port);
 
-b32
-pxSocketTcpWriteAsync(PxAsync* async, void* tag, PxSocketTcp* self, u8* values, ssize start, ssize stop);
+b32 pxSocketTcpWriteAsync(PxAsync* async, void* ctxt, PxSocketTcp* self, u8* pntr, ssize start, ssize stop);
 
-b32
-pxSocketTcpReadAsync(PxAsync* async, void* tag, PxSocketTcp* self, u8* values, ssize start, ssize stop);
+b32 pxSocketTcpReadAsync(PxAsync* async, void* ctxt, PxSocketTcp* self, u8* pntr, ssize start, ssize stop);
 
 #endif // PX_SYSTEM_ASYNC_NETWORK_SOCKET_TCP_H

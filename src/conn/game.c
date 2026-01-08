@@ -3,8 +3,7 @@
 
 #include "game.h"
 
-static ssize
-connBoardCountConsecutive(ConnBoard* self, ssize column, ssize row, ssize dx, ssize dy, u16* value)
+static ssize connBoardCountConsecutive(ConnBoard* self, ssize column, ssize row, ssize dx, ssize dy, u16* value)
 {
     ssize result = 0;
     u16   pivot  = connBoardGet(self, column, row);
@@ -24,8 +23,7 @@ connBoardCountConsecutive(ConnBoard* self, ssize column, ssize row, ssize dx, ss
     return result;
 }
 
-ConnPlayer
-connPlayerMake(ConnClientFlag flag, u16 client)
+ConnPlayer connPlayerMake(ConnClientFlag flag, u16 client)
 {
     ConnPlayer result;
 
@@ -37,12 +35,11 @@ connPlayerMake(ConnClientFlag flag, u16 client)
     return result;
 }
 
-b32
-connBoardCreate(ConnBoard* self, PxMemoryArena* arena, ssize width, ssize height)
+b32 connBoardCreate(ConnBoard* self, PxMemoryArena* arena, ssize width, ssize height)
 {
     pxMemorySet(self, sizeof *self, 0xAB);
 
-    if (width <= 0 || height <= 0 || width > PX_MAX_SSIZE / height)
+    if (width <= 0 || height <= 0 || width > PX_SSIZE_MAX / height)
         return 0;
 
     self->values = pxMemoryArenaReserveManyOf(arena, u16, width * height);
@@ -57,8 +54,7 @@ connBoardCreate(ConnBoard* self, PxMemoryArena* arena, ssize width, ssize height
     return 1;
 }
 
-void
-connBoardClear(ConnBoard* self)
+void connBoardClear(ConnBoard* self)
 {
     ssize index = 0;
     ssize size  = self->width * self->height;
@@ -67,8 +63,7 @@ connBoardClear(ConnBoard* self)
         self->values[index] = 0;
 }
 
-ssize
-connBoardCount(ConnBoard* self)
+ssize connBoardCount(ConnBoard* self)
 {
     ssize result = 0;
     ssize index  = 0;
@@ -81,26 +76,22 @@ connBoardCount(ConnBoard* self)
     return result;
 }
 
-ssize
-connBoardSize(ConnBoard* self)
+ssize connBoardSize(ConnBoard* self)
 {
     return self->width * self->height;
 }
 
-b32
-connBoardIsEmpty(ConnBoard* self)
+b32 connBoardIsEmpty(ConnBoard* self)
 {
     return connBoardCount(self) == 0 ? 1 : 0;
 }
 
-b32
-connBoardIsFull(ConnBoard* self)
+b32 connBoardIsFull(ConnBoard* self)
 {
     return connBoardCount(self) == connBoardSize(self) ? 1 : 0;
 }
 
-b32
-connBoardHeight(ConnBoard* self, ssize column, ssize* height)
+b32 connBoardHeight(ConnBoard* self, ssize column, ssize* height)
 {
     ssize index = 0;
 
@@ -120,8 +111,7 @@ connBoardHeight(ConnBoard* self, ssize column, ssize* height)
     return 0;
 }
 
-b32
-connBoardInsert(ConnBoard* self, ssize column, u16 value)
+b32 connBoardInsert(ConnBoard* self, ssize column, u16 value)
 {
     ssize row = 0;
 
@@ -135,8 +125,7 @@ connBoardInsert(ConnBoard* self, ssize column, u16 value)
     return 1;
 }
 
-u16
-connBoardGet(ConnBoard* self, ssize column, ssize row)
+u16 connBoardGet(ConnBoard* self, ssize column, ssize row)
 {
     if (column < 0 || column >= self->width)  return 0;
     if (row    < 0 || row    >= self->height) return 0;
@@ -144,8 +133,7 @@ connBoardGet(ConnBoard* self, ssize column, ssize row)
     return self->values[row * self->width + column];
 }
 
-b32
-connBoardIsWinner(ConnBoard* self, ssize column, u16 value)
+b32 connBoardIsWinner(ConnBoard* self, ssize column, u16 value)
 {
     #define DIRS ((ssize) 8)
 

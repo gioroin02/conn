@@ -5,15 +5,8 @@
 
 #define PX_MEMORY_DEFAULT_ALIGNMENT ((ssize) 16)
 
-#define PX_MEMORY_KIB ((ssize) 1024ll)
-#define PX_MEMORY_MIB (PX_MEMORY_KIB * PX_MEMORY_KIB)
-#define PX_MEMORY_GIB (PX_MEMORY_MIB * PX_MEMORY_KIB)
-
-#define pxHostByteOrderIsNetwork() \
-    (pxGetHostByteOrder() == PxByteOrder_Network ? 1 : 0)
-
-#define pxHostByteOrderIsReverse() \
-    (pxGetHostByteOrder() == PxByteOrder_Reverse ? 1 : 0)
+#define pxHostByteOrderIsNetwork() (pxGetHostByteOrder() == PxByteOrder_Network ? 1 : 0)
+#define pxHostByteOrderIsReverse() (pxGetHostByteOrder() == PxByteOrder_Reverse ? 1 : 0)
 
 typedef enum PxByteOrder
 {
@@ -23,40 +16,22 @@ typedef enum PxByteOrder
 }
 PxByteOrder;
 
-ssize
-pxMemoryKiB(ssize size);
+PxByteOrder pxGetHostByteOrder();
 
-ssize
-pxMemoryMiB(ssize size);
+void* pxMemorySet(void* pntr, ssize size, u8 value);
 
-ssize
-pxMemoryGiB(ssize size);
+void* pxMemoryCopy(void* pntr, ssize size, void* value);
 
-PxByteOrder
-pxGetHostByteOrder();
+void* pxMemoryCopyOrSet(void* pntr, ssize size, void* value, u8 other);
 
-void*
-pxMemorySet(void* pntr, ssize size, u8 value);
+void* pxMemoryShiftForw(void* pntr, ssize size, ssize about, u8 value);
 
-void*
-pxMemoryCopy(void* pntr, ssize size, void* value);
+void* pxMemoryShiftBack(void* pntr, ssize size, ssize about, u8 value);
 
-void*
-pxMemoryCopyOrSet(void* pntr, ssize size, void* value, u8 other);
+void* pxMemoryReverse(void* pntr, ssize size);
 
-void*
-pxMemoryShiftForw(void* pntr, ssize size, ssize about, u8 value);
+void* pxMemoryAlignPntr(void* pntr, usize align);
 
-void*
-pxMemoryShiftBack(void* pntr, ssize size, ssize about, u8 value);
-
-void*
-pxMemoryReverse(void* pntr, ssize size);
-
-void*
-pxMemoryAlignPntr(void* pntr, usize align);
-
-ssize
-pxMemoryAlignSize(ssize size, usize align);
+ssize pxMemoryAlignSize(ssize size, usize align);
 
 #endif // PX_BASE_MEMORY_COMMON_H

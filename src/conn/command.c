@@ -5,8 +5,7 @@
 
 #include <stdio.h>
 
-ConnCommand
-connCommandDecode(PxConsoleEvent event)
+ConnCommand connCommandDecode(PxConsoleEvent event)
 {
     ConnCommand result;
 
@@ -28,29 +27,30 @@ connCommandDecode(PxConsoleEvent event)
     return result;
 }
 
-ssize
-connCommandToString(ConnCommand command, u8* values, ssize size)
+ssize connCommandToString(ConnCommand command, u8* pntr, ssize size)
 {
     ssize result = 0;
 
     switch (command.kind) {
-        case ConnCommand_MoveLeft: {
-            result = snprintf(((char*) values), size, "(MoveLeft) {}");
-        } break;
+        case ConnCommand_MoveLeft:
+            result = snprintf(((char*) pntr), size, "(MoveLeft) {}");
+        break;
 
-        case ConnCommand_MoveRight: {
-            result = snprintf(((char*) values), size, "(MoveRight) {}");
-        } break;
+        case ConnCommand_MoveRight:
+            result = snprintf(((char*) pntr), size, "(MoveRight) {}");
+        break;
 
-        case ConnCommand_Place: {
-            result = snprintf(((char*) values), size, "(Place) {}");
-        } break;
+        case ConnCommand_Place:
+            result = snprintf(((char*) pntr), size, "(Place) {}");
+        break;
 
-        case ConnCommand_Quit: {
-            result = snprintf(((char*) values), size, "(Quit) {}");
-        } break;
+        case ConnCommand_Quit:
+            result = snprintf(((char*) pntr), size, "(Quit) {}");
+        break;
 
-        default: result = snprintf(((char*) values), size, "(None) {}"); break;
+        default:
+            result = snprintf(((char*) pntr), size, "(None) {}");
+        break;
     }
 
     if (result >= 0 && result < size) return result;

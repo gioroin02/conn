@@ -27,40 +27,34 @@ pxFileReserve(PxMemoryArena* arena)
     return __pxFileReserve__(arena);
 }
 
-b32
-pxFileConsoleInput(PxFile* self)
+b32 pxFileConsoleInput(PxFile* self)
 {
     return __pxFileConsoleInput__(self);
 }
 
-b32
-pxFileConsoleOutput(PxFile* self)
+b32 pxFileConsoleOutput(PxFile* self)
 {
     return __pxFileConsoleOutput__(self);
 }
 
-b32
-pxFileConsoleError(PxFile* self)
+b32 pxFileConsoleError(PxFile* self)
 {
     return __pxFileConsoleError__(self);
 }
 
-void
-pxFileDestroy(PxFile* self)
+void pxFileDestroy(PxFile* self)
 {
     return __pxFileDestroy__(self);
 }
 
-ssize
-pxFileWrite(PxFile* self, u8* values, ssize start, ssize stop)
+ssize pxFileWrite(PxFile* self, u8* pntr, ssize start, ssize stop)
 {
-    return __pxFileWrite__(self, values, start, stop);
+    return __pxFileWrite__(self, pntr, start, stop);
 }
 
-ssize
-pxFileRead(PxFile* self, u8* values, ssize start, ssize stop)
+ssize pxFileRead(PxFile* self, u8* pntr, ssize start, ssize stop)
 {
-    return __pxFileRead__(self, values, start, stop);
+    return __pxFileRead__(self, pntr, start, stop);
 }
 
 #endif // PX_SYSTEM_STORAGE_FILE_C

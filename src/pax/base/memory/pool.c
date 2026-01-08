@@ -12,16 +12,15 @@ typedef enum PxMemoryPoolFlag
 }
 PxMemoryPoolFlag;
 
-typedef struct PxMemoryPoolNode
+typedef struct PxMemoryPoolNode PxMemoryPoolNode;
+
+struct PxMemoryPoolNode
 {
     PxMemoryPoolFlag flag;
+    PxMemoryPoolNode* list_next;
+};
 
-    struct PxMemoryPoolNode* list_next;
-}
-PxMemoryPoolNode;
-
-PxMemoryPool
-pxMemoryPoolMake(void* pntr, ssize size, ssize step)
+PxMemoryPool pxMemoryPoolMake(void* pntr, ssize size, ssize step)
 {
     PxMemoryPool result;
 
@@ -34,28 +33,25 @@ pxMemoryPoolMake(void* pntr, ssize size, ssize step)
     result.list_head = PX_NULL;
     result.size      = size;
 
-    result.step = pxMemoryAlignSize(step,
-        PX_MEMORY_DEFAULT_ALIGNMENT);
+    result.step =
+        pxMemoryAlignSize(step, PX_MEMORY_DEFAULT_ALIGNMENT);
 
     pxMemorySet(result.pntr_base, result.size, 0xAB);
 
     return result;
 }
 
-void*
-pxMemoryPoolPntr(PxMemoryPool* self)
+void* pxMemoryPoolPntr(PxMemoryPool* self)
 {
     return self->pntr_base;
 }
 
-ssize
-pxMemoryPoolSize(PxMemoryPool* self)
+ssize pxMemoryPoolSize(PxMemoryPool* self)
 {
     return self->size;
 }
 
-void
-pxMemoryPoolClear(PxMemoryPool* self)
+void pxMemoryPoolClear(PxMemoryPool* self)
 {
     pxMemorySet(self->pntr_base, self->size, 0xAB);
 
@@ -63,14 +59,13 @@ pxMemoryPoolClear(PxMemoryPool* self)
     self->list_head = PX_NULL;
 }
 
-void*
-pxMemoryPoolReserve(PxMemoryPool* self, ssize count, ssize size)
+void* pxMemoryPoolReserve(PxMemoryPool* self, ssize count, ssize size)
 {
+    if (count <= 0 || size <= 0 || count > PX_SSIZE_MAX / size)
+        return PX_NULL;
+
     ssize size_header = pxMemoryAlignSize(
         PX_MEMORY_POOL_NODE_SIZE, PX_MEMORY_DEFAULT_ALIGNMENT);
-
-    if (count <= 0 || size <= 0 || count > PX_MAX_SSIZE / size - size_header)
-        return PX_NULL;
 
     ssize             bytes = count * size;
     PxMemoryPoolNode* node  = self->list_head;
@@ -96,13 +91,12 @@ pxMemoryPoolReserve(PxMemoryPool* self, ssize count, ssize size)
     return ((u8*) node) + size_header;
 }
 
-b32
-pxMemoryPoolRelease(PxMemoryPool* self, void* pntr)
+b32 pxMemoryPoolRelease(PxMemoryPool* self, void* pntr)
 {
+    if (pntr == PX_NULL) return 0;
+
     ssize size_header = pxMemoryAlignSize(
         PX_MEMORY_POOL_NODE_SIZE, PX_MEMORY_DEFAULT_ALIGNMENT);
-
-    if (pntr == PX_NULL) return 0;
 
     u8*   head = ((u8*) pntr) - size_header;
     ssize dist = head - self->pntr_base;

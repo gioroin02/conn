@@ -5,25 +5,26 @@
 
 typedef struct PxWin32FileTaskWrite
 {
-    PxWin32File* file;
-    u8*          values;
-    ssize        start;
-    ssize        stop;
+    u8*   pntr;
+    ssize start;
+    ssize stop;
 }
 PxWin32FileTaskWrite;
 
 typedef struct PxWin32FileTaskRead
 {
-    PxWin32File* file;
-    u8*          values;
-    ssize        start;
-    ssize        stop;
+    u8*   pntr;
+    ssize start;
+    ssize stop;
 }
 PxWin32FileTaskRead;
 
 typedef struct PxWin32FileTask
 {
     PxFileEventKind kind;
+
+    void*        ctxt;
+    PxWin32File* self;
 
     union
     {
@@ -34,9 +35,11 @@ typedef struct PxWin32FileTask
 PxWin32FileTask;
 
 b32
-pxWin32FileWriteAsync(PxWin32Async* async, void* tag, PxWin32File* self, u8* values, ssize start, ssize stop);
+pxWin32FileWriteAsync(PxWin32Async* async, void* ctxt,
+    PxWin32File* self, u8* pntr, ssize start, ssize stop);
 
 b32
-pxWin32FileReadAsync(PxWin32Async* async, void* tag, PxWin32File* self, u8* values, ssize start, ssize stop);
+pxWin32FileReadAsync(PxWin32Async* async, void* ctxt,
+    PxWin32File* self, u8* pntr, ssize start, ssize stop);
 
 #endif // PX_WIN32_ASYNC_STORAGE_FILE_H

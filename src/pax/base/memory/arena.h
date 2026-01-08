@@ -3,11 +3,11 @@
 
 #include "common.h"
 
-#define pxMemoryArenaReserveOneOf(self, type) \
-    ((type*) pxMemoryArenaReserve(self, 1, sizeof (type)))
-
 #define pxMemoryArenaReserveManyOf(self, type, count) \
     ((type*) pxMemoryArenaReserve(self, count, sizeof (type)))
+
+#define pxMemoryArenaReserveOneOf(self, type) \
+    ((type*) pxMemoryArenaReserve(self, 1, sizeof (type)))
 
 typedef struct PxMemoryArena
 {
@@ -17,28 +17,20 @@ typedef struct PxMemoryArena
 }
 PxMemoryArena;
 
-PxMemoryArena
-pxMemoryArenaMake(void* pntr, ssize size);
+PxMemoryArena pxMemoryArenaMake(void* pntr, ssize size);
 
-void*
-pxMemoryArenaPntr(PxMemoryArena* self);
+void* pxMemoryArenaPntr(PxMemoryArena* self);
 
-ssize
-pxMemoryArenaSize(PxMemoryArena* self);
+ssize pxMemoryArenaSize(PxMemoryArena* self);
 
-void
-pxMemoryArenaClear(PxMemoryArena* self);
+void pxMemoryArenaClear(PxMemoryArena* self);
 
-void*
-pxMemoryArenaReserve(PxMemoryArena* self, ssize count, ssize size);
+void* pxMemoryArenaReserve(PxMemoryArena* self, ssize count, ssize size);
 
-b32
-pxMemoryArenaRelease(PxMemoryArena* self, void* pntr);
+b32 pxMemoryArenaRelease(PxMemoryArena* self, void* pntr);
 
-b32
-pxMemoryArenaRewind(PxMemoryArena* self, void* pntr);
+b32 pxMemoryArenaRewind(PxMemoryArena* self, void* pntr);
 
-void*
-pxMemoryArenaTell(PxMemoryArena* self);
+void* pxMemoryArenaTell(PxMemoryArena* self);
 
 #endif // PX_BASE_MEMORY_ARENA_H

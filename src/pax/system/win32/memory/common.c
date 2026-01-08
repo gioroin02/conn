@@ -7,27 +7,25 @@
 
 #include <windows.h>
 
-ssize
-pxWin32MemoryPageSize()
+ssize pxWin32MemoryPageSize()
 {
     SYSTEM_INFO info;
 
     GetSystemInfo(&info);
 
-    return ((ssize) info.dwPageSize);
+    return (ssize) info.dwPageSize;
 }
 
-PxMemoryArena
-pxWin32MemoryReserve(ssize size)
+PxMemoryArena pxWin32MemoryReserve(ssize size)
 {
     PxMemoryArena result;
 
     pxMemorySet(&result, sizeof result, 0xAB);
 
+    if (size <= 0) return result;
+
     ssize page   = pxWin32MemoryPageSize();
     void* memory = PX_NULL;
-
-    if (size <= 0) return result;
 
     size = pxMemoryAlignSize(size, page);
 
@@ -40,8 +38,7 @@ pxWin32MemoryReserve(ssize size)
     return result;
 }
 
-b32
-pxWin32MemoryRelease(PxMemoryArena* arena)
+b32 pxWin32MemoryRelease(PxMemoryArena* arena)
 {
     ssize page   = pxWin32MemoryPageSize();
     void* memory = pxMemoryArenaPntr(arena);

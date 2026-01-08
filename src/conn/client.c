@@ -3,8 +3,25 @@
 
 #include "client.h"
 
-static void
-connMessageShow(ConnMessage message)
+static PxStr8 connClientStateName(ConnClientState state)
+{
+    switch (state) {
+        case ConnClientState_None:         return pxStr8("None");
+        case ConnClientState_Error:        return pxStr8("Error");
+        case ConnClientState_Starting:     return pxStr8("Starting");
+        case ConnClientState_Stopping:     return pxStr8("Stopping");
+        case ConnClientState_WaitingTurn:  return pxStr8("WaitingTurn");
+        case ConnClientState_ChoosingMove: return pxStr8("ChoosingMove");
+        case ConnClientState_SendingMove:  return pxStr8("SendingMove");
+        case ConnClientState_WaitingMove:  return pxStr8("WaitingMove");
+
+        default: break;
+    }
+
+    return pxStr8("");
+}
+
+static void connMessageShow(ConnMessage message)
 {
     u8 buffer[1024];
 
@@ -16,8 +33,7 @@ connMessageShow(ConnMessage message)
         printf("%.*s", ((int) count), buffer);
 }
 
-static void
-connCommandShow(ConnCommand command)
+static void connCommandShow(ConnCommand command)
 {
     u8 buffer[1024];
 
@@ -29,8 +45,7 @@ connCommandShow(ConnCommand command)
         printf("%.*s", ((int) count), buffer);
 }
 
-static void
-connBoardShow(ConnBoard* self, u16 column)
+static void connBoardShow(ConnBoard* self, u16 column)
 {
     ssize index  = 0;
     ssize height = 0;
@@ -83,14 +98,12 @@ connBoardShow(ConnBoard* self, u16 column)
     printf("\r\n");
 }
 
-b32
-connClientStateIsEqual(ConnClient* self, ConnClientState state)
+b32 connClientStateIsEqual(ConnClient* self, ConnClientState state)
 {
     return self->state_curr == state ? 1 : 0;
 }
 
-b32
-connClientStateIsActive(ConnClient* self)
+b32 connClientStateIsActive(ConnClient* self)
 {
     if (connClientStateIsEqual(self, ConnClientState_Stopping) != 0) return 0;
     if (connClientStateIsEqual(self, ConnClientState_Error) != 0)    return 0;
@@ -98,8 +111,7 @@ connClientStateIsActive(ConnClient* self)
     return 1;
 }
 
-void
-connClientStateSet(ConnClient* self, ConnClientState state)
+void connClientStateSet(ConnClient* self, ConnClientState state)
 {
     while (state != self->state_curr && state != ConnClientState_None) {
         self->state_prev = self->state_curr;
@@ -109,14 +121,12 @@ connClientStateSet(ConnClient* self, ConnClientState state)
     }
 }
 
-void
-connClientStateSetError(ConnClient* self)
+void connClientStateSetError(ConnClient* self)
 {
     connClientStateSet(self, ConnClientState_Error);
 }
 
-b32
-connClientCreate(ConnClient* self, PxMemoryArena* arena)
+b32 connClientCreate(ConnClient* self, PxMemoryArena* arena)
 {
     pxMemorySet(self, sizeof *self, 0xAB);
 
@@ -130,7 +140,7 @@ connClientCreate(ConnClient* self, PxMemoryArena* arena)
     pxMemorySet(self->buff_tcp_write, sizeof self->buff_tcp_write, 0x00);
     pxMemorySet(self->buff_tcp_read, sizeof self->buff_tcp_read, 0x00);
 
-    if (pxAsyncCreate(self->async, arena, pxMemoryKiB(64)) == 0)
+    if (pxAsyncCreate(self->async, arena, pxKibi(64)) == 0)
         return 0;
 
     PxAddressIp address = pxAddressIp4Empty();
@@ -161,27 +171,21 @@ connClientCreate(ConnClient* self, PxMemoryArena* arena)
     return 1;
 }
 
-void
-connClientDestroy(ConnClient* self)
+void connClientDestroy(ConnClient* self)
 {
     pxConsoleDestroy(self->console);
-
     pxSocketTcpDestroy(self->socket);
-
     pxAsyncDestroy(self->async);
 }
 
-void
-connClientStart(ConnClient* self)
+void connClientStart(ConnClient* self)
 {
     connClientTcpConnect(self, pxAddressIp4Local(), 50000);
 }
 
-void
-connClientStop(ConnClient* self) {}
+void connClientStop(ConnClient* self) {}
 
-void
-connClientUpdate(ConnClient* self)
+void connClientUpdate(ConnClient* self)
 {
     ConnClientState state;
 
@@ -191,8 +195,7 @@ connClientUpdate(ConnClient* self)
     connClientPollEvents(self);
 }
 
-void
-connClientTcpConnect(ConnClient* self, PxAddressIp address, u16 port)
+void connClientTcpConnect(ConnClient* self, PxAddressIp address, u16 port)
 {
     b32 status = pxSocketTcpConnectAsync(
         self->async, PX_NULL, self->socket, address, port);
@@ -200,11 +203,10 @@ connClientTcpConnect(ConnClient* self, PxAddressIp address, u16 port)
     if (status == 0) connClientStateSetError(self);
 }
 
-void
-connClientTcpWrite(ConnClient* self, ConnMessage message)
+void connClientTcpWrite(ConnClient* self, ConnMessage message)
 {
     PxSocketTcp* socket = self->socket;
-    u8*          values = self->buff_tcp_write;
+    u8*          pntr   = self->buff_tcp_write;
     ssize        start  = 0;
     ssize        stop   = 0;
 
@@ -215,7 +217,7 @@ connClientTcpWrite(ConnClient* self, ConnMessage message)
 
     if (pxArrayIsEmpty(&self->messages) != 0) {
         b32 status = pxSocketTcpWriteAsync(
-            self->async, PX_NULL, socket, values, start, stop);
+            self->async, PX_NULL, socket, pntr, start, stop);
 
         if (status != 0)
             connClientOnTcpWrite(self, message);
@@ -225,22 +227,20 @@ connClientTcpWrite(ConnClient* self, ConnMessage message)
     else pxArrayInsertBack(&self->messages, message);
 }
 
-void
-connClientTcpRead(ConnClient* self)
+void connClientTcpRead(ConnClient* self)
 {
     PxSocketTcp* socket = self->socket;
-    u8*          values = self->buff_tcp_read;
+    u8*          pntr   = self->buff_tcp_read;
     ssize        start  = 0;
     ssize        stop   = sizeof self->buff_tcp_read;
 
     b32 status = pxSocketTcpReadAsync(
-        self->async, PX_NULL, socket, values, start, stop);
+        self->async, PX_NULL, socket, pntr, start, stop);
 
     if (status == 0) connClientStateSetError(self);
 }
 
-void
-connClientPollConsole(ConnClient* self)
+void connClientPollConsole(ConnClient* self)
 {
     PxConsoleEvent event;
 
@@ -252,40 +252,30 @@ connClientPollConsole(ConnClient* self)
     }
 }
 
-void
-connClientPollEvents(ConnClient* self)
+void connClientPollEvents(ConnClient* self)
 {
     PxAsyncEventFamily family = PxAsyncEventFamily_None;
 
-    while (connClientStateIsActive(self) != 0) {
-        void* event = PX_NULL;
-        void* tag   = PX_NULL;
+    u8 buffer[PX_SSIZE_KIBI];
 
-        family = pxAsyncPoll(self->async, &tag, &event, 10);
+    while (connClientStateIsActive(self) != 0) {
+        pxMemorySet(buffer, sizeof buffer, 0x00);
+
+        family = pxAsyncPoll(self->async, 10, buffer, sizeof buffer);
 
         if (family == PxAsyncEventFamily_None) break;
 
         switch (family) {
-            case PxAsyncEventFamily_Tcp: {
-                PxSocketTcpEvent tcp;
-
-                pxMemoryCopy(&tcp, sizeof tcp, event);
-
-                b32 status = pxAsyncReturn(self->async, event);
-
-                if (status != 0)
-                    connClientOnTcpEvent(self, tcp);
-                else
-                    connClientStateSetError(self);
-            } break;
+            case PxAsyncEventFamily_Tcp:
+                connClientOnTcpEvent(self, *(PxSocketTcpEvent*) buffer);
+            break;
 
             default: break;
         }
     }
 }
 
-void
-connClientOnTcpEvent(ConnClient* self, PxSocketTcpEvent event)
+void connClientOnTcpEvent(ConnClient* self, PxSocketTcpEvent event)
 {
     switch (event.kind) {
         case PxSocketTcpEvent_Error: connClientStateSetError(self); break;
@@ -303,7 +293,7 @@ connClientOnTcpEvent(ConnClient* self, PxSocketTcpEvent event)
             if (pxArrayRemoveFront(&self->messages, &message) == 0) break;
 
             PxSocketTcp* socket = self->socket;
-            u8*          values = self->buff_tcp_write;
+            u8*          pntr   = self->buff_tcp_write;
             ssize        start  = 0;
             ssize        stop   = 0;
 
@@ -311,7 +301,7 @@ connClientOnTcpEvent(ConnClient* self, PxSocketTcpEvent event)
                 self->buff_tcp_write, sizeof self->buff_tcp_write);
 
             b32 status = pxSocketTcpWriteAsync(
-                self->async, PX_NULL, socket, values, start, stop);
+                self->async, PX_NULL, socket, pntr, start, stop);
 
             if (status != 0)
                 connClientOnTcpWrite(self, message);
@@ -320,16 +310,16 @@ connClientOnTcpEvent(ConnClient* self, PxSocketTcpEvent event)
         } break;
 
         case PxSocketTcpEvent_Read: {
-            PxSocketTcp* socket = event.read.socket;
-            u8*          values = event.read.values;
+            PxSocketTcp* socket = event.self;
+            u8*          pntr   = event.read.pntr;
             ssize        start  = event.read.stop;
             ssize        stop   = sizeof self->buff_tcp_read;
 
-            ConnMessage message = connMessageDecode(event.read.values, event.read.stop);
+            ConnMessage message = connMessageDecode(pntr, start);
 
-            if (message.length <= 0 || event.read.stop < message.length) {
+            if (message.length <= 0 || start < message.length) {
                 b32 status = pxSocketTcpReadAsync(
-                    self->async, PX_NULL, socket, values, start, stop);
+                    self->async, PX_NULL, socket, pntr, start, stop);
 
                 if (status == 0) connClientStateSetError(self);
             }
@@ -340,8 +330,7 @@ connClientOnTcpEvent(ConnClient* self, PxSocketTcpEvent event)
     }
 }
 
-void
-connClientOnTcpConnect(ConnClient* self)
+void connClientOnTcpConnect(ConnClient* self)
 {
     printf("[DEBUG] Connected!\n");
 
@@ -349,16 +338,14 @@ connClientOnTcpConnect(ConnClient* self)
     connClientTcpRead(self);
 }
 
-void
-connClientOnTcpWrite(ConnClient* self, ConnMessage message)
+void connClientOnTcpWrite(ConnClient* self, ConnMessage message)
 {
     printf("[DEBUG] Wrote message: ");
         connMessageShow(message);
     printf("\n");
 }
 
-void
-connClientOnTcpRead(ConnClient* self, ConnMessage message)
+void connClientOnTcpRead(ConnClient* self, ConnMessage message)
 {
     printf("[DEBUG] Read message: ");
         connMessageShow(message);
@@ -433,8 +420,7 @@ connClientOnTcpRead(ConnClient* self, ConnMessage message)
     }
 }
 
-void
-connClientOnCommand(ConnClient* self, ConnCommand command)
+void connClientOnCommand(ConnClient* self, ConnCommand command)
 {
     printf("[DEBUG] Read command: ");
         connCommandShow(command);
@@ -480,8 +466,7 @@ connClientOnCommand(ConnClient* self, ConnCommand command)
     }
 }
 
-ConnClientState
-connClientOnUpdate(ConnClient* self)
+ConnClientState connClientOnUpdate(ConnClient* self)
 {
     connClientPollConsole(self);
 
@@ -493,22 +478,13 @@ connClientOnUpdate(ConnClient* self)
     return ConnClientState_None;
 }
 
-ConnClientState
-connClientOnStateChange(ConnClient* self)
+ConnClientState connClientOnStateChange(ConnClient* self)
 {
-    static const char* const states[] = {
-        "None",
-        "Error",
-        "Starting",
-        "Stopping",
-        "WaitingTurn",
-        "ChoosingMove",
-        "SendingMove",
-        "WaitingMove",
-    };
+    PxStr8 prev = connClientStateName(self->state_prev);
+    PxStr8 curr = connClientStateName(self->state_curr);
 
     printf("[DEBUG] State changed from <%s> to <%s>\n",
-        states[self->state_prev], states[self->state_curr]);
+        prev.values, curr.values);
 
     if (connClientStateIsEqual(self, ConnClientState_ChoosingMove) != 0)
         connBoardShow(&self->board, self->column);

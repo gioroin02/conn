@@ -7,21 +7,20 @@
 
 #include <windows.h>
 
-typedef struct PxWin32AsyncTask
+typedef struct PxWin32AsyncTask PxWin32AsyncTask;
+typedef void                    PxWin32AsyncEvent;
+
+struct PxWin32AsyncTask
 {
     PxAsyncEventFamily family;
-
-    OVERLAPPED overlap;
-
-    void* pntr_body;
-    void* pntr_event;
-    void* pntr_tag;
-
-    void* proc;
-
-    struct PxWin32AsyncTask* pending_next;
-}
-PxWin32AsyncTask;
+    OVERLAPPED         overlap;
+    void*              pntr_body;
+    void*              pntr_event;
+    ssize              size_body;
+    ssize              size_event;
+    void*              proc;
+    PxWin32AsyncTask*  list_next;
+};
 
 typedef struct PxWin32Async
 {
@@ -29,29 +28,21 @@ typedef struct PxWin32Async
 
     PxMemoryPool pool;
 
-    PxWin32AsyncTask* pending_front;
-    PxWin32AsyncTask* pending_back;
+    PxWin32AsyncTask* list_front;
+    PxWin32AsyncTask* list_back;
 }
 PxWin32Async;
 
 typedef b32 (PxWin32AsyncTaskProc) (PxWin32AsyncTask*, ssize);
 
-PxWin32Async*
-pxWin32AsyncReserve(PxMemoryArena* arena);
+PxWin32Async* pxWin32AsyncReserve(PxMemoryArena* arena);
 
-b32
-pxWin32AsyncCreate(PxWin32Async* self, PxMemoryArena* arena, ssize size);
+b32 pxWin32AsyncCreate(PxWin32Async* self, PxMemoryArena* arena, ssize size);
 
-void
-pxWin32AsyncDestroy(PxWin32Async* self);
+void pxWin32AsyncDestroy(PxWin32Async* self);
 
-b32
-pxWin32AsyncSubmit(PxWin32Async* self, PxWin32AsyncTask* task);
+b32 pxWin32AsyncSubmit(PxWin32Async* self, PxWin32AsyncTask* task);
 
-PxAsyncEventFamily
-pxWin32AsyncPoll(PxWin32Async* self, void** tag, void** event, ssize timeout);
-
-b32
-pxWin32AsyncReturn(PxWin32Async* self, void* event);
+PxAsyncEventFamily pxWin32AsyncPoll(PxWin32Async* self, ssize timeout, PxAsyncEvent* event, ssize size);
 
 #endif // PX_WIN32_ASYNC_ASYNC_H

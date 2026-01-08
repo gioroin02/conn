@@ -3,14 +3,12 @@
 
 #include "file.h"
 
-PxWin32File*
-pxWin32FileReserve(PxMemoryArena* arena)
+PxWin32File* pxWin32FileReserve(PxMemoryArena* arena)
 {
     return pxMemoryArenaReserveOneOf(arena, PxWin32File);
 }
 
-b32
-pxWin32FileConsoleInput(PxWin32File* self)
+b32 pxWin32FileConsoleInput(PxWin32File* self)
 {
     pxMemorySet(self, sizeof *self, 0xAB);
 
@@ -23,8 +21,7 @@ pxWin32FileConsoleInput(PxWin32File* self)
     return 1;
 }
 
-b32
-pxWin32FileConsoleOutput(PxWin32File* self)
+b32 pxWin32FileConsoleOutput(PxWin32File* self)
 {
     pxMemorySet(self, sizeof *self, 0xAB);
 
@@ -37,8 +34,7 @@ pxWin32FileConsoleOutput(PxWin32File* self)
     return 1;
 }
 
-b32
-pxWin32FileConsoleError(PxWin32File* self)
+b32 pxWin32FileConsoleError(PxWin32File* self)
 {
     pxMemorySet(self, sizeof *self, 0xAB);
 
@@ -51,8 +47,7 @@ pxWin32FileConsoleError(PxWin32File* self)
     return 1;
 }
 
-void
-pxWin32FileDestroy(PxWin32File* self)
+void pxWin32FileDestroy(PxWin32File* self)
 {
     if (self->handle != INVALID_HANDLE_VALUE)
         CloseHandle(self->handle);
@@ -60,12 +55,11 @@ pxWin32FileDestroy(PxWin32File* self)
     pxMemorySet(self, sizeof *self, 0xAB);
 }
 
-ssize
-pxWin32FileWrite(PxWin32File* self, u8* values, ssize start, ssize stop)
+ssize pxWin32FileWrite(PxWin32File* self, u8* pntr, ssize start, ssize stop)
 {
-    if (values == PX_NULL || stop <= start || start < 0) return 0;
+    if (pntr == PX_NULL || stop <= start || start < 0) return 0;
 
-    char* pntr   = ((char*) values + start);
+    char* memory = ((char*) pntr + start);
     ssize size   = stop - start;
     ssize result = 0;
 
@@ -78,7 +72,7 @@ pxWin32FileWrite(PxWin32File* self, u8* values, ssize start, ssize stop)
     while (result < size) {
         DWORD count = 0;
 
-        b32 status = WriteFile(self->handle, pntr + result,
+        b32 status = WriteFile(self->handle, memory + result,
             ((DWORD) size - result), &count, &self->overlap);
 
         if (status == 0 && GetLastError() == ERROR_IO_PENDING)
@@ -95,14 +89,13 @@ pxWin32FileWrite(PxWin32File* self, u8* values, ssize start, ssize stop)
     return result;
 }
 
-ssize
-pxWin32FileRead(PxWin32File* self, u8* values, ssize start, ssize stop)
+ssize pxWin32FileRead(PxWin32File* self, u8* pntr, ssize start, ssize stop)
 {
-    if (values == PX_NULL || stop <= start || start < 0) return 0;
+    if (pntr == PX_NULL || stop <= start || start < 0) return 0;
 
-    char* pntr  = ((char*) values + start);
-    ssize size  = stop - start;
-    DWORD count = 0;
+    char* memory = ((char*) pntr + start);
+    ssize size   = stop - start;
+    DWORD count  = 0;
 
     pxMemorySet(&self->overlap, sizeof self->overlap, 0x00);
 
@@ -110,7 +103,7 @@ pxWin32FileRead(PxWin32File* self, u8* values, ssize start, ssize stop)
 
     if (self->overlap.hEvent == PX_NULL) return 0;
 
-    b32 status = ReadFile(self->handle, pntr, (DWORD) size, &count, &self->overlap);
+    b32 status = ReadFile(self->handle, memory, (DWORD) size, &count, &self->overlap);
 
     if (status == 0 && GetLastError() == ERROR_IO_PENDING)
         status = GetOverlappedResult(self->handle, &self->overlap, &count, 1);

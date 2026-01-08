@@ -1,6 +1,8 @@
 #ifndef PX_BASE_SYSTEM_H
 #define PX_BASE_SYSTEM_H
 
+#define PX_NULL ((void*) 0)
+
 #define PX_WORD_NONE  0
 #define PX_WORD_32    1
 #define PX_WORD_64    2

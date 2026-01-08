@@ -5,31 +5,24 @@
 
 typedef void PxSocketUdp;
 
-PxSocketUdp*
-pxSocketUdpReserve(PxMemoryArena* arena);
+PxSocketUdp* pxSocketUdpReserve(PxMemoryArena* arena);
 
-b32
-pxSocketUdpCreate(PxSocketUdp* self, PxAddressIp address, u16 port);
+b32 pxSocketUdpCreate(PxSocketUdp* self, PxAddressIp address, u16 port);
 
-void
-pxSocketUdpDestroy(PxSocketUdp* self);
+void pxSocketUdpDestroy(PxSocketUdp* self);
 
-b32
-pxSocketUdpBind(PxSocketUdp* self);
+b32 pxSocketUdpBind(PxSocketUdp* self);
 
-b32
-pxSocketUdpBindTo(PxSocketUdp* self, PxAddressIp address, u16 port);
+b32 pxSocketUdpBindTo(PxSocketUdp* self, PxAddressIp address, u16 port);
 
-ssize
-pxSocketUdpWrite(PxSocketUdp* self, u8* values, ssize start, ssize stop, PxAddressIp address, u16 port);
+ssize pxSocketUdpWrite(PxSocketUdp* self, u8* pntr, ssize start, ssize stop,
+    PxAddressIp address, u16 port);
 
-ssize
-pxSocketUdpRead(PxSocketUdp* self, u8* values, ssize start, ssize stop, PxAddressIp* address, u16* port);
+ssize pxSocketUdpRead(PxSocketUdp* self, u8* pntr, ssize start, ssize stop,
+    PxAddressIp* address, u16* port);
 
-PxAddressIp
-pxSocketUdpGetAddress(PxSocketUdp* self);
+PxAddressIp pxSocketUdpGetAddress(PxSocketUdp* self);
 
-u16
-pxSocketUdpGetPort(PxSocketUdp* self);
+u16 pxSocketUdpGetPort(PxSocketUdp* self);
 
 #endif // PX_SYSTEM_NETWORK_SOCKET_UDP_H

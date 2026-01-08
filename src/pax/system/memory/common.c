@@ -25,20 +25,17 @@
 
 #endif
 
-ssize
-pxSystemMemoryPageSize()
+ssize pxSystemMemoryPageSize()
 {
     return __pxSystemMemoryPageSize__();
 }
 
-PxMemoryArena
-pxSystemMemoryReserve(ssize size)
+PxMemoryArena pxSystemMemoryReserve(ssize size)
 {
     return __pxSystemMemoryReserve__(size);
 }
 
-b32
-pxSystemMemoryRelease(PxMemoryArena* arena)
+b32 pxSystemMemoryRelease(PxMemoryArena* arena)
 {
     return __pxSystemMemoryRelease__(arena);
 }

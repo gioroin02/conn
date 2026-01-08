@@ -3,8 +3,7 @@
 
 #include "address-ip.h"
 
-static b32
-pxAddressIp4IsEqual(PxAddressIp4 self, PxAddressIp4 value)
+static b32 pxAddressIp4IsEqual(PxAddressIp4 self, PxAddressIp4 value)
 {
     ssize index = 0;
     ssize size  = PX_ADDRESS_IP4_SIZE;
@@ -17,8 +16,7 @@ pxAddressIp4IsEqual(PxAddressIp4 self, PxAddressIp4 value)
     return 1;
 }
 
-static b32
-pxAddressIp6IsEqual(PxAddressIp6 self, PxAddressIp6 value)
+static b32 pxAddressIp6IsEqual(PxAddressIp6 self, PxAddressIp6 value)
 {
     ssize index = 0;
     ssize size  = PX_ADDRESS_IP6_SIZE;
@@ -31,8 +29,7 @@ pxAddressIp6IsEqual(PxAddressIp6 self, PxAddressIp6 value)
     return 1;
 }
 
-PxAddressIp
-pxAddressIp4Make(u8 v0, u8 v1, u8 v2, u8 v3)
+PxAddressIp pxAddressIp4Make(u8 v0, u8 v1, u8 v2, u8 v3)
 {
     PxAddressIp result;
 
@@ -47,8 +44,7 @@ pxAddressIp4Make(u8 v0, u8 v1, u8 v2, u8 v3)
     return result;
 }
 
-PxAddressIp
-pxAddressIp6Make(u16 v0, u16 v1, u16 v2, u16 v3, u16 v4, u16 v5, u16 v6, u16 v7)
+PxAddressIp pxAddressIp6Make(u16 v0, u16 v1, u16 v2, u16 v3, u16 v4, u16 v5, u16 v6, u16 v7)
 {
     PxAddressIp result;
 
@@ -67,8 +63,7 @@ pxAddressIp6Make(u16 v0, u16 v1, u16 v2, u16 v3, u16 v4, u16 v5, u16 v6, u16 v7)
     return result;
 }
 
-PxAddressIp
-pxAddressIpNone()
+PxAddressIp pxAddressIpNone()
 {
     PxAddressIp result;
 
@@ -79,8 +74,7 @@ pxAddressIpNone()
     return result;
 }
 
-PxAddressIp
-pxAddressIpEmpty(PxAddressIpKind kind)
+PxAddressIp pxAddressIpEmpty(PxAddressIpKind kind)
 {
     PxAddressIp result;
 
@@ -96,8 +90,7 @@ pxAddressIpEmpty(PxAddressIpKind kind)
     return result;
 }
 
-PxAddressIp
-pxAddressIpLocal(PxAddressIpKind kind)
+PxAddressIp pxAddressIpLocal(PxAddressIpKind kind)
 {
     PxAddressIp result;
 
@@ -113,8 +106,7 @@ pxAddressIpLocal(PxAddressIpKind kind)
     return result;
 }
 
-b32
-pxAddressIpIsEqual(PxAddressIp self, PxAddressIp value)
+b32 pxAddressIpIsEqual(PxAddressIp self, PxAddressIp value)
 {
     if (self.kind != value.kind) return 0;
 

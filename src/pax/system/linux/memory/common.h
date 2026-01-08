@@ -3,13 +3,10 @@
 
 #include "import.h"
 
-ssize
-pxLinuxMemoryPageSize();
+ssize pxLinuxMemoryPageSize();
 
-PxMemoryArena
-pxLinuxMemoryReserve(ssize size);
+PxMemoryArena pxLinuxMemoryReserve(ssize size);
 
-b32
-pxLinuxMemoryRelease(PxMemoryArena* arena);
+b32 pxLinuxMemoryRelease(PxMemoryArena* arena);
 
 #endif // PX_LINUX_MEMORY_COMMON_H

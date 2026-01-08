@@ -78,31 +78,22 @@ typedef struct ConnMessage
 }
 ConnMessage;
 
-ConnMessage
-connMessageDecode(u8* values, ssize size);
+ConnMessage connMessageJoin(ConnClientFlag flag);
 
-ssize
-connMessageEncode(ConnMessage message, u8* values, ssize size);
+ConnMessage connMessageQuit(u16 client);
 
-ConnMessage
-connMessageJoin(ConnClientFlag flag);
+ConnMessage connMessageData(ConnClientFlag flag, u16 client);
 
-ConnMessage
-connMessageQuit(u16 client);
+ConnMessage connMessageTurn(u16 client);
 
-ConnMessage
-connMessageData(ConnClientFlag flag, u16 client);
+ConnMessage connMessageMove(u16 client, u16 column);
 
-ConnMessage
-connMessageTurn(u16 client);
+ConnMessage connMessageResult(u16 client);
 
-ConnMessage
-connMessageMove(u16 client, u16 column);
+ConnMessage connMessageDecode(u8* pntr, ssize size);
 
-ConnMessage
-connMessageResult(u16 client);
+ssize connMessageEncode(ConnMessage message, u8* pntr, ssize size);
 
-ssize
-connMessageToString(ConnMessage message, u8* values, ssize size);
+ssize connMessageToString(ConnMessage message, u8* pntr, ssize size);
 
 #endif // CONN_MESSAGE_H

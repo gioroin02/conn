@@ -22,50 +22,42 @@
 
 #endif
 
-PxConsole*
-pxConsoleReserve(PxMemoryArena* arena)
+PxConsole* pxConsoleReserve(PxMemoryArena* arena)
 {
     return __pxConsoleReserve__(arena);
 }
 
-b32
-pxConsoleCreate(PxConsole* self)
+b32 pxConsoleCreate(PxConsole* self)
 {
     return __pxConsoleCreate__(self);
 }
 
-void
-pxConsoleDestroy(PxConsole* self)
+void pxConsoleDestroy(PxConsole* self)
 {
     return __pxConsoleDestroy__(self);
 }
 
-b32
-pxConsoleModeSet(PxConsole* self, PxConsoleMode mode)
+b32 pxConsoleModeSet(PxConsole* self, PxConsoleMode mode)
 {
     return __pxConsoleModeSet__(self, mode);
 }
 
-PxConsoleMode
-pxConsoleModeGet(PxConsole* self)
+PxConsoleMode pxConsoleModeGet(PxConsole* self)
 {
     return __pxConsoleModeGet__(self);
 }
 
-ssize
-pxConsoleWrite(PxConsole* self, u8* values, ssize start, ssize stop)
+ssize pxConsoleWrite(PxConsole* self, u8* pntr, ssize start, ssize stop)
 {
-    return __pxConsoleWrite__(self, values, start, stop);
+    return __pxConsoleWrite__(self, pntr, start, stop);
 }
 
-ssize
-pxConsoleRead(PxConsole* self, u8* values, ssize start, ssize stop)
+ssize pxConsoleRead(PxConsole* self, u8* pntr, ssize start, ssize stop)
 {
-    return __pxConsoleRead__(self, values, start, stop);
+    return __pxConsoleRead__(self, pntr, start, stop);
 }
 
-b32
-pxConsolePollEvent(PxConsole* self, PxConsoleEvent* event)
+b32 pxConsolePollEvent(PxConsole* self, PxConsoleEvent* event)
 {
     return __pxConsolePollEvent__(self, event);
 }

@@ -5,46 +5,43 @@
 
 typedef struct PxWin32SocketTcpTaskAccept
 {
-    PxWin32SocketTcp* listener;
-    PxWin32SocketTcp* socket;
+    PxWin32SocketTcp* value;
 
-    u8 buffer[sizeof (PxWin32SockAddrStorage) * 2];
+    u8 buff[sizeof (PxWin32SockAddrStorage) * 2];
 }
 PxWin32SocketTcpTaskAccept;
 
 typedef struct PxWin32SocketTcpTaskConnect
 {
-    PxWin32SocketTcp* socket;
-    PxAddressIp       address;
-    u16               port;
+    PxAddressIp address;
+    u16         port;
 }
 PxWin32SocketTcpTaskConnect;
 
 typedef struct PxWin32SocketTcpTaskWrite
 {
-    PxWin32SocketTcp* socket;
-    u8*               values;
-    ssize             start;
-    ssize             stop;
-    WSABUF            wsabuf;
-    DWORD             wsaflags;
+    u8*    pntr;
+    ssize  start;
+    ssize  stop;
+    WSABUF buffer;
 }
 PxWin32SocketTcpTaskWrite;
 
 typedef struct PxWin32SocketTcpTaskRead
 {
-    PxWin32SocketTcp* socket;
-    u8*               values;
-    ssize             start;
-    ssize             stop;
-    WSABUF            wsabuf;
-    DWORD             wsaflags;
+    u8*    pntr;
+    ssize  start;
+    ssize  stop;
+    WSABUF buffer;
 }
 PxWin32SocketTcpTaskRead;
 
 typedef struct PxWin32SocketTcpTask
 {
     PxSocketTcpEventKind kind;
+
+    void*             ctxt;
+    PxWin32SocketTcp* self;
 
     union
     {
@@ -56,16 +53,16 @@ typedef struct PxWin32SocketTcpTask
 }
 PxWin32SocketTcpTask;
 
-b32
-pxWin32SocketTcpAcceptAsync(PxWin32Async* async, void* tag, PxWin32SocketTcp* self, PxWin32SocketTcp* value);
+b32 pxWin32SocketTcpAcceptAsync(PxWin32Async* async, void* ctxt,
+    PxWin32SocketTcp* self, PxWin32SocketTcp* value);
 
-b32
-pxWin32SocketTcpConnectAsync(PxWin32Async* async, void* tag, PxWin32SocketTcp* self, PxAddressIp address, u16 port);
+b32 pxWin32SocketTcpConnectAsync(PxWin32Async* async, void* ctxt,
+    PxWin32SocketTcp* self, PxAddressIp address, u16 port);
 
-b32
-pxWin32SocketTcpWriteAsync(PxWin32Async* async, void* tag, PxWin32SocketTcp* self, u8* values, ssize start, ssize stop);
+b32 pxWin32SocketTcpWriteAsync(PxWin32Async* async, void* ctxt,
+    PxWin32SocketTcp* self, u8* pntr, ssize start, ssize stop);
 
-b32
-pxWin32SocketTcpReadAsync(PxWin32Async* async, void* tag, PxWin32SocketTcp* self, u8* values, ssize start, ssize stop);
+b32 pxWin32SocketTcpReadAsync(PxWin32Async* async, void* ctxt,
+    PxWin32SocketTcp* self, u8* pntr, ssize start, ssize stop);
 
 #endif // PX_WIN32_ASYNC_NETWORK_SOCKET_TCP_H

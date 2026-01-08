@@ -3,11 +3,11 @@
 
 #include "common.h"
 
-#define pxMemoryPoolReserveOneOf(self, type) \
-    ((type*) pxMemoryPoolReserve(self, 1, sizeof (type)))
-
 #define pxMemoryPoolReserveManyOf(self, type, count) \
     ((type*) pxMemoryPoolReserve(self, count, sizeof (type)))
+
+#define pxMemoryPoolReserveOneOf(self, type) \
+    ((type*) pxMemoryPoolReserve(self, 1, sizeof (type)))
 
 typedef struct PxMemoryPool
 {
@@ -19,22 +19,16 @@ typedef struct PxMemoryPool
 }
 PxMemoryPool;
 
-PxMemoryPool
-pxMemoryPoolMake(void* pntr, ssize size, ssize step);
+PxMemoryPool pxMemoryPoolMake(void* pntr, ssize size, ssize step);
 
-void*
-pxMemoryPoolPntr(PxMemoryPool* self);
+void* pxMemoryPoolPntr(PxMemoryPool* self);
 
-ssize
-pxMemoryPoolSize(PxMemoryPool* self);
+ssize pxMemoryPoolSize(PxMemoryPool* self);
 
-void
-pxMemoryPoolClear(PxMemoryPool* self);
+void pxMemoryPoolClear(PxMemoryPool* self);
 
-void*
-pxMemoryPoolReserve(PxMemoryPool* self, ssize count, ssize size);
+void* pxMemoryPoolReserve(PxMemoryPool* self, ssize count, ssize size);
 
-b32
-pxMemoryPoolRelease(PxMemoryPool* self, void* pntr);
+b32 pxMemoryPoolRelease(PxMemoryPool* self, void* pntr);
 
 #endif // PX_BASE_MEMORY_POOL_H

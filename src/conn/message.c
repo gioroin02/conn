@@ -5,8 +5,7 @@
 
 #include <stdio.h>
 
-ssize
-connMessageSize(ConnMessageKind kind)
+static ssize connMessageSize(ConnMessageKind kind)
 {
     switch (kind) {
         case ConnMessage_Join:   return CONN_MESSAGE_SIZE_HEADER + 2;
@@ -22,8 +21,81 @@ connMessageSize(ConnMessageKind kind)
     return 0;
 }
 
-ConnMessage
-connMessageDecode(u8* values, ssize size)
+ConnMessage connMessageJoin(ConnClientFlag flag)
+{
+    ConnMessage result;
+
+    pxMemorySet(&result, sizeof result, 0xAB);
+
+    result.kind      = ConnMessage_Join;
+    result.join.flag = flag;
+
+    return result;
+}
+
+ConnMessage connMessageQuit(u16 client)
+{
+    ConnMessage result;
+
+    pxMemorySet(&result, sizeof result, 0xAB);
+
+    result.kind        = ConnMessage_Quit;
+    result.quit.client = client;
+
+    return result;
+}
+
+ConnMessage connMessageData(ConnClientFlag flag, u16 client)
+{
+    ConnMessage result;
+
+    pxMemorySet(&result, sizeof result, 0xAB);
+
+    result.kind        = ConnMessage_Data;
+    result.data.flag   = flag;
+    result.data.client = client;
+
+    return result;
+}
+
+ConnMessage connMessageTurn(u16 client)
+{
+    ConnMessage result;
+
+    pxMemorySet(&result, sizeof result, 0xAB);
+
+    result.kind        = ConnMessage_Turn;
+    result.turn.client = client;
+
+    return result;
+}
+
+ConnMessage connMessageMove(u16 client, u16 column)
+{
+    ConnMessage result;
+
+    pxMemorySet(&result, sizeof result, 0xAB);
+
+    result.kind        = ConnMessage_Move;
+    result.move.client = client;
+    result.move.column = column;
+
+    return result;
+}
+
+ConnMessage connMessageResult(u16 client)
+{
+    ConnMessage result;
+
+    pxMemorySet(&result, sizeof result, 0xAB);
+
+    result.kind          = ConnMessage_Result;
+    result.result.client = client;
+
+    return result;
+}
+
+ConnMessage connMessageDecode(u8* pntr, ssize size)
 {
     ConnMessage result;
 
@@ -33,9 +105,9 @@ connMessageDecode(u8* values, ssize size)
     result.version = 0;
     result.length  = 0;
 
-    if (values == PX_NULL || size < CONN_MESSAGE_SIZE_HEADER) return result;
+    if (pntr == PX_NULL || size < CONN_MESSAGE_SIZE_HEADER) return result;
 
-    u8*   memory = values;
+    u8*   memory = pntr;
     ssize length = size;
 
     memory = connMemoryReadU32Net(memory, &length, &result.version);
@@ -82,12 +154,11 @@ connMessageDecode(u8* values, ssize size)
     return result;
 }
 
-ssize
-connMessageEncode(ConnMessage message, u8* values, ssize size)
+ssize connMessageEncode(ConnMessage message, u8* pntr, ssize size)
 {
-    if (values == PX_NULL || size < connMessageSize(message.kind)) return 0;
+    if (pntr == PX_NULL || size < connMessageSize(message.kind)) return 0;
 
-    u8*   memory = values;
+    u8*   memory = pntr;
     ssize length = size;
 
     memory = connMemoryWriteU32Net(memory, &length, 1);
@@ -129,123 +200,42 @@ connMessageEncode(ConnMessage message, u8* values, ssize size)
     return 0;
 }
 
-ConnMessage
-connMessageJoin(ConnClientFlag flag)
-{
-    ConnMessage result;
-
-    pxMemorySet(&result, sizeof result, 0xAB);
-
-    result.kind      = ConnMessage_Join;
-    result.join.flag = flag;
-
-    return result;
-}
-
-ConnMessage
-connMessageQuit(u16 client)
-{
-    ConnMessage result;
-
-    pxMemorySet(&result, sizeof result, 0xAB);
-
-    result.kind        = ConnMessage_Quit;
-    result.quit.client = client;
-
-    return result;
-}
-
-ConnMessage
-connMessageData(ConnClientFlag flag, u16 client)
-{
-    ConnMessage result;
-
-    pxMemorySet(&result, sizeof result, 0xAB);
-
-    result.kind        = ConnMessage_Data;
-    result.data.flag   = flag;
-    result.data.client = client;
-
-    return result;
-}
-
-ConnMessage
-connMessageTurn(u16 client)
-{
-    ConnMessage result;
-
-    pxMemorySet(&result, sizeof result, 0xAB);
-
-    result.kind        = ConnMessage_Turn;
-    result.turn.client = client;
-
-    return result;
-}
-
-ConnMessage
-connMessageMove(u16 client, u16 column)
-{
-    ConnMessage result;
-
-    pxMemorySet(&result, sizeof result, 0xAB);
-
-    result.kind        = ConnMessage_Move;
-    result.move.client = client;
-    result.move.column = column;
-
-    return result;
-}
-
-ConnMessage
-connMessageResult(u16 client)
-{
-    ConnMessage result;
-
-    pxMemorySet(&result, sizeof result, 0xAB);
-
-    result.kind          = ConnMessage_Result;
-    result.result.client = client;
-
-    return result;
-}
-
-ssize
-connMessageToString(ConnMessage message, u8* values, ssize size)
+ssize connMessageToString(ConnMessage message, u8* pntr, ssize size)
 {
     ssize result = 0;
 
     switch (message.kind) {
         case ConnMessage_Join: {
-            result = snprintf(((char*) values), size, "(Join) {.flag = %u}",
+            result = snprintf(((char*) pntr), size, "(Join) {.flag = %u}",
                 message.join.flag);
         } break;
 
         case ConnMessage_Quit: {
-            result = snprintf(((char*) values), size, "(Quit) {.client = %u}",
+            result = snprintf(((char*) pntr), size, "(Quit) {.client = %u}",
                 message.quit.client);
         } break;
 
         case ConnMessage_Data: {
-            result = snprintf(((char*) values), size, "(Data) {.flag = %u, .client = %u}",
+            result = snprintf(((char*) pntr), size, "(Data) {.flag = %u, .client = %u}",
                 message.data.flag, message.data.client);
         } break;
 
         case ConnMessage_Turn: {
-            result = snprintf(((char*) values), size, "(Turn) {.client = %u}",
+            result = snprintf(((char*) pntr), size, "(Turn) {.client = %u}",
                 message.turn.client);
         } break;
 
         case ConnMessage_Move: {
-            result = snprintf(((char*) values), size, "(Move) {.client = %u, .column = %u}",
+            result = snprintf(((char*) pntr), size, "(Move) {.client = %u, .column = %u}",
                 message.move.client, message.move.column);
         } break;
 
         case ConnMessage_Result: {
-            result = snprintf(((char*) values), size, "(Result) {.client = %u}",
+            result = snprintf(((char*) pntr), size, "(Result) {.client = %u}",
                 message.result.client);
         } break;
 
-        default: result = snprintf(((char*) values), size, "(None) {}"); break;
+        default: result = snprintf(((char*) pntr), size, "(None) {}"); break;
     }
 
     if (result >= 0 && result < size) return result;

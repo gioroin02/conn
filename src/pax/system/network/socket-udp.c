@@ -24,56 +24,49 @@
 
 #endif
 
-PxSocketUdp*
-pxSocketUdpReserve(PxMemoryArena* arena)
+PxSocketUdp* pxSocketUdpReserve(PxMemoryArena* arena)
 {
     return __pxSocketUdpReserve__(arena);
 }
 
-b32
-pxSocketUdpCreate(PxSocketUdp* self, PxAddressIp address, u16 port)
+b32 pxSocketUdpCreate(PxSocketUdp* self, PxAddressIp address, u16 port)
 {
     return __pxSocketUdpCreate__(self, address, port);
 }
 
-void
-pxSocketUdpDestroy(PxSocketUdp* self)
+void pxSocketUdpDestroy(PxSocketUdp* self)
 {
     return __pxSocketUdpDestroy__(self);
 }
 
-b32
-pxSocketUdpBind(PxSocketUdp* self)
+b32 pxSocketUdpBind(PxSocketUdp* self)
 {
     return __pxSocketUdpBind__(self);
 }
 
-b32
-pxSocketUdpBindTo(PxSocketUdp* self, PxAddressIp address, u16 port)
+b32 pxSocketUdpBindTo(PxSocketUdp* self, PxAddressIp address, u16 port)
 {
     return __pxSocketUdpBindTo__(self, address, port);
 }
 
-ssize
-pxSocketUdpWrite(PxSocketUdp* self, u8* values, ssize start, ssize stop, PxAddressIp address, u16 port)
+ssize pxSocketUdpWrite(PxSocketUdp* self, u8* pntr, ssize start, ssize stop,
+    PxAddressIp address, u16 port)
 {
-    return __pxSocketUdpWrite__(self, values, start, stop, address, port);
+    return __pxSocketUdpWrite__(self, pntr, start, stop, address, port);
 }
 
-ssize
-pxSocketUdpRead(PxSocketUdp* self, u8* values, ssize start, ssize stop, PxAddressIp* address, u16* port)
+ssize pxSocketUdpRead(PxSocketUdp* self, u8* pntr, ssize start, ssize stop,
+    PxAddressIp* address, u16* port)
 {
-    return __pxSocketUdpRead__(self, values, start, stop, address, port);
+    return __pxSocketUdpRead__(self, pntr, start, stop, address, port);
 }
 
-PxAddressIp
-pxSocketUdpGetAddress(PxSocketUdp* self)
+PxAddressIp pxSocketUdpGetAddress(PxSocketUdp* self)
 {
     return __pxSocketUdpGetAddress__(self);
 }
 
-u16
-pxSocketUdpGetPort(PxSocketUdp* self)
+u16 pxSocketUdpGetPort(PxSocketUdp* self)
 {
     return __pxSocketUdpGetPort__(self);
 }

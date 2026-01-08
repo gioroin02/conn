@@ -98,7 +98,7 @@ void
 connServerPollEvents(ConnServer* self);
 
 void
-connServerOnTcpEvent(ConnServer* self, ConnSession* session, PxSocketTcpEvent event);
+connServerOnTcpEvent(ConnServer* self, PxSocketTcpEvent event);
 
 void
 connServerOnTcpAccept(ConnServer* self, ConnSession* session);

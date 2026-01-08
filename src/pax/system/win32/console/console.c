@@ -3,8 +3,7 @@
 
 #include "console.h"
 
-static PxConsoleEvent
-pxWin32ConsoleEventConvert(WORD key_code, CHAR key_char)
+static PxConsoleEvent pxWin32ConsoleEventConvert(WORD key_code, CHAR key_char)
 {
     PxConsoleEvent result;
 
@@ -106,8 +105,7 @@ pxWin32ConsoleEventConvert(WORD key_code, CHAR key_char)
     return result;
 }
 
-static b32
-pxWin32ConsoleModeSetCooked(PxWin32Console* self)
+static b32 pxWin32ConsoleModeSetCooked(PxWin32Console* self)
 {
     if (self->mode != PxConsoleMode_Cooked) {
         SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), self->conf_in);
@@ -119,8 +117,7 @@ pxWin32ConsoleModeSetCooked(PxWin32Console* self)
     return 1;
 }
 
-static b32
-pxWin32ConsoleModeSetRaw(PxWin32Console* self)
+static b32 pxWin32ConsoleModeSetRaw(PxWin32Console* self)
 {
     DWORD conf_in = self->conf_in & ~(ENABLE_PROCESSED_INPUT |
         ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT);
@@ -138,14 +135,12 @@ pxWin32ConsoleModeSetRaw(PxWin32Console* self)
     return 1;
 }
 
-PxWin32Console*
-pxWin32ConsoleReserve(PxMemoryArena* arena)
+PxWin32Console* pxWin32ConsoleReserve(PxMemoryArena* arena)
 {
     return pxMemoryArenaReserveOneOf(arena, PxWin32Console);
 }
 
-b32
-pxWin32ConsoleCreate(PxWin32Console* self)
+b32 pxWin32ConsoleCreate(PxWin32Console* self)
 {
     GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), &self->conf_in);
     GetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), &self->conf_out);
@@ -155,8 +150,7 @@ pxWin32ConsoleCreate(PxWin32Console* self)
     return 1;
 }
 
-void
-pxWin32ConsoleDestroy(PxWin32Console* self)
+void pxWin32ConsoleDestroy(PxWin32Console* self)
 {
     if (self->mode != PxConsoleMode_Cooked)
         pxWin32ConsoleModeSetCooked(self);
@@ -164,8 +158,7 @@ pxWin32ConsoleDestroy(PxWin32Console* self)
     pxMemorySet(self, sizeof *self, 0xAB);
 }
 
-b32
-pxWin32ConsoleModeSet(PxWin32Console* self, PxConsoleMode mode)
+b32 pxWin32ConsoleModeSet(PxWin32Console* self, PxConsoleMode mode)
 {
     switch (mode) {
         case PxConsoleMode_Cooked: return pxWin32ConsoleModeSetCooked(self);
@@ -177,25 +170,23 @@ pxWin32ConsoleModeSet(PxWin32Console* self, PxConsoleMode mode)
     return 0;
 }
 
-PxConsoleMode
-pxWin32ConsoleModeGet(PxWin32Console* self)
+PxConsoleMode pxWin32ConsoleModeGet(PxWin32Console* self)
 {
     return self->mode;
 }
 
-ssize
-pxWin32ConsoleWrite(PxWin32Console* self, u8* values, ssize start, ssize stop)
+ssize pxWin32ConsoleWrite(PxWin32Console* self, u8* pntr, ssize start, ssize stop)
 {
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
 
-    char* pntr   = ((char*) values + start);
+    char* memory = ((char*) pntr + start);
     ssize size   = stop - start;
     ssize result = 0;
 
     while (result < size) {
         DWORD count = 0;
 
-        b32 status = WriteFile(handle, pntr + result,
+        b32 status = WriteFile(handle, memory + result,
             ((DWORD) size - result), &count, PX_NULL);
 
         if (status != 0 && count > 0 && count <= size - result)
@@ -207,42 +198,42 @@ pxWin32ConsoleWrite(PxWin32Console* self, u8* values, ssize start, ssize stop)
     return result;
 }
 
-ssize
-pxWin32ConsoleRead(PxWin32Console* self, u8* values, ssize start, ssize stop)
+ssize pxWin32ConsoleRead(PxWin32Console* self, u8* pntr, ssize start, ssize stop)
 {
     HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
 
-    char* pntr  = ((char*) values + start);
-    ssize size  = stop - start;
-    DWORD count = 0;
+    char* memory = ((char*) pntr + start);
+    ssize size   = stop - start;
+    DWORD count  = 0;
 
-    b32 status = ReadFile(handle, pntr, count, &count, PX_NULL);
+    b32 status = ReadFile(handle, memory, size, &count, PX_NULL);
 
     if (status != 0 && count > 0 && count <= size) return count;
 
     return 0;
 }
 
-b32
-pxWin32ConsolePollEvent(PxWin32Console* self, PxConsoleEvent* event)
+b32 pxWin32ConsolePollEvent(PxWin32Console* self, PxConsoleEvent* event)
 {
+    INPUT_RECORD record;
+
     HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
     DWORD  count  = 0;
 
     if (GetNumberOfConsoleInputEvents(handle, &count) == 0 || count <= 0)
         return 0;
 
-    INPUT_RECORD record;
-
     if (ReadConsoleInput(handle, &record, 1, &count) == 0 || count <= 0)
         return 0;
 
     if (record.EventType == KEY_EVENT) {
-        KEY_EVENT_RECORD key = record.Event.KeyEvent;
+        BOOL key_state = record.Event.KeyEvent.bKeyDown;
+        WORD key_code  = record.Event.KeyEvent.wVirtualKeyCode;
+        CHAR key_char  = record.Event.KeyEvent.uChar.AsciiChar;
 
-        if (key.bKeyDown != 0) {
-            if (event != 0)
-                *event = pxWin32ConsoleEventConvert(key.wVirtualKeyCode, key.uChar.AsciiChar);
+        if (key_state != 0) {
+            if (event != PX_NULL)
+                *event = pxWin32ConsoleEventConvert(key_code, key_char);
 
             return 1;
         }

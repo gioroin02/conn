@@ -10,23 +10,21 @@
 
 #include <sys/mman.h>
 
-ssize
-pxLinuxMemoryPageSize()
+ssize pxLinuxMemoryPageSize()
 {
     return ((ssize) sysconf(_SC_PAGESIZE));
 }
 
-PxMemoryArena
-pxLinuxMemoryReserve(ssize size)
+PxMemoryArena pxLinuxMemoryReserve(ssize size)
 {
     PxMemoryArena result;
 
     pxMemorySet(&result, sizeof result, 0xAB);
 
+    if (size <= 0) return result;
+
     ssize page   = pxLinuxMemoryPageSize();
     void* memory = PX_NULL;
-
-    if (size <= 0) return result;
 
     size = pxMemoryAlignSize(size, page);
 
@@ -36,14 +34,14 @@ pxLinuxMemoryReserve(ssize size)
     }
     while (memory == MAP_FAILED && errno == EINTR);
 
-    if (memory != MAP_FAILED)
-        result = pxMemoryArenaMake(memory, size);
+    if (memory == MAP_FAILED) return result;
+
+    result = pxMemoryArenaMake(memory, size);
 
     return result;
 }
 
-b32
-pxLinuxMemoryRelease(PxMemoryArena* arena)
+b32 pxLinuxMemoryRelease(PxMemoryArena* arena)
 {
     int   status = 0;
     ssize page   = pxLinuxMemoryPageSize();
@@ -53,8 +51,9 @@ pxLinuxMemoryRelease(PxMemoryArena* arena)
     if (memory == PX_NULL || size <= 0 || size % page != 0)
         return 0;
 
-    do
+    do {
         status = munmap(memory, size);
+    }
     while (status == -1 && errno == EINTR);
 
     pxMemorySet(arena, sizeof *arena, 0xAB);

@@ -27,74 +27,63 @@
 
 #endif
 
-PxSocketTcp*
-pxSocketTcpReserve(PxMemoryArena* arena)
+PxSocketTcp* pxSocketTcpReserve(PxMemoryArena* arena)
 {
     return __pxSocketTcpReserve__(arena);
 }
 
-b32
-pxSocketTcpCreate(PxSocketTcp* self, PxAddressIp address, u16 port)
+b32 pxSocketTcpCreate(PxSocketTcp* self, PxAddressIp address, u16 port)
 {
     return __pxSocketTcpCreate__(self, address, port);
 }
 
-b32
-pxSocketTcpAccept(PxSocketTcp* self, PxSocketTcp* value)
+b32 pxSocketTcpAccept(PxSocketTcp* self, PxSocketTcp* value)
 {
     return __pxSocketTcpAccept__(self, value);
 }
 
-void
-pxSocketTcpDestroy(PxSocketTcp* self)
+void pxSocketTcpDestroy(PxSocketTcp* self)
 {
     return __pxSocketTcpDestroy__(self);
 }
 
-b32
-pxSocketTcpBind(PxSocketTcp* self)
+b32 pxSocketTcpBind(PxSocketTcp* self)
 {
     return __pxSocketTcpBind__(self);
 }
 
-b32
-pxSocketTcpBindTo(PxSocketTcp* self, PxAddressIp address, u16 port)
+b32 pxSocketTcpBindTo(PxSocketTcp* self, PxAddressIp address, u16 port)
 {
     return __pxSocketTcpBindTo__(self, address, port);
 }
 
-b32
-pxSocketTcpListen(PxSocketTcp* self)
+b32 pxSocketTcpListen(PxSocketTcp* self)
 {
     return __pxSocketTcpListen__(self);
 }
 
-b32
-pxSocketTcpConnect(PxSocketTcp* self, PxAddressIp address, u16 port)
+b32 pxSocketTcpConnect(PxSocketTcp* self, PxAddressIp address, u16 port)
 {
     return __pxSocketTcpConnect__(self, address, port);
 }
 
 ssize
-pxSocketTcpWrite(PxSocketTcp* self, u8* values, ssize start, ssize stop)
+pxSocketTcpWrite(PxSocketTcp* self, u8* pntr, ssize start, ssize stop)
 {
-    return __pxSocketTcpWrite__(self, values, start, stop);
+    return __pxSocketTcpWrite__(self, pntr, start, stop);
 }
 
-ssize
-pxSocketTcpRead(PxSocketTcp* self, u8* values, ssize start, ssize stop)
+ssize pxSocketTcpRead(PxSocketTcp* self, u8* pntr, ssize start, ssize stop)
 {
-    return __pxSocketTcpRead__(self, values, start, stop);
+    return __pxSocketTcpRead__(self, pntr, start, stop);
 }
 
-PxAddressIp
-pxSocketTcpGetAddress(PxSocketTcp* self)
+PxAddressIp pxSocketTcpGetAddress(PxSocketTcp* self)
 {
     return __pxSocketTcpGetAddress__(self);
 }
 
-u16
-pxSocketTcpGetPort(PxSocketTcp* self)
+u16 pxSocketTcpGetPort(PxSocketTcp* self)
 {
     return __pxSocketTcpGetPort__(self);
 }

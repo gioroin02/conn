@@ -3,20 +3,17 @@
 
 #include "map.h"
 
-static ssize
-__pxMapHash__(PxMapTag* self, void* key)
+static ssize __pxMapHash__(PxMapTag* self, void* key)
 {
     return ((PxMapProcHash*) self->map_proc_hash)(key);
 }
 
-static b32
-__pxMapIsEqual__(PxMapTag* self, void* key, void* other)
+static b32 __pxMapIsEqual__(PxMapTag* self, void* key, void* other)
 {
     return ((PxMapProcIsEqual*) self->map_proc_is_equal)(key, other);
 }
 
-static ssize
-__pxMapDistance__(PxMapTag* self, void* key, ssize index)
+static ssize __pxMapDistance__(PxMapTag* self, void* key, ssize index)
 {
     ssize size  = self->map_size;
     ssize probe = __pxMapHash__(self, key) % size;
@@ -27,8 +24,7 @@ __pxMapDistance__(PxMapTag* self, void* key, ssize index)
     return index - probe;
 }
 
-static ssize
-__pxMapIndexForKey__(PxMapTag* self, void* keys, void* key)
+static ssize __pxMapIndexForKey__(PxMapTag* self, void* keys, void* key)
 {
     ssize size  = self->map_size;
     ssize probe = __pxMapHash__(self, key) % size;
@@ -52,8 +48,7 @@ __pxMapIndexForKey__(PxMapTag* self, void* keys, void* key)
     return -1;
 }
 
-b32
-__pxMapCreate__(PxMapTag* self, void** pntr_keys, ssize step_key, void** pntr_values, ssize step_value,
+b32 __pxMapCreate__(PxMapTag* self, void** pntr_keys, ssize step_key, void** pntr_values, ssize step_value,
     PxMemoryArena* arena, ssize size, void* proc_hash, void* proc_is_equal)
 {
     pxMemorySet(self, sizeof *self, 0xAB);
@@ -86,32 +81,27 @@ __pxMapCreate__(PxMapTag* self, void** pntr_keys, ssize step_key, void** pntr_va
     return 0;
 }
 
-ssize
-__pxMapSize__(PxMapTag* self)
+ssize __pxMapSize__(PxMapTag* self)
 {
     return self->map_size;
 }
 
-ssize
-__pxMapCount__(PxMapTag* self)
+ssize __pxMapCount__(PxMapTag* self)
 {
     return self->map_count;
 }
 
-b32
-__pxMapIsEmpty__(PxMapTag* self)
+b32 __pxMapIsEmpty__(PxMapTag* self)
 {
     return self->map_count == 0 ? 1 : 0;
 }
 
-b32
-__pxMapIsFull__(PxMapTag* self)
+b32 __pxMapIsFull__(PxMapTag* self)
 {
     return self->map_count == self->map_size ? 1 : 0;
 }
 
-b32
-__pxMapIsKey__(PxMapTag* self, void* keys, void* key)
+b32 __pxMapIsKey__(PxMapTag* self, void* keys, void* key)
 {
     ssize index = __pxMapIndexForKey__(self, keys, key);
 
@@ -122,8 +112,7 @@ __pxMapIsKey__(PxMapTag* self, void* keys, void* key)
     return 1;
 }
 
-void
-__pxMapClear__(PxMapTag* self)
+void __pxMapClear__(PxMapTag* self)
 {
     ssize index = 0;
 
@@ -133,8 +122,7 @@ __pxMapClear__(PxMapTag* self)
     self->map_count = 0;
 }
 
-b32
-__pxMapSlotOpen__(PxMapTag* self, void* keys, void* key)
+b32 __pxMapSlotOpen__(PxMapTag* self, void* keys, void* key)
 {
     if (self->map_count == self->map_size) return 0;
 

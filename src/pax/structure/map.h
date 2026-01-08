@@ -84,25 +84,18 @@ b32
 __pxMapCreate__(PxMapTag* self, void** pntr_keys, ssize step_key, void** pntr_values, ssize step_value,
     PxMemoryArena* arena, ssize size, void* proc_hash, void* proc_is_equal);
 
-ssize
-__pxMapSize__(PxMapTag* self);
+ssize __pxMapSize__(PxMapTag* self);
 
-ssize
-__pxMapCount__(PxMapTag* self);
+ssize __pxMapCount__(PxMapTag* self);
 
-b32
-__pxMapIsEmpty__(PxMapTag* self);
+b32 __pxMapIsEmpty__(PxMapTag* self);
 
-b32
-__pxMapIsFull__(PxMapTag* self);
+b32 __pxMapIsFull__(PxMapTag* self);
 
-b32
-__pxMapIsKey__(PxMapTag* self, void* keys, void* key);
+b32 __pxMapIsKey__(PxMapTag* self, void* keys, void* key);
 
-void
-__pxMapClear__(PxMapTag* self);
+void __pxMapClear__(PxMapTag* self);
 
-b32
-__pxMapSlotOpen__(PxMapTag* self, void* keys, void* key);
+b32 __pxMapSlotOpen__(PxMapTag* self, void* keys, void* key);
 
 #endif // PX_STRUCTURE_MAP_H

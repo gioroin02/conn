@@ -6,81 +6,95 @@
 extern LPFN_CONNECTEX pxWin32ConnectEx;
 extern LPFN_ACCEPTEX  pxWin32AcceptEx;
 
-static b32
-pxWin32AsyncBindSocketTcp(PxWin32Async* async, PxWin32SocketTcp* socket)
+static b32 pxWin32AsyncBindSocketTcp(PxWin32Async* async, PxWin32SocketTcp* socket)
 {
     HANDLE handle = ((HANDLE) socket->handle);
+    HANDLE result = CreateIoCompletionPort(handle, async->handle, 0, 0);
 
-    if (CreateIoCompletionPort(handle, async->handle, 0, 0) != PX_NULL)
-        return 1;
-
-    int err = GetLastError();
-
-    return 0;
+    return result != PX_NULL ? 1 : 0;
 }
 
-static b32
-pxWin32SocketTcpTaskStart(PxWin32AsyncTask* task, PxWin32Async* async)
+static b32 pxWin32SocketTcpTaskStart(PxWin32AsyncTask* task, PxWin32Async* async)
 {
-    PxWin32SocketTcpTask* self = ((PxWin32SocketTcpTask*) task->pntr_body);
+    PxWin32SocketTcpTask* body = ((PxWin32SocketTcpTask*) task->pntr_body);
 
-    switch (self->kind) {
+    switch (body->kind) {
         case PxSocketTcpEvent_Accept: {
-            PxWin32SocketTcpTaskAccept accept = self->accept;
-            DWORD                      bytes  = 0;
-            DWORD                      size   = sizeof (PxWin32SockAddrStorage);
+            PxWin32SocketTcp* self  = body->self;
+            PxWin32SocketTcp* value = body->accept.value;
+            u8*               buff  = body->accept.buff;
+            DWORD             bytes = 0;
+            DWORD             size  = sizeof (body->accept.buff) / 2;
 
-            if (pxWin32AsyncBindSocketTcp(async, accept.socket) == 0) return 0;
+            if (pxWin32AsyncBindSocketTcp(async, value) == 0) return 0;
 
-            pxWin32AsyncBindSocketTcp(async, accept.listener);
+            pxWin32AsyncBindSocketTcp(async, self);
 
-            BOOL status = pxWin32AcceptEx(accept.listener->handle, accept.socket->handle,
-                accept.buffer, 0, size, size, &bytes, &task->overlap);
+            BOOL status = pxWin32AcceptEx(self->handle, value->handle,
+                buff, 0, size, size, &bytes, &task->overlap);
 
             if (status == SOCKET_ERROR && WSAGetLastError() != ERROR_IO_PENDING)
                 return 0;
         } break;
 
         case PxSocketTcpEvent_Connect: {
-            PxWin32SocketTcpTaskConnect connect = self->connect;
-            DWORD                       bytes   = 0;
-            ssize                       length  = 0;
+            PxWin32SocketTcp* self    = body->self;
+            PxAddressIp       address = body->connect.address;
+            u16               port    = body->connect.port;
+            DWORD             bytes   = 0;
 
-            pxWin32AsyncBindSocketTcp(async, connect.socket);
+            PxWin32SockAddrStorage storage;
+            PxWin32SockAddr*       sockaddr = (PxWin32SockAddr*) &storage;
+            ssize                  length  = 0;
 
-            PxWin32SockAddrStorage storage =
-                pxWin32SockAddrStorageMake(connect.address, connect.port, &length);
+            storage = pxWin32SockAddrStorageMake(address, port, &length);
 
-            PxWin32SockAddr* sockaddr = (PxWin32SockAddr*) &storage;
+            pxWin32AsyncBindSocketTcp(async, self);
 
-            BOOL status = pxWin32ConnectEx(connect.socket->handle, sockaddr,
-                length, 0, 0, &bytes, &task->overlap);
+            BOOL status = pxWin32ConnectEx(self->handle, sockaddr, length,
+                0, 0, &bytes, &task->overlap);
 
             if (status == SOCKET_ERROR && WSAGetLastError() != ERROR_IO_PENDING)
                 return 0;
         } break;
 
         case PxSocketTcpEvent_Write: {
-            PxWin32SocketTcpTaskWrite write = self->write;
-            DWORD                     bytes = 0;
+            PxWin32SocketTcp* self   = body->self;
+            u8*               pntr   = body->write.pntr;
+            ssize             start  = body->write.start;
+            ssize             stop   = body->write.stop;
+            WSABUF*           buffer = &body->write.buffer;
+            DWORD             flag   = 0;
+            DWORD             bytes  = 0;
 
-            pxWin32AsyncBindSocketTcp(async, write.socket);
+            pxWin32AsyncBindSocketTcp(async, self);
 
-            int status = WSASend(write.socket->handle, &write.wsabuf, 1,
-                &bytes, write.wsaflags, &task->overlap, PX_NULL);
+            buffer->buf = ((char*) pntr + start);
+            buffer->len = stop - start;
+
+            int status = WSASend(self->handle, buffer, 1, &bytes,
+                flag, &task->overlap, PX_NULL);
 
             if (status == SOCKET_ERROR && WSAGetLastError() != ERROR_IO_PENDING)
                 return 0;
         } break;
 
         case PxSocketTcpEvent_Read: {
-            PxWin32SocketTcpTaskRead read  = self->read;
-            DWORD                    bytes = 0;
+            PxWin32SocketTcp* self   = body->self;
+            u8*               pntr   = body->read.pntr;
+            ssize             start  = body->read.start;
+            ssize             stop   = body->read.stop;
+            WSABUF*           buffer = &body->read.buffer;
+            DWORD             flag   = 0;
+            DWORD             bytes  = 0;
 
-            pxWin32AsyncBindSocketTcp(async, read.socket);
+            pxWin32AsyncBindSocketTcp(async, self);
 
-            int status = WSARecv(read.socket->handle, &read.wsabuf, 1,
-                &bytes, &read.wsaflags, &task->overlap, PX_NULL);
+            buffer->buf = ((char*) pntr + start);
+            buffer->len = stop - start;
+
+            int status = WSARecv(self->handle, buffer, 1, &bytes,
+                &flag, &task->overlap, PX_NULL);
 
             if (status == SOCKET_ERROR && WSAGetLastError() != ERROR_IO_PENDING)
                 return 0;
@@ -92,59 +106,69 @@ pxWin32SocketTcpTaskStart(PxWin32AsyncTask* task, PxWin32Async* async)
     return 1;
 }
 
-static b32
-pxWin32SocketTcpTaskProc(PxWin32AsyncTask* task, ssize bytes)
+static b32 pxWin32SocketTcpTaskProc(PxWin32AsyncTask* task, ssize bytes)
 {
-    PxWin32SocketTcpTask* self  = (PxWin32SocketTcpTask*) task->pntr_body;
+    PxWin32SocketTcpTask* body  = (PxWin32SocketTcpTask*) task->pntr_body;
     PxSocketTcpEvent*     event = (PxSocketTcpEvent*) task->pntr_event;
 
-    switch (self->kind) {
+    switch (body->kind) {
         case PxSocketTcpEvent_Accept: {
-            PxWin32SocketTcpTaskAccept accept = self->accept;
-            PxWin32SockAddrStorage     storage;
+            void*             ctxt  = body->ctxt;
+            PxWin32SocketTcp* self  = body->self;
+            PxWin32SocketTcp* value = body->accept.value;
+            u8*               buff  = body->accept.buff;
 
-            setsockopt(accept.socket->handle, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT,
-                ((char*) &accept.listener->handle), sizeof(accept.listener->handle));
+            setsockopt(value->handle, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT,
+                (char*) &self->handle, sizeof self->handle);
 
-            INT              length   = sizeof (PxWin32SockAddrStorage);
-            PxWin32SockAddr* sockaddr = (PxWin32SockAddr*) &storage;
+            PxWin32SockAddrStorage storage;
+            PxWin32SockAddr*       sockaddr = (PxWin32SockAddr*) &storage;
+            int                    length   = sizeof storage;
 
-            getsockname(accept.socket->handle, sockaddr, &length);
+            getsockname(value->handle, sockaddr, &length);
 
-            accept.socket->storage = storage;
+            value->storage = storage;
 
-            *event = pxSocketTcpEventAccept(accept.listener, accept.socket);
+            *event = pxSocketTcpEventAccept(ctxt, self, value);
         } break;
 
         case PxSocketTcpEvent_Connect: {
-            PxWin32SocketTcpTaskConnect connect = self->connect;
-            DWORD                       bytes   = 0;
-            DWORD                       flags   = 0;
+            void*             ctxt    = body->ctxt;
+            PxWin32SocketTcp* self    = body->self;
+            PxAddressIp       address = body->connect.address;
+            u16               port    = body->connect.port;
+            DWORD             bytes   = 0;
+            DWORD             flag    = 0;
 
-            setsockopt(connect.socket->handle, SOL_SOCKET,
-                SO_UPDATE_CONNECT_CONTEXT, 0, 0);
+            setsockopt(self->handle, SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, PX_NULL, 0);
 
-            BOOL status = WSAGetOverlappedResult(connect.socket->handle,
-                &task->overlap, &bytes, 0, &flags);
+            BOOL status = WSAGetOverlappedResult(self->handle,
+                &task->overlap, &bytes, 0, &flag);
 
-            *event = pxSocketTcpEventConnect(connect.socket, status);
+            *event = pxSocketTcpEventConnect(ctxt, self, status);
         } break;
 
         case PxSocketTcpEvent_Write: {
-            PxWin32SocketTcpTaskWrite write = self->write;
+            void*             ctxt  = body->ctxt;
+            PxWin32SocketTcp* self  = body->self;
+            u8*               pntr  = body->write.pntr;
+            ssize             start = body->write.start;
+            ssize             stop  = start + bytes;
 
-            *event = pxSocketTcpEventWrite(write.socket,
-                write.values, write.start, write.start + bytes);
+            *event = pxSocketTcpEventWrite(ctxt, self, pntr, start, stop);
         } break;
 
         case PxSocketTcpEvent_Read: {
-            PxWin32SocketTcpTaskRead read = self->read;
+            void*             ctxt  = body->ctxt;
+            PxWin32SocketTcp* self  = body->self;
+            u8*               pntr  = body->read.pntr;
+            ssize             start = body->read.start;
+            ssize             stop  = start + bytes;
 
-            if (bytes > 0) {
-                *event = pxSocketTcpEventRead(read.socket,
-                    read.values, read.start, read.start + bytes);
-            }
-            else *event = pxSocketTcpEventClose(read.socket);
+            *event = pxSocketTcpEventClose(ctxt, self);
+
+            if (bytes > 0)
+                *event = pxSocketTcpEventRead(ctxt, self, pntr, start, stop);
         } break;
 
         default: return 0;
@@ -153,28 +177,29 @@ pxWin32SocketTcpTaskProc(PxWin32AsyncTask* task, ssize bytes)
     return 1;
 }
 
-static PxWin32AsyncTask*
-pxWin32AsyncTaskSocketTcp(PxMemoryPool* pool, void* tag, ssize size_body, void** pntr_body, ssize size_event, void** pntr_event)
+static PxWin32AsyncTask* pxWin32AsyncTaskSocketTcp(PxMemoryPool* pool,
+    ssize size_body, void** pntr_body, ssize size_event, void** pntr_event)
 {
-    if (pntr_body == 0 || size_body < 0 || size_body > pool->step)    return 0;
-    if (pntr_event == 0 || size_event < 0 || size_event > pool->step) return 0;
+    if (pntr_body == PX_NULL || size_body < 0 || size_body > pool->step)    return 0;
+    if (pntr_event == PX_NULL || size_event < 0 || size_event > pool->step) return 0;
 
     PxWin32AsyncTask* result = (PxWin32AsyncTask*) pxMemoryPoolReserve(pool, 1, pool->step);
     void*             body   = pxMemoryPoolReserve(pool, 1, pool->step);
     void*             event  = pxMemoryPoolReserve(pool, 1, pool->step);
 
     if (result != PX_NULL && body != PX_NULL && event != PX_NULL) {
-        result->family       = PxAsyncEventFamily_Tcp;
-        result->pntr_body    = body;
-        result->pntr_event   = event;
-        result->pntr_tag     = tag;
-        result->proc         = pxWin32SocketTcpTaskProc;
-        result->pending_next = PX_NULL;
+        result->family     = PxAsyncEventFamily_Tcp;
+        result->pntr_body  = body;
+        result->pntr_event = event;
+        result->size_body  = size_body;
+        result->size_event = size_event;
+        result->proc       = pxWin32SocketTcpTaskProc;
+        result->list_next  = PX_NULL;
 
         pxMemorySet(&result->overlap, sizeof result->overlap, 0x00);
 
-        if (pntr_body != 0)  *pntr_body  = body;
-        if (pntr_event != 0) *pntr_event = event;
+        *pntr_body  = body;
+        *pntr_event = event;
 
         return result;
     }
@@ -186,25 +211,26 @@ pxWin32AsyncTaskSocketTcp(PxMemoryPool* pool, void* tag, ssize size_body, void**
     return PX_NULL;
 }
 
-static PxWin32AsyncTask*
-pxWin32SocketTcpTaskAccept(PxWin32Async* async, void* tag, PxWin32SocketTcp* listener, PxWin32SocketTcp* socket)
+static PxWin32AsyncTask* pxWin32SocketTcpTaskAccept(PxWin32Async* async, void* ctxt,
+    PxWin32SocketTcp* self, PxWin32SocketTcp* value)
 {
+    PxAddressIp address = pxWin32SocketTcpGetAddress(self);
+
+    if (pxWin32SocketTcpCreate(value, pxAddressIpEmpty(address.kind), 0) == 0)
+        return PX_NULL;
+
     PxWin32SocketTcpTask* body  = PX_NULL;
     PxSocketTcpEvent*     event = PX_NULL;
 
-    PxAddressIpKind kind    = pxWin32SocketTcpGetAddress(listener).kind;
-    PxAddressIp     address = pxAddressIpEmpty(kind);
-
-    if (pxWin32SocketTcpCreate(socket, address, 0) == 0) return PX_NULL;
-
-    PxWin32AsyncTask* result = pxWin32AsyncTaskSocketTcp(&async->pool, tag,
+    PxWin32AsyncTask* result = pxWin32AsyncTaskSocketTcp(&async->pool,
         sizeof *body, (void**) &body, sizeof *event, (void**) &event);
 
     if (result == PX_NULL) return PX_NULL;
 
-    body->kind            = PxSocketTcpEvent_Accept;
-    body->accept.listener = listener;
-    body->accept.socket   = socket;
+    body->kind         = PxSocketTcpEvent_Accept;
+    body->ctxt         = ctxt;
+    body->self         = self;
+    body->accept.value = value;
 
     if (pxWin32SocketTcpTaskStart(result, async) == 0) {
         pxMemoryPoolRelease(&async->pool, result);
@@ -217,21 +243,22 @@ pxWin32SocketTcpTaskAccept(PxWin32Async* async, void* tag, PxWin32SocketTcp* lis
     return result;
 }
 
-static PxWin32AsyncTask*
-pxWin32SocketTcpTaskConnect(PxWin32Async* async, void* tag, PxWin32SocketTcp* socket, PxAddressIp address, u16 port)
+static PxWin32AsyncTask* pxWin32SocketTcpTaskConnect(PxWin32Async* async, void* ctxt,
+    PxWin32SocketTcp* self, PxAddressIp address, u16 port)
 {
+    if (pxWin32SocketTcpBind(self) == 0) return PX_NULL;
+
     PxWin32SocketTcpTask* body  = PX_NULL;
     PxSocketTcpEvent*     event = PX_NULL;
 
-    if (pxWin32SocketTcpBind(socket) == 0) return PX_NULL;
-
-    PxWin32AsyncTask* result = pxWin32AsyncTaskSocketTcp(&async->pool, tag,
+    PxWin32AsyncTask* result = pxWin32AsyncTaskSocketTcp(&async->pool,
         sizeof *body, (void**) &body, sizeof *event, (void**) &event);
 
     if (result == PX_NULL) return PX_NULL;
 
     body->kind            = PxSocketTcpEvent_Connect;
-    body->connect.socket  = socket;
+    body->ctxt            = ctxt;
+    body->self            = self;
     body->connect.address = address;
     body->connect.port    = port;
 
@@ -246,25 +273,23 @@ pxWin32SocketTcpTaskConnect(PxWin32Async* async, void* tag, PxWin32SocketTcp* so
     return result;
 }
 
-static PxWin32AsyncTask*
-pxWin32SocketTcpTaskWrite(PxWin32Async* async, void* tag, PxWin32SocketTcp* socket, u8* values, ssize start, ssize stop)
+static PxWin32AsyncTask* pxWin32SocketTcpTaskWrite(PxWin32Async* async, void* ctxt,
+    PxWin32SocketTcp* self, u8* pntr, ssize start, ssize stop)
 {
     PxWin32SocketTcpTask* body  = PX_NULL;
     PxSocketTcpEvent*     event = PX_NULL;
 
-    PxWin32AsyncTask* result = pxWin32AsyncTaskSocketTcp(&async->pool, tag,
+    PxWin32AsyncTask* result = pxWin32AsyncTaskSocketTcp(&async->pool,
         sizeof *body, (void**) &body, sizeof *event, (void**) &event);
 
     if (result == PX_NULL) return PX_NULL;
 
-    body->kind             = PxSocketTcpEvent_Write;
-    body->write.socket     = socket;
-    body->write.values     = values;
-    body->write.start      = start;
-    body->write.stop       = stop;
-    body->write.wsabuf.buf = ((char*) values) + start;
-    body->write.wsabuf.len = stop - start;
-    body->write.wsaflags   = 0;
+    body->kind        = PxSocketTcpEvent_Write;
+    body->ctxt        = ctxt;
+    body->self        = self;
+    body->write.pntr  = pntr;
+    body->write.start = start;
+    body->write.stop  = stop;
 
     if (pxWin32SocketTcpTaskStart(result, async) == 0) {
         pxMemoryPoolRelease(&async->pool, result);
@@ -277,25 +302,23 @@ pxWin32SocketTcpTaskWrite(PxWin32Async* async, void* tag, PxWin32SocketTcp* sock
     return result;
 }
 
-static PxWin32AsyncTask*
-pxWin32SocketTcpTaskRead(PxWin32Async* async, void* tag, PxWin32SocketTcp* socket, u8* values, ssize start, ssize stop)
+static PxWin32AsyncTask* pxWin32SocketTcpTaskRead(PxWin32Async* async, void* ctxt,
+    PxWin32SocketTcp* self, u8* pntr, ssize start, ssize stop)
 {
     PxWin32SocketTcpTask* body  = PX_NULL;
     PxSocketTcpEvent*     event = PX_NULL;
 
-    PxWin32AsyncTask* result = pxWin32AsyncTaskSocketTcp(&async->pool, tag,
+    PxWin32AsyncTask* result = pxWin32AsyncTaskSocketTcp(&async->pool,
         sizeof *body, (void**) &body, sizeof *event, (void**) &event);
 
     if (result == PX_NULL) return PX_NULL;
 
-    body->kind            = PxSocketTcpEvent_Read;
-    body->read.socket     = socket;
-    body->read.values     = values;
-    body->read.start      = start;
-    body->read.stop       = stop;
-    body->read.wsabuf.buf = ((char*) values) + start;
-    body->read.wsabuf.len = stop - start;
-    body->read.wsaflags   = 0;
+    body->kind       = PxSocketTcpEvent_Read;
+    body->ctxt       = ctxt;
+    body->self       = self;
+    body->read.pntr  = pntr;
+    body->read.start = start;
+    body->read.stop  = stop;
 
     if (pxWin32SocketTcpTaskStart(result, async) == 0) {
         pxMemoryPoolRelease(&async->pool, result);
@@ -308,48 +331,40 @@ pxWin32SocketTcpTaskRead(PxWin32Async* async, void* tag, PxWin32SocketTcp* socke
     return result;
 }
 
-b32
-pxWin32SocketTcpAcceptAsync(PxWin32Async* async, void* tag, PxWin32SocketTcp* self, PxWin32SocketTcp* value)
+b32 pxWin32SocketTcpAcceptAsync(PxWin32Async* async, void* ctxt,
+    PxWin32SocketTcp* self, PxWin32SocketTcp* value)
 {
-    PxWin32AsyncTask* task = pxWin32SocketTcpTaskAccept(
-        async, tag, self, value);
+    PxWin32AsyncTask* task =
+        pxWin32SocketTcpTaskAccept(async, ctxt, self, value);
 
-    if (task != PX_NULL) return pxAsyncSubmit(async, task);
-
-    return 0;
+    return pxAsyncSubmit(async, task);
 }
 
-b32
-pxWin32SocketTcpConnectAsync(PxWin32Async* async, void* tag, PxWin32SocketTcp* self, PxAddressIp address, u16 port)
+b32 pxWin32SocketTcpConnectAsync(PxWin32Async* async, void* ctxt,
+    PxWin32SocketTcp* self, PxAddressIp address, u16 port)
 {
-    PxWin32AsyncTask* task = pxWin32SocketTcpTaskConnect(
-        async, tag, self, address, port);
+    PxWin32AsyncTask* task =
+        pxWin32SocketTcpTaskConnect(async, ctxt, self, address, port);
 
-    if (task != PX_NULL) return pxAsyncSubmit(async, task);
-
-    return 0;
+    return pxAsyncSubmit(async, task);
 }
 
-b32
-pxWin32SocketTcpWriteAsync(PxWin32Async* async, void* tag, PxWin32SocketTcp* self, u8* values, ssize start, ssize stop)
+b32 pxWin32SocketTcpWriteAsync(PxWin32Async* async, void* ctxt,
+    PxWin32SocketTcp* self, u8* pntr, ssize start, ssize stop)
 {
-    PxWin32AsyncTask* task = pxWin32SocketTcpTaskWrite(
-        async, tag, self, values, start, stop);
+    PxWin32AsyncTask* task =
+        pxWin32SocketTcpTaskWrite(async, ctxt, self, pntr, start, stop);
 
-    if (task != PX_NULL) return pxAsyncSubmit(async, task);
-
-    return 0;
+    return pxAsyncSubmit(async, task);
 }
 
-b32
-pxWin32SocketTcpReadAsync(PxWin32Async* async, void* tag, PxWin32SocketTcp* self, u8* values, ssize start, ssize stop)
+b32 pxWin32SocketTcpReadAsync(PxWin32Async* async, void* ctxt,
+    PxWin32SocketTcp* self, u8* pntr, ssize start, ssize stop)
 {
-    PxWin32AsyncTask* task = pxWin32SocketTcpTaskRead(
-        async, tag, self, values, start, stop);
+    PxWin32AsyncTask* task =
+        pxWin32SocketTcpTaskRead(async, ctxt, self, pntr, start, stop);
 
-    if (task != PX_NULL) return pxAsyncSubmit(async, task);
-
-    return 0;
+    return pxAsyncSubmit(async, task);
 }
 
 #endif // PX_WIN32_ASYNC_NETWORK_SOCKET_TCP_C

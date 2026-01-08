@@ -2,8 +2,7 @@
 
 #include <stdio.h>
 
-void
-testMessage(ConnMessage message)
+void testMessage(ConnMessage message)
 {
     u8 buffer[1024];
     u8 memory[1024];
@@ -30,8 +29,7 @@ testMessage(ConnMessage message)
     printf("%.*s\n", (int) size, memory);
 }
 
-int
-main(int argc, char** argv)
+int main(int argc, char** argv)
 {
     testMessage(connMessageJoin(ConnClient_Player));
     testMessage(connMessageQuit(1));

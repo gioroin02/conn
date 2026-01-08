@@ -3,8 +3,7 @@
 
 #include "arena.h"
 
-PxMemoryArena
-pxMemoryArenaMake(void* pntr, ssize size)
+PxMemoryArena pxMemoryArenaMake(void* pntr, ssize size)
 {
     PxMemoryArena result;
 
@@ -21,55 +20,49 @@ pxMemoryArenaMake(void* pntr, ssize size)
     return result;
 }
 
-void*
-pxMemoryArenaPntr(PxMemoryArena* self)
+void* pxMemoryArenaPntr(PxMemoryArena* self)
 {
     return self->pntr_base;
 }
 
-ssize
-pxMemoryArenaSize(PxMemoryArena* self)
+ssize pxMemoryArenaSize(PxMemoryArena* self)
 {
     return self->size;
 }
 
-void
-pxMemoryArenaClear(PxMemoryArena* self)
+void pxMemoryArenaClear(PxMemoryArena* self)
 {
     pxMemorySet(self->pntr_base, self->size, 0xAB);
 
     self->pntr_next = self->pntr_base;
 }
 
-void*
-pxMemoryArenaReserve(PxMemoryArena* self, ssize count, ssize size)
+void* pxMemoryArenaReserve(PxMemoryArena* self, ssize count, ssize size)
 {
+    if (count <= 0 || size <= 0 || count > PX_SSIZE_MAX / size)
+        return PX_NULL;
+
     ssize bytes  = count * size;
     u8*   result = self->pntr_next;
     u8*   next   = self->pntr_next + bytes;
 
-    if (count <= 0 || size <= 0 || count > PX_MAX_SSIZE / size)
-        return PX_NULL;
-
     if (next < self->pntr_base || next > self->pntr_base + self->size)
         return PX_NULL;
 
-    self->pntr_next = pxMemoryAlignPntr(next,
-        PX_MEMORY_DEFAULT_ALIGNMENT);
+    self->pntr_next =
+        pxMemoryAlignPntr(next, PX_MEMORY_DEFAULT_ALIGNMENT);
 
     pxMemorySet(result, self->pntr_next - result, 0xAB);
 
     return result;
 }
 
-b32
-pxMemoryArenaRelease(PxMemoryArena* arena, void* pntr)
+b32 pxMemoryArenaRelease(PxMemoryArena* arena, void* pntr)
 {
     return 0;
 }
 
-b32
-pxMemoryArenaRewind(PxMemoryArena* self, void* pntr)
+b32 pxMemoryArenaRewind(PxMemoryArena* self, void* pntr)
 {
     if (pntr == PX_NULL) return 0;
 
@@ -88,8 +81,7 @@ pxMemoryArenaRewind(PxMemoryArena* self, void* pntr)
     return 1;
 }
 
-void*
-pxMemoryArenaTell(PxMemoryArena* self)
+void* pxMemoryArenaTell(PxMemoryArena* self)
 {
     return self->pntr_next;
 }

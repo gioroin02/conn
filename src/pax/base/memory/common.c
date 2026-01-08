@@ -3,41 +3,13 @@
 
 #include "common.h"
 
-ssize
-pxMemoryKiB(ssize size)
+PxByteOrder pxGetHostByteOrder()
 {
-    if (size < 0 || size > PX_MAX_SSIZE / PX_MEMORY_KIB)
-        return 0;
+    static u16 value = 1;
 
-    return size * PX_MEMORY_KIB;
-}
+    u8 bytes[sizeof value];
 
-ssize
-pxMemoryMiB(ssize size)
-{
-    if (size < 0 || size > PX_MAX_SSIZE / PX_MEMORY_MIB)
-        return 0;
-
-    return size * PX_MEMORY_MIB;
-}
-
-ssize
-pxMemoryGiB(ssize size)
-{
-    if (size < 0 || size > PX_MAX_SSIZE / PX_MEMORY_GIB)
-        return 0;
-
-    return size * PX_MEMORY_GIB;
-}
-
-PxByteOrder
-pxGetHostByteOrder()
-{
-    u8 bytes[sizeof (u16)];
-
-    u16 value = 1;
-
-    pxMemoryCopy(bytes, sizeof bytes, &value);
+    pxMemoryCopy(bytes, sizeof value, &value);
 
     if (bytes[0] == 1)
         return PxByteOrder_Reverse;
@@ -45,8 +17,7 @@ pxGetHostByteOrder()
     return PxByteOrder_Network;
 }
 
-void*
-pxMemorySet(void* pntr, ssize size, u8 value)
+void* pxMemorySet(void* pntr, ssize size, u8 value)
 {
     if (pntr == PX_NULL) return PX_NULL;
 
@@ -58,8 +29,7 @@ pxMemorySet(void* pntr, ssize size, u8 value)
     return pntr;
 }
 
-void*
-pxMemoryCopy(void* pntr, ssize size, void* value)
+void* pxMemoryCopy(void* pntr, ssize size, void* value)
 {
     if (pntr == PX_NULL || value == PX_NULL) return PX_NULL;
 
@@ -71,8 +41,7 @@ pxMemoryCopy(void* pntr, ssize size, void* value)
     return pntr;
 }
 
-void*
-pxMemoryCopyOrSet(void* pntr, ssize size, void* value, u8 other)
+void* pxMemoryCopyOrSet(void* pntr, ssize size, void* value, u8 other)
 {
     if (pntr == PX_NULL) return PX_NULL;
 
@@ -82,8 +51,7 @@ pxMemoryCopyOrSet(void* pntr, ssize size, void* value, u8 other)
     return pxMemoryCopy(pntr, size, value);
 }
 
-void*
-pxMemoryShiftForw(void* pntr, ssize size, ssize about, u8 value)
+void* pxMemoryShiftForw(void* pntr, ssize size, ssize about, u8 value)
 {
     if (pntr == PX_NULL || size < 0 || about < 0 || about >= size)
         return pntr;
@@ -99,8 +67,7 @@ pxMemoryShiftForw(void* pntr, ssize size, ssize about, u8 value)
     return pntr;
 }
 
-void*
-pxMemoryShiftBack(void* pntr, ssize size, ssize about, u8 value)
+void* pxMemoryShiftBack(void* pntr, ssize size, ssize about, u8 value)
 {
     if (pntr == PX_NULL || size < 0 || about < 0 || about >= size)
         return pntr;
@@ -116,8 +83,7 @@ pxMemoryShiftBack(void* pntr, ssize size, ssize about, u8 value)
     return pntr;
 }
 
-void*
-pxMemoryReverse(void* pntr, ssize size)
+void* pxMemoryReverse(void* pntr, ssize size)
 {
     if (pntr == PX_NULL || size <= 0) return PX_NULL;
 
@@ -134,8 +100,7 @@ pxMemoryReverse(void* pntr, ssize size)
     return pntr;
 }
 
-void*
-pxMemoryAlignPntr(void* pntr, usize align)
+void* pxMemoryAlignPntr(void* pntr, usize align)
 {
     if (pntr == PX_NULL || (align & (align - 1)) != 0)
         return PX_NULL;
@@ -148,8 +113,7 @@ pxMemoryAlignPntr(void* pntr, usize align)
     return pntr;
 }
 
-ssize
-pxMemoryAlignSize(ssize size, usize align)
+ssize  pxMemoryAlignSize(ssize size, usize align)
 {
     if (size <= 0 || (align & (align - 1)) != 0)
         return 0;

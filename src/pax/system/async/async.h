@@ -6,6 +6,7 @@
 typedef enum PxAsyncEventFamily
 {
     PxAsyncEventFamily_None,
+    PxAsyncEventFamily_Error,
     PxAsyncEventFamily_Tcp,
     PxAsyncEventFamily_Udp,
     PxAsyncEventFamily_File,
@@ -16,23 +17,16 @@ PxAsyncEventFamily;
 
 typedef void PxAsync;
 typedef void PxAsyncTask;
+typedef void PxAsyncEvent;
 
-PxAsync*
-pxAsyncReserve(PxMemoryArena* arena);
+PxAsync* pxAsyncReserve(PxMemoryArena* arena);
 
-b32
-pxAsyncCreate(PxAsync* self, PxMemoryArena* arena, ssize size);
+b32 pxAsyncCreate(PxAsync* self, PxMemoryArena* arena, ssize size);
 
-void
-pxAsyncDestroy(PxAsync* self);
+void pxAsyncDestroy(PxAsync* self);
 
-b32
-pxAsyncSubmit(PxAsync* self, PxAsyncTask* task);
+b32 pxAsyncSubmit(PxAsync* self, PxAsyncTask* task);
 
-PxAsyncEventFamily
-pxAsyncPoll(PxAsync* self, void** tag, void** event, ssize timeout);
-
-b32
-pxAsyncReturn(PxAsync* self, void* event);
+PxAsyncEventFamily pxAsyncPoll(PxAsync* self, ssize timeout, PxAsyncEvent* event, ssize size);
 
 #endif // PX_SYSTEM_ASYNC_ASYNC_H

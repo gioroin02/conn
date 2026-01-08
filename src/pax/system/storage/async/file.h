@@ -15,54 +15,43 @@ PxFileEventKind;
 
 typedef struct PxFileEventWrite
 {
-    PxFile* file;
-    u8*     values;
-    ssize   start;
-    ssize   stop;
+    u8*   pntr;
+    ssize start;
+    ssize stop;
 }
 PxFileEventWrite;
 
 typedef struct PxFileEventRead
 {
-    PxFile* file;
-    u8*     values;
-    ssize   start;
-    ssize   stop;
+    u8*   pntr;
+    ssize start;
+    ssize stop;
 }
 PxFileEventRead;
-
-typedef struct PxFileEventClose
-{
-    PxFile* file;
-}
-PxFileEventClose;
 
 typedef struct PxFileEvent
 {
     PxFileEventKind kind;
 
+    void*   ctxt;
+    PxFile* self;
+
     union
     {
         PxFileEventWrite write;
         PxFileEventRead  read;
-        PxFileEventClose close;
     };
 }
 PxFileEvent;
 
-PxFileEvent
-pxFileEventWrite(PxFile* file, u8* values, ssize start, ssize stop);
+PxFileEvent pxFileEventWrite(void* ctxt, PxFile* self, u8* pntr, ssize start, ssize stop);
 
-PxFileEvent
-pxFileEventRead(PxFile* file, u8* values, ssize start, ssize stop);
+PxFileEvent pxFileEventRead(void* ctxt, PxFile* self, u8* pntr, ssize start, ssize stop);
 
-PxFileEvent
-pxFileEventClose(PxFile* file);
+PxFileEvent pxFileEventClose(void* ctxt, PxFile* self);
 
-b32
-pxFileWriteAsync(PxAsync* async, void* tag, PxFile* self, u8* values, ssize start, ssize stop);
+b32 pxFileWriteAsync(PxAsync* async, void* ctxt, PxFile* self, u8* pntr, ssize start, ssize stop);
 
-b32
-pxFileReadAsync(PxAsync* async, void* tag, PxFile* self, u8* values, ssize start, ssize stop);
+b32 pxFileReadAsync(PxAsync* async, void* ctxt, PxFile* self, u8* pntr, ssize start, ssize stop);
 
 #endif // PX_SYSTEM_ASYNC_STORAGE_FILE_H

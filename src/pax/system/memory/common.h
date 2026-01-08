@@ -3,13 +3,10 @@
 
 #include "import.h"
 
-ssize
-pxSystemMemoryPageSize();
+ssize pxSystemMemoryPageSize();
 
-PxMemoryArena
-pxSystemMemoryReserve(ssize size);
+PxMemoryArena pxSystemMemoryReserve(ssize size);
 
-b32
-pxSystemMemoryRelease(PxMemoryArena* arena);
+b32 pxSystemMemoryRelease(PxMemoryArena* arena);
 
 #endif // PX_SYSTEM_MEMORY_COMMON_H

@@ -2,7 +2,7 @@
 #define PX_WIN32_NETWORK_EXPORT_H
 
 #include "common.h"
-#include "address.h"
+
 #include "socket-tcp.h"
 #include "socket-udp.h"
 
