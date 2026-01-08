@@ -20,7 +20,7 @@ typedef struct ConnCommand
 ConnCommand;
 
 ConnCommand
-connCommandDecode(u8 value);
+connCommandDecode(PxConsoleEvent event);
 
 ssize
 connCommandToString(ConnCommand command, u8* values, ssize size);

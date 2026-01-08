@@ -1,5 +1,5 @@
-#ifndef PX_SYSTEM_ASYNC_COMMON_H
-#define PX_SYSTEM_ASYNC_COMMON_H
+#ifndef PX_SYSTEM_ASYNC_ASYNC_H
+#define PX_SYSTEM_ASYNC_ASYNC_H
 
 #include "import.h"
 
@@ -10,7 +10,7 @@ typedef enum PxAsyncEventFamily
     PxAsyncEventFamily_Udp,
     PxAsyncEventFamily_File,
     PxAsyncEventFamily_Dir,
-    PxAsyncEventFamily_Term,
+    PxAsyncEventFamily_Pipe,
 }
 PxAsyncEventFamily;
 
@@ -35,4 +35,4 @@ pxAsyncPoll(PxAsync* self, void** tag, void** event, ssize timeout);
 b32
 pxAsyncReturn(PxAsync* self, void* event);
 
-#endif // PX_SYSTEM_ASYNC_COMMON_H
+#endif // PX_SYSTEM_ASYNC_ASYNC_H

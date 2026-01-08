@@ -1,6 +1,6 @@
 #ifndef PX_SYSTEM_ASYNC_EXPORT_H
 #define PX_SYSTEM_ASYNC_EXPORT_H
 
-#include "common.h"
+#include "async.h"
 
 #endif // PX_SYSTEM_ASYNC_EXPORT_H

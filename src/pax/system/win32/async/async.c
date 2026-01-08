@@ -1,7 +1,7 @@
-#ifndef PX_WIN32_ASYNC_COMMON_C
-#define PX_WIN32_ASYNC_COMMON_C
+#ifndef PX_WIN32_ASYNC_ASYNC_C
+#define PX_WIN32_ASYNC_ASYNC_C
 
-#include "common.h"
+#include "async.h"
 
 static b32
 pxWin32AsyncTaskProc(PxWin32AsyncTask* self, ssize bytes)
@@ -158,4 +158,4 @@ pxWin32AsyncReturn(PxWin32Async* self, void* event)
     return pxMemoryPoolRelease(&self->pool, event);
 }
 
-#endif // PX_WIN32_ASYNC_COMMON_C
+#endif // PX_WIN32_ASYNC_ASYNC_C

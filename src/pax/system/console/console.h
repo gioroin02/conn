@@ -1,7 +1,7 @@
-#ifndef PX_SYSTEM_CONSOLE_COMMON_H
-#define PX_SYSTEM_CONSOLE_COMMON_H
+#ifndef PX_SYSTEM_CONSOLE_CONSOLE_H
+#define PX_SYSTEM_CONSOLE_CONSOLE_H
 
-#include "import.h"
+#include "event.h"
 
 typedef enum PxConsoleMode
 {
@@ -28,4 +28,13 @@ pxConsoleModeSet(PxConsole* self, PxConsoleMode mode);
 PxConsoleMode
 pxConsoleModeGet(PxConsole* self);
 
-#endif // PX_SYSTEM_CONSOLE_COMMON_H
+ssize
+pxConsoleWrite(PxConsole* self, u8* values, ssize start, ssize stop);
+
+ssize
+pxConsoleRead(PxConsole* self, u8* values, ssize start, ssize stop);
+
+b32
+pxConsolePollEvent(PxConsole* self, PxConsoleEvent* event);
+
+#endif // PX_SYSTEM_CONSOLE_CONSOLE_H

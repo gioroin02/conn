@@ -32,19 +32,31 @@ connCommandShow(ConnCommand command)
 static void
 connBoardShow(ConnBoard* self, u16 column)
 {
-    ssize index = 0;
-    ssize row   = 0;
-    ssize col   = 0;
+    ssize index  = 0;
+    ssize height = 0;
+    ssize row    = 0;
+    ssize col    = 0;
 
-    char* colors[] = {"\x1b[0m", "\x1b[44m", "\x1b[41m"};
+    char* colors[] = {"\033[0m", "\033[44m", "\033[41m"};
+
+    connBoardHeight(self, column, &height);
+
+    printf("\033c");
+
+    printf("    ");
 
     for (index = 0; index < self->width; index += 1)
-        printf("%s", index == 0 ? "+-----+" : "-----+");
+        printf("%s", index == column ? " vvv " : "      ");
+
+    printf("\r\n   +");
+
+    for (index = 0; index < self->width; index += 1)
+        printf("%s", index == 0 ? "-----+" : "-----+");
 
     printf("\r\n");
 
     for (row = 0; row < self->height; row += 1) {
-        printf("| ");
+        printf(" %s | ", row == height ? ">" : " ");
 
         for (col = 0; col < self->width; col += 1) {
             u16 value = connBoardGet(self, col, row);
@@ -55,15 +67,15 @@ connBoardShow(ConnBoard* self, u16 column)
                 printf("    | ");
         }
 
-        printf("\r\n");
+        printf(" %s\r\n   +", row == height ? "<" : " ");
 
         for (index = 0; index < self->width; index += 1)
-            printf("%s", index == 0 ? "+-----+" : "-----+");
+            printf("%s", index == 0 ? "-----+" : "-----+");
 
         printf("\r\n");
     }
 
-    printf(" ");
+    printf("    ");
 
     for (index = 0; index < self->width; index += 1)
         printf("%s", index == column ? " ^^^ " : "      ");
@@ -109,9 +121,7 @@ connClientCreate(ConnClient* self, PxMemoryArena* arena)
     pxMemorySet(self, sizeof *self, 0xAB);
 
     self->async        = pxAsyncReserve(arena);
-    self->async2       = pxAsyncReserve(arena);
     self->socket       = pxSocketTcpReserve(arena);
-    // self->consin       = pxFileReserve(arena);
     self->console      = pxConsoleReserve(arena);
     self->client       = 0;
     self->column       = 0;
@@ -119,12 +129,8 @@ connClientCreate(ConnClient* self, PxMemoryArena* arena)
 
     pxMemorySet(self->buff_tcp_write, sizeof self->buff_tcp_write, 0x00);
     pxMemorySet(self->buff_tcp_read, sizeof self->buff_tcp_read, 0x00);
-    pxMemorySet(self->buff_term_read, sizeof self->buff_term_read, 0x00);
 
     if (pxAsyncCreate(self->async, arena, pxMemoryKiB(64)) == 0)
-        return 0;
-
-    if (pxAsyncCreate(self->async2, arena, pxMemoryKiB(64)) == 0)
         return 0;
 
     PxAddressIp address = pxAddressIp4Empty();
@@ -145,7 +151,7 @@ connClientCreate(ConnClient* self, PxMemoryArena* arena)
     for (index = 0; index < pxArraySize(&self->players); index += 1)
         pxArrayAddBack(&self->players);
 
-    if (connBoardCreate(&self->board, arena, 9, 6) == 0) return 0;
+    if (connBoardCreate(&self->board, arena, 9, 7) == 0) return 0;
 
     self->state_curr = ConnClientState_None;
     self->state_prev = ConnClientState_None;
@@ -159,7 +165,6 @@ void
 connClientDestroy(ConnClient* self)
 {
     pxConsoleDestroy(self->console);
-    // pxFileDestroy(self->consin);
 
     pxSocketTcpDestroy(self->socket);
 
@@ -170,7 +175,6 @@ void
 connClientStart(ConnClient* self)
 {
     connClientTcpConnect(self, pxAddressIp4Local(), 50000);
-    connClientFileRead(self);
 }
 
 void
@@ -236,17 +240,16 @@ connClientTcpRead(ConnClient* self)
 }
 
 void
-connClientFileRead(ConnClient* self)
+connClientPollConsole(ConnClient* self)
 {
-    PxFile* file   = PX_NULL; // self->consin;
-    u8*     values = self->buff_term_read;
-    ssize   start  = 0;
-    ssize   stop   = sizeof self->buff_term_read;
+    PxConsoleEvent event;
 
-    b32 status = pxFileReadAsync(
-        self->async2, PX_NULL, file, values, start, stop);
+    while (pxConsolePollEvent(self->console, &event) != 0) {
+        ConnCommand command = connCommandDecode(event);
 
-    if (status == 0) connClientStateSetError(self);
+        if (pxArrayInsertBack(&self->commands, command) == 0)
+            connClientStateSetError(self);
+    }
 }
 
 void
@@ -273,32 +276,6 @@ connClientPollEvents(ConnClient* self)
                 if (status != 0)
                     connClientOnTcpEvent(self, tcp);
                 else
-                    connClientStateSetError(self);
-            } break;
-
-            default: break;
-        }
-    }
-
-    while (connClientStateIsActive(self) != 0) {
-        void* event = PX_NULL;
-        void* tag   = PX_NULL;
-
-        family = pxAsyncPoll(self->async2, &tag, &event, 10);
-
-        if (family == PxAsyncEventFamily_None) break;
-
-        switch (family) {
-            case PxAsyncEventFamily_File: {
-                PxFileEvent file;
-
-                pxMemoryCopy(&file, sizeof file, event);
-
-                b32 status = pxAsyncReturn(self->async2, event);
-
-                if (status != 0) {
-                    connClientOnFileEvent(self, file);
-                } else
                     connClientStateSetError(self);
             } break;
 
@@ -457,42 +434,6 @@ connClientOnTcpRead(ConnClient* self, ConnMessage message)
 }
 
 void
-connClientOnFileEvent(ConnClient* self, PxFileEvent event)
-{
-    switch (event.kind) {
-        case PxFileEvent_Read: {
-            // if (event.read.file != self->consin) break;
-
-            PxFile* file   = event.read.file;
-            u8*     values = event.read.values;
-            ssize   start  = event.read.start;
-            ssize   stop   = event.read.stop;
-            ssize   index  = 0;
-
-            for (index = start; index < stop; index += 1) {
-                ConnCommand command = connCommandDecode(values[index]);
-
-                if (pxArrayInsertBack(&self->commands, command) == 0)
-                    connClientStateSetError(self);
-            }
-
-            if (stop < sizeof self->buff_term_read) {
-                start = stop;
-                stop  = sizeof self->buff_term_read;
-
-                b32 status = pxFileReadAsync(
-                    self->async2, PX_NULL, file, values, start, stop);
-
-                if (status == 0) connClientStateSetError(self);
-            }
-            else connClientFileRead(self);
-        } break;
-
-        default: break;
-    }
-}
-
-void
 connClientOnCommand(ConnClient* self, ConnCommand command)
 {
     printf("[DEBUG] Read command: ");
@@ -542,6 +483,8 @@ connClientOnCommand(ConnClient* self, ConnCommand command)
 ConnClientState
 connClientOnUpdate(ConnClient* self)
 {
+    connClientPollConsole(self);
+
     ConnCommand command;
 
     while (pxArrayRemoveFront(&self->commands, &command) != 0)

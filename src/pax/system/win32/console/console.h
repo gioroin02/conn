@@ -1,5 +1,5 @@
-#ifndef PX_WIN32_CONSOLE_COMMON_H
-#define PX_WIN32_CONSOLE_COMMON_H
+#ifndef PX_WIN32_CONSOLE_CONSOLE_H
+#define PX_WIN32_CONSOLE_CONSOLE_H
 
 #include "import.h"
 
@@ -10,9 +10,6 @@
 typedef struct PxWin32Console
 {
     PxConsoleMode mode;
-
-    HANDLE handle_in;
-    HANDLE handle_out;
 
     DWORD conf_in;
     DWORD conf_out;
@@ -34,4 +31,13 @@ pxWin32ConsoleModeSet(PxWin32Console* self, PxConsoleMode mode);
 PxConsoleMode
 pxWin32ConsoleModeGet(PxWin32Console* self);
 
-#endif // PX_WIN32_CONSOLE_COMMON_H
+ssize
+pxWin32ConsoleWrite(PxWin32Console* self, u8* values, ssize start, ssize stop);
+
+ssize
+pxWin32ConsoleRead(PxWin32Console* self, u8* values, ssize start, ssize stop);
+
+b32
+pxWin32ConsolePollEvent(PxWin32Console* self, PxConsoleEvent* event);
+
+#endif // PX_WIN32_CONSOLE_CONSOLE_H

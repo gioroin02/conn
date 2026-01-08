@@ -5,19 +5,22 @@
 
 #include <stdio.h>
 
-static ssize conn_message_size[] =
+ssize
+connMessageSize(ConnMessageKind kind)
 {
-    [ConnMessage_None]   = 0,
-    [ConnMessage_Accept] = 0,
-    [ConnMessage_Reject] = 0,
-    [ConnMessage_Join]   = CONN_MESSAGE_SIZE_HEADER + 2,
-    [ConnMessage_Quit]   = CONN_MESSAGE_SIZE_HEADER + 2,
-    [ConnMessage_Data]   = CONN_MESSAGE_SIZE_HEADER + 6,
-    [ConnMessage_Turn]   = CONN_MESSAGE_SIZE_HEADER + 2,
-    [ConnMessage_Move]   = CONN_MESSAGE_SIZE_HEADER + 4,
-    [ConnMessage_Result] = CONN_MESSAGE_SIZE_HEADER + 2,
-    [ConnMessage_Count]  = 0,
-};
+    switch (kind) {
+        case ConnMessage_Join:   return CONN_MESSAGE_SIZE_HEADER + 2;
+        case ConnMessage_Quit:   return CONN_MESSAGE_SIZE_HEADER + 2;
+        case ConnMessage_Data:   return CONN_MESSAGE_SIZE_HEADER + 6;
+        case ConnMessage_Turn:   return CONN_MESSAGE_SIZE_HEADER + 2;
+        case ConnMessage_Move:   return CONN_MESSAGE_SIZE_HEADER + 4;
+        case ConnMessage_Result: return CONN_MESSAGE_SIZE_HEADER + 2;
+
+        default: break;
+    }
+
+    return 0;
+}
 
 ConnMessage
 connMessageDecode(u8* values, ssize size)
@@ -39,9 +42,7 @@ connMessageDecode(u8* values, ssize size)
     memory = connMemoryReadU32Net(memory, &length, &result.length);
     memory = connMemoryReadU32Net(memory, &length, (u32*) &result.kind);
 
-    if (result.kind < 0 || result.kind >= ConnMessage_Count) return result;
-
-    if (size < result.length || result.length != conn_message_size[result.kind])
+    if (size < result.length || result.length != connMessageSize(result.kind))
         return result;
 
     switch (result.kind) {
@@ -84,16 +85,13 @@ connMessageDecode(u8* values, ssize size)
 ssize
 connMessageEncode(ConnMessage message, u8* values, ssize size)
 {
-    if (message.kind < 0 || message.kind >= ConnMessage_Count) return 0;
-
-    if (values == PX_NULL || size < conn_message_size[message.kind])
-        return 0;
+    if (values == PX_NULL || size < connMessageSize(message.kind)) return 0;
 
     u8*   memory = values;
     ssize length = size;
 
     memory = connMemoryWriteU32Net(memory, &length, 1);
-    memory = connMemoryWriteU32Net(memory, &length, conn_message_size[message.kind]);
+    memory = connMemoryWriteU32Net(memory, &length, connMessageSize(message.kind));
     memory = connMemoryWriteU32Net(memory, &length, message.kind);
 
     switch (message.kind) {

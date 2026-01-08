@@ -18,8 +18,6 @@ typedef enum ConnMessageKind
     ConnMessage_Turn   = 6,
     ConnMessage_Move   = 7,
     ConnMessage_Result = 8,
-
-    ConnMessage_Count,
 }
 ConnMessageKind;
 

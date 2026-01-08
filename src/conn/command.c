@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 ConnCommand
-connCommandDecode(u8 value)
+connCommandDecode(PxConsoleEvent event)
 {
     ConnCommand result;
 
@@ -14,22 +14,15 @@ connCommandDecode(u8 value)
 
     result.kind = ConnCommand_None;
 
-    switch (value) {
-        case 'a': case 'A':
-            result.kind = ConnCommand_MoveLeft;
-        break;
+    if (event.kind == PxConsoleEvent_Keyboard) {
+        switch (event.keyboard.key) {
+            case PxConsoleKey_A:      result.kind = ConnCommand_MoveLeft;  break;
+            case PxConsoleKey_D:      result.kind = ConnCommand_MoveRight; break;
+            case PxConsoleKey_Enter:  result.kind = ConnCommand_Place;     break;
+            case PxConsoleKey_Escape: result.kind = ConnCommand_Quit;      break;
 
-        case 'd': case 'D':
-            result.kind = ConnCommand_MoveRight;
-        break;
-
-        case '\r':
-            result.kind = ConnCommand_Place;
-        break;
-
-        default:
-            result.kind = ConnCommand_Quit;
-        break;
+            default: break;
+        }
     }
 
     return result;

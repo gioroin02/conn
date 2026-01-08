@@ -31,7 +31,6 @@ typedef PxArray(ConnCommand) ConnCommandArray;
 typedef struct ConnClient
 {
     PxAsync*         async;
-    PxAsync*         async2;
     PxSocketTcp*     socket;
     PxConsole*       console;
     ConnMessageArray messages;
@@ -46,7 +45,6 @@ typedef struct ConnClient
 
     u8 buff_tcp_write[CONN_MESSAGE_SIZE];
     u8 buff_tcp_read[CONN_MESSAGE_SIZE];
-    u8 buff_term_read[16];
 
     ConnClientState state_curr;
     ConnClientState state_prev;
@@ -90,7 +88,7 @@ void
 connClientTcpRead(ConnClient* self);
 
 void
-connClientFileRead(ConnClient* self);
+connClientPollConsole(ConnClient* self);
 
 void
 connClientPollEvents(ConnClient* self);
@@ -106,9 +104,6 @@ connClientOnTcpWrite(ConnClient* self, ConnMessage message);
 
 void
 connClientOnTcpRead(ConnClient* self, ConnMessage message);
-
-void
-connClientOnFileEvent(ConnClient* self, PxFileEvent event);
 
 void
 connClientOnCommand(ConnClient* self, ConnCommand command);

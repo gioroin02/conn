@@ -1,5 +1,5 @@
-#ifndef PX_WIN32_ASYNC_COMMON_H
-#define PX_WIN32_ASYNC_COMMON_H
+#ifndef PX_WIN32_ASYNC_ASYNC_H
+#define PX_WIN32_ASYNC_ASYNC_H
 
 #include "import.h"
 
@@ -54,4 +54,4 @@ pxWin32AsyncPoll(PxWin32Async* self, void** tag, void** event, ssize timeout);
 b32
 pxWin32AsyncReturn(PxWin32Async* self, void* event);
 
-#endif // PX_WIN32_ASYNC_COMMON_H
+#endif // PX_WIN32_ASYNC_ASYNC_H

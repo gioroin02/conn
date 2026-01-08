@@ -5,7 +5,7 @@
 
 #if PX_SYSTEM == PX_SYSTEM_WINDOWS
 
-    #include "../../win32/async/network/export.c"
+    #include "../../win32/network/async/export.c"
 
     #define __pxSocketTcpAcceptAsync__  pxWin32SocketTcpAcceptAsync
     #define __pxSocketTcpConnectAsync__ pxWin32SocketTcpConnectAsync

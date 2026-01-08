@@ -1,7 +1,7 @@
-#ifndef PX_SYSTEM_ASYNC_COMMON_C
-#define PX_SYSTEM_ASYNC_COMMON_C
+#ifndef PX_SYSTEM_ASYNC_ASYNC_C
+#define PX_SYSTEM_ASYNC_ASYNC_C
 
-#include "common.h"
+#include "async.h"
 
 #if PX_SYSTEM == PX_SYSTEM_WINDOWS
 
@@ -56,4 +56,4 @@ pxAsyncReturn(PxAsync* self, void* event)
     return __pxAsyncReturn__(self, event);
 }
 
-#endif // PX_SYSTEM_ASYNC_COMMON_C
+#endif // PX_SYSTEM_ASYNC_ASYNC_C

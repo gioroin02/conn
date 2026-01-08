@@ -11,10 +11,12 @@ pxWin32AsyncBindSocketTcp(PxWin32Async* async, PxWin32SocketTcp* socket)
 {
     HANDLE handle = ((HANDLE) socket->handle);
 
-    if (CreateIoCompletionPort(handle, async->handle, 0, 0) == 0)
-        return 0;
+    if (CreateIoCompletionPort(handle, async->handle, 0, 0) != PX_NULL)
+        return 1;
 
-    return 1;
+    int err = GetLastError();
+
+    return 0;
 }
 
 static b32
@@ -28,8 +30,9 @@ pxWin32SocketTcpTaskStart(PxWin32AsyncTask* task, PxWin32Async* async)
             DWORD                      bytes  = 0;
             DWORD                      size   = sizeof (PxWin32SockAddrStorage);
 
-            if (pxWin32AsyncBindSocketTcp(async, accept.listener) == 0) return 0;
             if (pxWin32AsyncBindSocketTcp(async, accept.socket) == 0) return 0;
+
+            pxWin32AsyncBindSocketTcp(async, accept.listener);
 
             BOOL status = pxWin32AcceptEx(accept.listener->handle, accept.socket->handle,
                 accept.buffer, 0, size, size, &bytes, &task->overlap);
@@ -43,7 +46,7 @@ pxWin32SocketTcpTaskStart(PxWin32AsyncTask* task, PxWin32Async* async)
             DWORD                       bytes   = 0;
             ssize                       length  = 0;
 
-            if (pxWin32AsyncBindSocketTcp(async, connect.socket) == 0) return 0;
+            pxWin32AsyncBindSocketTcp(async, connect.socket);
 
             PxWin32SockAddrStorage storage =
                 pxWin32SockAddrStorageMake(connect.address, connect.port, &length);
@@ -61,7 +64,7 @@ pxWin32SocketTcpTaskStart(PxWin32AsyncTask* task, PxWin32Async* async)
             PxWin32SocketTcpTaskWrite write = self->write;
             DWORD                     bytes = 0;
 
-            if (pxWin32AsyncBindSocketTcp(async, write.socket) == 0) return 0;
+            pxWin32AsyncBindSocketTcp(async, write.socket);
 
             int status = WSASend(write.socket->handle, &write.wsabuf, 1,
                 &bytes, write.wsaflags, &task->overlap, PX_NULL);
@@ -74,7 +77,7 @@ pxWin32SocketTcpTaskStart(PxWin32AsyncTask* task, PxWin32Async* async)
             PxWin32SocketTcpTaskRead read  = self->read;
             DWORD                    bytes = 0;
 
-            if (pxWin32AsyncBindSocketTcp(async, read.socket) == 0) return 0;
+            pxWin32AsyncBindSocketTcp(async, read.socket);
 
             int status = WSARecv(read.socket->handle, &read.wsabuf, 1,
                 &bytes, &read.wsaflags, &task->overlap, PX_NULL);

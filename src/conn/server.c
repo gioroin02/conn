@@ -121,7 +121,7 @@ connServerCreate(ConnServer* self, PxMemoryArena* arena)
         if (connSessionCreate(value, arena) == 0) return 0;
     }
 
-    if (connBoardCreate(&self->board, arena, 9, 6) == 0) return 0;
+    if (connBoardCreate(&self->board, arena, 9, 7) == 0) return 0;
 
     self->state_curr = ConnServerState_None;
     self->state_prev = ConnServerState_None;

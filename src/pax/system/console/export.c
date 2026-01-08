@@ -1,6 +1,6 @@
 #ifndef PX_SYSTEM_CONSOLE_EXPORT_C
 #define PX_SYSTEM_CONSOLE_EXPORT_C
 
-#include "common.c"
+#include "console.c"
 
 #endif // PX_SYSTEM_CONSOLE_EXPORT_C
