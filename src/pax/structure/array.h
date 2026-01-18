@@ -1,61 +1,61 @@
-#ifndef PX_STRUCTURE_ARRAY_H
-#define PX_STRUCTURE_ARRAY_H
+#ifndef P_STRUCTURE_ARRAY_H
+#define P_STRUCTURE_ARRAY_H
 
 #include "import.h"
 
-#define __PxArrayTag__() struct { \
-    ssize array_size;             \
-    ssize array_count;            \
-    ssize array_step;             \
-    ssize array_index;            \
+#define __PArrayTag__() struct { \
+    Int array_size;              \
+    Int array_count;             \
+    Int array_step;              \
+    Int array_index;             \
 }
 
 typedef struct
 {
-    ssize array_size;
-    ssize array_count;
-    ssize array_step;
-    ssize array_index;
+    Int array_size;
+    Int array_count;
+    Int array_step;
+    Int array_index;
 }
-PxArrayTag;
+PArrayTag;
 
-#define PxArray(type) struct { __PxArrayTag__(); type* values; }
+#define PArray(type) struct { __PArrayTag__(); type* values; }
 
-#define pxArraySize(self)    __pxArraySize__(((PxArrayTag*) self))
-#define pxArrayCount(self)   __pxArrayCount__(((PxArrayTag*) self))
-#define pxArrayFront(self)   __pxArrayFront__(((PxArrayTag*) self))
-#define pxArrayBack(self)    __pxArrayBack__(((PxArrayTag*) self))
-#define pxArrayIsEmpty(self) __pxArrayIsEmpty__(((PxArrayTag*) self))
-#define pxArrayIsFull(self)  __pxArrayIsFull__(((PxArrayTag*) self))
+#define pArraySize(self)    __pArraySize__(((PArrayTag*) self))
+#define pArrayCount(self)   __pArrayCount__(((PArrayTag*) self))
+#define pArrayFront(self)   __pArrayFront__(((PArrayTag*) self))
+#define pArrayBack(self)    __pArrayBack__(((PArrayTag*) self))
+#define pArrayIsEmpty(self) __pArrayIsEmpty__(((PArrayTag*) self))
+#define pArrayIsFull(self)  __pArrayIsFull__(((PArrayTag*) self))
 
-#define pxArrayIsIndex(self, index) ( \
-    (self)->array_index = (index),    \
-    __pxArrayIsIndex__(               \
-        ((PxArrayTag*) self),         \
-        (self)->array_index)          \
+#define pArrayIsIndex(self, index) ( \
+    (self)->array_index = (index),   \
+    __pArrayIsIndex__(               \
+        ((PArrayTag*) self),         \
+        (self)->array_index)         \
 )
 
-#define pxArrayClear(self) __pxArrayClear__(((PxArrayTag*) self))
+#define pArrayClear(self) __pArrayClear__(((PArrayTag*) self))
 
-#define pxArrayCreate(self, arena, size) ( \
-    __pxArrayCreate__(                     \
-        ((PxArrayTag*) self),              \
-        ((void**) &(self)->values),        \
-        sizeof *(self)->values,            \
-        arena, size)                       \
+#define pArrayCreate(self, arena, size) ( \
+    __pArrayCreate__(                     \
+        ((PArrayTag*) self),              \
+        ((void**) &(self)->values),       \
+        sizeof *(self)->values,           \
+        arena, size)                      \
 )
 
-#define pxArrayCopy(self, index, value)   \
-(                                         \
-    __pxArrayCopy__(((PxArrayTag*) self), \
-        (self)->values, index, value)     \
+#define pArrayCopy(self, index, value)  \
+(                                       \
+    __pArrayCopy__(((PArrayTag*) self), \
+        (self)->values, index, value)   \
 )
 
-#define pxArrayInsert(self, index, value)               \
+#define pArrayInsert(self, index, value)                \
 (                                                       \
     (self)->array_index = (index),                      \
-    __pxArraySlotOpen__(                                \
-        ((PxArrayTag*) self),                           \
+    __pArraySlotOpen__(                                 \
+        ((PArrayTag*) self),                            \
         (self)->values,                                 \
         (self)->array_index) != 0 ?                     \
     (                                                   \
@@ -64,11 +64,11 @@ PxArrayTag;
     ), 1 : 0                                            \
 )
 
-#define pxArrayAdd(self, index)     \
+#define pArrayAdd(self, index)      \
 (                                   \
     (self)->array_index = (index),  \
-    __pxArraySlotOpen__(            \
-        ((PxArrayTag*) self),       \
+    __pArraySlotOpen__(             \
+        ((PArrayTag*) self),        \
         (self)->values,             \
         (self)->array_index) != 0 ? \
     (                               \
@@ -76,67 +76,71 @@ PxArrayTag;
     ), 1 : 0                        \
 )
 
-#define pxArrayRemove(self, index, value)  \
-(                                          \
-    pxArrayCopy(self, index, value) != 0 ? \
-    (                                      \
-        __pxArraySlotClose__(              \
-            ((PxArrayTag*) self),          \
-            (self)->values,                \
-            (self)->array_index),          \
-        (self)->array_count -= 1           \
-    ), 1 : 0                               \
+#define pArrayRemove(self, index, value)  \
+(                                         \
+    (self)->array_index = (index),        \
+    pArrayCopy(self, index, value) != 0 ? \
+    (                                     \
+        __pArraySlotClose__(              \
+            ((PArrayTag*) self),          \
+            (self)->values,               \
+            (self)->array_index),         \
+        (self)->array_count -= 1          \
+    ), 1 : 0                              \
 )
 
-#define pxArrayDrop(self, index) \
-(                                \
-    __pxArraySlotClose__(        \
-        ((PxArrayTag*) self),    \
-        (self)->values,          \
-        (index)) != 0 ?          \
-    1 : 0                        \
+#define pArrayDrop(self, index)     \
+(                                   \
+    (self)->array_index = (index),  \
+    __pArraySlotClose__(            \
+        ((PArrayTag*) self),        \
+        (self)->values,             \
+        (self)->array_index) != 0 ? \
+    (                               \
+        (self)->array_count -= 1    \
+    ), 1 : 0                        \
 )
 
-#define pxArrayInsertFront(self, value) pxArrayInsert(self, 0,                  value)
-#define pxArrayInsertBack(self, value)  pxArrayInsert(self, pxArrayCount(self), value)
+#define pArrayInsertFront(self, value) pArrayInsert(self, 0,                 value)
+#define pArrayInsertBack(self, value)  pArrayInsert(self, pArrayCount(self), value)
 
-#define pxArrayAddFront(self) pxArrayAdd(self, 0)
-#define pxArrayAddBack(self)  pxArrayAdd(self, pxArrayCount(self))
+#define pArrayAddFront(self) pArrayAdd(self, 0)
+#define pArrayAddBack(self)  pArrayAdd(self, pArrayCount(self))
 
-#define pxArrayRemoveFront(self, value) pxArrayRemove(self, 0,                 value)
-#define pxArrayRemoveBack(self, value)  pxArrayRemove(self, pxArrayBack(self), value)
+#define pArrayRemoveFront(self, value) pArrayRemove(self, 0,                value)
+#define pArrayRemoveBack(self, value)  pArrayRemove(self, pArrayBack(self), value)
 
-#define pxArrayDropFront(self) pxArrayDrop(self, 0)
-#define pxArrayDropBack(self)  pxArrayDrop(self, pxArrayBack(self))
+#define pArrayDropFront(self) pArrayDrop(self, 0)
+#define pArrayDropBack(self)  pArrayDrop(self, pArrayBack(self))
 
-#define pxArrayGet(self, index, other) \
-    (pxArrayIsIndex(self, index) != 0 ? (self)->values[(self)->array_index] : (other))
+#define pArrayGet(self, index, other) \
+    (pArrayIsIndex(self, index) != 0 ? (self)->values[(self)->array_index] : (other))
 
-#define pxArrayGetPntr(self, index) \
-    (pxArrayIsIndex(self, index) != 0 ? &(self)->values[(self)->array_index] : PX_NULL)
+#define pArrayGetPntr(self, index) \
+    (pArrayIsIndex(self, index) != 0 ? &(self)->values[(self)->array_index] : NULL)
 
-b32 __pxArrayCreate__(PxArrayTag* self, void** pntr, ssize step, PxMemoryArena* arena, ssize size);
+Bool __pArrayCreate__(PArrayTag* self, void** pntr, Int step, PMemoryArena* arena, Int size);
 
-ssize __pxArraySize__(PxArrayTag* self);
+Int __pArraySize__(PArrayTag* self);
 
-ssize __pxArrayCount__(PxArrayTag* self);
+Int __pArrayCount__(PArrayTag* self);
 
-ssize __pxArrayFront__(PxArrayTag* self);
+Int __pArrayFront__(PArrayTag* self);
 
-ssize __pxArrayBack__(PxArrayTag* self);
+Int __pArrayBack__(PArrayTag* self);
 
-b32 __pxArrayIsEmpty__(PxArrayTag* self);
+Bool __pArrayIsEmpty__(PArrayTag* self);
 
-b32 __pxArrayIsFull__(PxArrayTag* self);
+Bool __pArrayIsFull__(PArrayTag* self);
 
-b32 __pxArrayIsIndex__(PxArrayTag* self, ssize index);
+Bool __pArrayIsIndex__(PArrayTag* self, Int index);
 
-void __pxArrayClear__(PxArrayTag* self);
+void __pArrayClear__(PArrayTag* self);
 
-b32 __pxArrayCopy__(PxArrayTag* self, void* values, ssize index, void* value);
+Bool __pArrayCopy__(PArrayTag* self, void* values, Int index, void* value);
 
-b32 __pxArraySlotOpen__(PxArrayTag* self, void* values, ssize index);
+Bool __pArraySlotOpen__(PArrayTag* self, void* values, Int index);
 
-b32 __pxArraySlotClose__(PxArrayTag* self, void* values, ssize index);
+Bool __pArraySlotClose__(PArrayTag* self, void* values, Int index);
 
-#endif // PX_STRUCTURE_ARRAY_H
+#endif // P_STRUCTURE_ARRAY_H

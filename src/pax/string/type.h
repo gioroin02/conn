@@ -1,37 +1,37 @@
-#ifndef PX_BASE_STRING_TYPE_H
-#define PX_BASE_STRING_TYPE_H
+#ifndef P_BASE_STRING_TYPE_H
+#define P_BASE_STRING_TYPE_H
 
 #include "import.h"
 
-#define pxStr8(arr)  pxStr8Make(((u8*) arr),   sizeof (arr) / sizeof *(arr))
-#define pxStr16(arr) pxStr16Make(((u16*) arr), sizeof (arr) / sizeof *(arr))
-#define pxStr32(arr) pxStr32Make(((u32*) arr), sizeof (arr) / sizeof *(arr))
+#define pString8(arr)  pString8Make(((U8*) arr),   sizeof (arr) / sizeof *(arr))
+#define pString16(arr) pString16Make(((U16*) arr), sizeof (arr) / sizeof *(arr))
+#define pString32(arr) pString32Make(((U32*) arr), sizeof (arr) / sizeof *(arr))
 
-typedef struct PxStr8
+typedef struct PString8
 {
-    u8*   values;
-    ssize size;
+    U8* values;
+    Int size;
 }
-PxStr8;
+PString8;
 
-typedef struct PxStr16
+typedef struct PString16
 {
-    u16*  values;
-    ssize size;
+    U16* values;
+    Int  size;
 }
-PxStr16;
+PString16;
 
-typedef struct PxStr32
+typedef struct PString32
 {
-    u32*  values;
-    ssize size;
+    U32* values;
+    Int  size;
 }
-PxStr32;
+PString32;
 
-PxStr8 pxStr8Make(u8* values, ssize size);
+PString8 pString8Make(U8* values, Int size);
 
-PxStr16 pxStr16Make(u16* values, ssize size);
+PString16 pString16Make(U16* values, Int size);
 
-PxStr32 pxStr32Make(u32* values, ssize size);
+PString32 pString32Make(U32* values, Int size);
 
-#endif // PX_BASE_STRING_TYPE_H
+#endif // P_BASE_STRING_TYPE_H

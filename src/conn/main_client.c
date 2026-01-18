@@ -3,9 +3,7 @@
 int
 main(int argc, char** argv)
 {
-    srand(time(0));
-
-    PxMemoryArena arena = pxSystemMemoryReserve(pxMebi(4));
+    PMemoryArena arena = pSystemMemoryReserve(pMemoryMIB(4));
 
     ConnClient client;
 
@@ -14,7 +12,7 @@ main(int argc, char** argv)
     connClientStart(&client);
 
     while (connClientStateIsActive(&client) != 0)
-        connClientUpdate(&client);
+        connClientUpdate(&client, &arena);
 
     connClientStop(&client);
     connClientDestroy(&client);

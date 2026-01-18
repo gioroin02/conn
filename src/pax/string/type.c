@@ -1,51 +1,57 @@
-#ifndef PX_BASE_STRING_TYPE_C
-#define PX_BASE_STRING_TYPE_C
+#ifndef P_BASE_STRING_TYPE_C
+#define P_BASE_STRING_TYPE_C
 
 #include "type.h"
 
-PxStr8 pxStr8Make(u8* values, ssize size)
+PString8 pString8Make(U8* values, Int size)
 {
-    PxStr8 result;
+    PString8 result;
 
-    pxMemorySet(&result, sizeof result, 0xAB);
+    pMemorySet(&result, sizeof result, 0xAB);
 
-    if (values == PX_NULL || size < 0)
-        return result;
+    result.values = NULL;
+    result.size   = 0;
 
-    result.values = values;
-    result.size   = size;
+    if (values != NULL && size >= 0) {
+        result.values = values;
+        result.size   = size;
+    }
 
     return result;
 }
 
-PxStr16 pxStr16Make(u16* values, ssize size)
+PString16 pString16Make(U16* values, Int size)
 {
-    PxStr16 result;
+    PString16 result;
 
-    pxMemorySet(&result, sizeof result, 0xAB);
+    pMemorySet(&result, sizeof result, 0xAB);
 
-    if (values == PX_NULL || size < 0)
-        return result;
+    result.values = NULL;
+    result.size   = 0;
 
-    result.values = values;
-    result.size   = size;
+    if (values != NULL && size >= 0) {
+        result.values = values;
+        result.size   = size;
+    }
 
     return result;
 }
 
-PxStr32 pxStr32Make(u32* values, ssize size)
+PString32 pString32Make(U32* values, Int size)
 {
-    PxStr32 result;
+    PString32 result;
 
-    pxMemorySet(&result, sizeof result, 0xAB);
+    pMemorySet(&result, sizeof result, 0xAB);
 
-    if (values == PX_NULL || size < 0)
-        return result;
+    result.values = NULL;
+    result.size   = 0;
 
-    result.values = values;
-    result.size   = size;
+    if (values != NULL && size >= 0) {
+        result.values = values;
+        result.size   = size;
+    }
 
     return result;
 }
 
-#endif // PX_BASE_STRING_TYPE_C
+#endif // P_BASE_STRING_TYPE_C

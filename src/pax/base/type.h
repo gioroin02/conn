@@ -1,101 +1,85 @@
-#ifndef PX_BASE_TYPE_H
-#define PX_BASE_TYPE_H
+#ifndef P_BASE_TYPE_H
+#define P_BASE_TYPE_H
 
 #include "define.h"
 #include "system.h"
 
-/* Signed numbers */
+typedef char      I8;
+typedef short     I16;
+typedef long      I32;
+typedef long long I64;
 
-typedef char      s8;
-typedef short     s16;
-typedef long      s32;
-typedef long long s64;
+#define P_I8_MAX  ((I8)  0x7f)
+#define P_I16_MAX ((I16) 0x7fff)
+#define P_I32_MAX ((I32) 0x7fffffffl)
+#define P_I64_MAX ((I64) 0x7fffffffffffffffll)
 
-#define PX_S8_MAX  ((s8)  0x7f)
-#define PX_S16_MAX ((s16) 0x7fff)
-#define PX_S32_MAX ((s32) 0x7fffffffl)
-#define PX_S64_MAX ((s64) 0x7fffffffffffffffll)
+#define P_I8_MIN  ((I8)  0x80)
+#define P_I16_MIN ((I16) 0x8000)
+#define P_I32_MIN ((I32) 0x80000000l)
+#define P_I64_MIN ((I64) 0x8000000000000000ll)
 
-#define PX_S8_MIN  ((s8)  0x80)
-#define PX_S16_MIN ((s16) 0x8000)
-#define PX_S32_MIN ((s32) 0x80000000l)
-#define PX_S64_MIN ((s64) 0x8000000000000000ll)
+typedef unsigned char      U8;
+typedef unsigned short     U16;
+typedef unsigned long      U32;
+typedef unsigned long long U64;
 
-/* Unsigned numbers */
+#define P_U8_MAX  ((U8)  0xffu)
+#define P_U16_MAX ((U16) 0xffffu)
+#define P_U32_MAX ((U32) 0xfffffffflu)
+#define P_U64_MAX ((U64) 0xffffffffffffffffllu)
 
-typedef unsigned char      u8;
-typedef unsigned short     u16;
-typedef unsigned long      u32;
-typedef unsigned long long u64;
+#define P_U8_MIN  ((U8)  0x0u)
+#define P_U16_MIN ((U16) 0x0u)
+#define P_U32_MIN ((U32) 0x0lu)
+#define P_U64_MIN ((U64) 0x0llu)
 
-#define PX_U8_MAX  ((u8)  0xffu)
-#define PX_U16_MAX ((u16) 0xffffu)
-#define PX_U32_MAX ((u32) 0xfffffffflu)
-#define PX_U64_MAX ((u64) 0xffffffffffffffffllu)
+typedef float  F32;
+typedef double F64;
 
-#define PX_U8_MIN  ((u8)  0x0u)
-#define PX_U16_MIN ((u16) 0x0u)
-#define PX_U32_MIN ((u32) 0x0lu)
-#define PX_U64_MIN ((u64) 0x0llu)
+typedef U8  B8;
+typedef U16 B16;
+typedef U32 B32;
+typedef U64 B64;
 
-/* Floating numbers */
+#if P_WORD == P_WORD_32
 
-typedef float  f32;
-typedef double f64;
+    typedef I32 Int;
+    typedef U32 Uint;
+    typedef F32 Float;
+    typedef B32 Bool;
 
-/* Boolean values */
+    #define P_INT_MAX P_I32_MAX
+    #define P_INT_MIN P_I32_MIN
 
-typedef u8  b8;
-typedef u16 b16;
-typedef u32 b32;
-typedef u64 b64;
+    #define P_UINT_MAX P_U32_MAX
+    #define P_UINT_MIN P_U32_MIN
 
-#if PX_WORD == PX_WORD_32
+#elif P_WORD == P_WORD_64
 
-    typedef s32 ssize;
-    typedef u32 usize;
-    typedef f32 fsize;
-    typedef b32 bsize;
+    typedef I64 Int;
+    typedef U64 Uint;
+    typedef F64 Float;
+    typedef B64 Bool;
 
-    #define PX_SSIZE_MAX PX_S32_MAX
-    #define PX_SSIZE_MIN PX_S32_MIN
+    #define P_INT_MAX P_I64_MAX
+    #define P_INT_MIN P_I64_MIN
 
-    #define PX_USIZE_MAX PX_U32_MAX
-    #define PX_USIZE_MIN PX_U32_MIN
-
-#elif PX_WORD == PX_WORD_64
-
-    typedef s64 ssize;
-    typedef u64 usize;
-    typedef f64 fsize;
-    typedef b64 bsize;
-
-    #define PX_SSIZE_MAX PX_S64_MAX
-    #define PX_SSIZE_MIN PX_S64_MIN
-
-    #define PX_USIZE_MAX PX_U64_MAX
-    #define PX_USIZE_MIN PX_U64_MIN
+    #define P_UINT_MAX P_U64_MAX
+    #define P_UINT_MIN P_U64_MIN
 
 #else
 
-    #error "Unknown word size"
+    typedef I16  Int;
+    typedef U16 Uint;
+    typedef B16 Bool;
+
+    #define P_INT_MAX P_I16_MAX
+    #define P_INT_MIN P_I16_MIN
+
+    #define P_UINT_MAX P_U16_MAX
+    #define P_UINT_MIN P_U16_MIN
 
 #endif
 
-#define PX_SSIZE_KILO ((ssize) 1000ll)
-#define PX_SSIZE_MEGA ((ssize) 1000000ll)
-#define PX_SSIZE_GIGA ((ssize) 1000000000ll)
-
-#define PX_SSIZE_KIBI ((ssize) 1024ll)
-#define PX_SSIZE_MEBI ((ssize) 1048576ll)
-#define PX_SSIZE_GIBI ((ssize) 1073741824ll)
-
-ssize pxKilo(ssize value);
-ssize pxMega(ssize value);
-ssize pxGiga(ssize value);
-
-ssize pxKibi(ssize value);
-ssize pxMebi(ssize value);
-ssize pxGibi(ssize value);
-
-#endif // PX_BASE_TYPE_H
+#endif // P_BASE_TYPE_H

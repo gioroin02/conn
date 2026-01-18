@@ -1,6 +1,0 @@
-#ifndef PX_WIN32_ASYNC_NETWORK_EXPORT_H
-#define PX_WIN32_ASYNC_NETWORK_EXPORT_H
-
-#include "socket-tcp.h"
-
-#endif // PX_WIN32_ASYNC_NETWORK_EXPORT_H

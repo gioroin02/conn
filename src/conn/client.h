@@ -5,8 +5,6 @@
 #include "command.h"
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
 
 typedef enum ConnClientState
 {
@@ -24,42 +22,34 @@ typedef enum ConnClientState
 }
 ConnClientState;
 
-typedef PxArray(ConnMessage) ConnMessageArray;
-typedef PxArray(ConnPlayer)  ConnPlayerArray;
-typedef PxArray(ConnCommand) ConnCommandArray;
+typedef PArray(ConnMessage) ConnMessageArray;
+typedef PArray(ConnPlayer)  ConnPlayerArray;
+typedef PArray(ConnCommand) ConnCommandArray;
 
 typedef struct ConnClient
 {
-    PxAsync*         async;
-    PxSocketTcp*     socket;
-    PxConsole*       console;
+    PAsyncIoQueue*   queue;
+    PSocketTcp*      socket;
+    PConsole*        console;
     ConnMessageArray messages;
     ConnPlayerArray  players;
     ConnCommandArray commands;
 
     ConnBoard board;
 
-    u16   client;
-    u16   column;
-    ssize player_count;
+    U16 client;
+    U16 column;
+    Int player_count;
 
-    u8 buff_tcp_write[CONN_MESSAGE_SIZE];
-    u8 buff_tcp_read[CONN_MESSAGE_SIZE];
+    U8 buff_tcp_write[CONN_MESSAGE_SIZE];
+    U8 buff_tcp_read[CONN_MESSAGE_SIZE];
 
     ConnClientState state_curr;
     ConnClientState state_prev;
 }
 ConnClient;
 
-b32 connClientStateIsEqual(ConnClient* self, ConnClientState state);
-
-b32 connClientStateIsActive(ConnClient* self);
-
-void connClientStateSet(ConnClient* self, ConnClientState state);
-
-void connClientStateSetError(ConnClient* self);
-
-b32 connClientCreate(ConnClient* self, PxMemoryArena* arena);
+Bool connClientCreate(ConnClient* self, PMemoryArena* arena);
 
 void connClientDestroy(ConnClient* self);
 
@@ -67,30 +57,32 @@ void connClientStart(ConnClient* self);
 
 void connClientStop(ConnClient* self);
 
-void connClientUpdate(ConnClient* self);
+void connClientUpdate(ConnClient* self, PMemoryArena* arena);
 
-void connClientTcpConnect(ConnClient* self, PxAddressIp address, u16 port);
+void connClientConnect(ConnClient* self, PHostIp host);
 
-void connClientTcpWrite(ConnClient* self, ConnMessage message);
+void connClientMessageWrite(ConnClient* self, ConnMessage message);
 
-void connClientTcpRead(ConnClient* self);
+void connClientMessageRead(ConnClient* self);
 
-void connClientPollConsole(ConnClient* self);
+void connClientOnConnect(ConnClient* self, PHostIp host);
 
-void connClientPollEvents(ConnClient* self);
+void connClientOnMessageWrite(ConnClient* self, ConnMessage message);
 
-void connClientOnTcpEvent(ConnClient* self, PxSocketTcpEvent event);
+void connClientOnMessageRead(ConnClient* self, ConnMessage message);
 
-void connClientOnTcpConnect(ConnClient* self);
-
-void connClientOnTcpWrite(ConnClient* self, ConnMessage message);
-
-void connClientOnTcpRead(ConnClient* self, ConnMessage message);
-
-void connClientOnCommand(ConnClient* self, ConnCommand command);
+void connClientOnCommandRead(ConnClient* self, ConnCommand command);
 
 ConnClientState connClientOnUpdate(ConnClient* self);
 
 ConnClientState connClientOnStateChange(ConnClient* self);
+
+Bool connClientStateIsEqual(ConnClient* self, ConnClientState state);
+
+Bool connClientStateIsActive(ConnClient* self);
+
+void connClientStateSet(ConnClient* self, ConnClientState state);
+
+void connClientStateSetError(ConnClient* self);
 
 #endif // CONN_CLIENT_H

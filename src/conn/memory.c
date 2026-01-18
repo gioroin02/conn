@@ -3,15 +3,15 @@
 
 #include "memory.h"
 
-u8* connMemoryWriteU8Net(u8* values, ssize* size, u8 value)
+U8* connMemoryWriteU8Net(U8* values, Int* size, U8 value)
 {
-    if (values == PX_NULL || size == PX_NULL || *size < sizeof value)
-        return PX_NULL;
+    if (values == NULL || size == NULL || *size < sizeof value)
+        return NULL;
 
-    pxMemoryCopy(values, sizeof value, &value);
+    pMemoryCopy(values, sizeof value, &value);
 
-    if (pxHostByteOrderIsReverse() != 0)
-        pxMemoryReverse(values, sizeof value);
+    if (pHostByteOrderIsReverse() != 0)
+        pMemoryReverse(values, sizeof value);
 
     *size  -= sizeof value;
     values += sizeof value;
@@ -19,15 +19,15 @@ u8* connMemoryWriteU8Net(u8* values, ssize* size, u8 value)
     return values;
 }
 
-u8* connMemoryWriteU16Net(u8* values, ssize* size, u16 value)
+U8* connMemoryWriteU16Net(U8* values, Int* size, U16 value)
 {
-    if (values == PX_NULL || size == PX_NULL || *size < sizeof value)
-        return PX_NULL;
+    if (values == NULL || size == NULL || *size < sizeof value)
+        return NULL;
 
-    pxMemoryCopy(values, sizeof value, &value);
+    pMemoryCopy(values, sizeof value, &value);
 
-    if (pxHostByteOrderIsReverse() != 0)
-        pxMemoryReverse(values, sizeof value);
+    if (pHostByteOrderIsReverse() != 0)
+        pMemoryReverse(values, sizeof value);
 
     *size  -= sizeof value;
     values += sizeof value;
@@ -35,15 +35,15 @@ u8* connMemoryWriteU16Net(u8* values, ssize* size, u16 value)
     return values;
 }
 
-u8* connMemoryWriteU32Net(u8* values, ssize* size, u32 value)
+U8* connMemoryWriteU32Net(U8* values, Int* size, U32 value)
 {
-    if (values == PX_NULL || size == PX_NULL || *size < sizeof value)
-        return PX_NULL;
+    if (values == NULL || size == NULL || *size < sizeof value)
+        return NULL;
 
-    pxMemoryCopy(values, sizeof value, &value);
+    pMemoryCopy(values, sizeof value, &value);
 
-    if (pxHostByteOrderIsReverse() != 0)
-        pxMemoryReverse(values, sizeof value);
+    if (pHostByteOrderIsReverse() != 0)
+        pMemoryReverse(values, sizeof value);
 
     *size  -= sizeof value;
     values += sizeof value;
@@ -51,15 +51,15 @@ u8* connMemoryWriteU32Net(u8* values, ssize* size, u32 value)
     return values;
 }
 
-u8* connMemoryWriteU64Net(u8* values, ssize* size, u64 value)
+U8* connMemoryWriteU64Net(U8* values, Int* size, U64 value)
 {
-    if (values == PX_NULL || size == PX_NULL || *size < sizeof value)
-        return PX_NULL;
+    if (values == NULL || size == NULL || *size < sizeof value)
+        return NULL;
 
-    pxMemoryCopy(values, sizeof value, &value);
+    pMemoryCopy(values, sizeof value, &value);
 
-    if (pxHostByteOrderIsReverse() != 0)
-        pxMemoryReverse(values, sizeof value);
+    if (pHostByteOrderIsReverse() != 0)
+        pMemoryReverse(values, sizeof value);
 
     *size  -= sizeof value;
     values += sizeof value;
@@ -67,15 +67,15 @@ u8* connMemoryWriteU64Net(u8* values, ssize* size, u64 value)
     return values;
 }
 
-u8* connMemoryReadU8Net(u8* values, ssize* size, u8* value)
+U8* connMemoryReadU8Net(U8* values, Int* size, U8* value)
 {
-    if (values == PX_NULL || size == PX_NULL || *size < sizeof *value)
-        return PX_NULL;
+    if (values == NULL || size == NULL || *size < sizeof *value)
+        return NULL;
 
-    pxMemoryCopy(value, sizeof *value, values);
+    pMemoryCopy(value, sizeof *value, values);
 
-    if (pxHostByteOrderIsReverse() != 0)
-        pxMemoryReverse(value, sizeof * value);
+    if (pHostByteOrderIsReverse() != 0)
+        pMemoryReverse(value, sizeof * value);
 
     *size  -= sizeof *value;
     values += sizeof *value;
@@ -83,15 +83,15 @@ u8* connMemoryReadU8Net(u8* values, ssize* size, u8* value)
     return values;
 }
 
-u8* connMemoryReadU16Net(u8* values, ssize* size, u16* value)
+U8* connMemoryReadU16Net(U8* values, Int* size, U16* value)
 {
-    if (values == PX_NULL || size == PX_NULL || *size < sizeof *value)
-        return PX_NULL;
+    if (values == NULL || size == NULL || *size < sizeof *value)
+        return NULL;
 
-    pxMemoryCopy(value, sizeof *value, values);
+    pMemoryCopy(value, sizeof *value, values);
 
-    if (pxHostByteOrderIsReverse() != 0)
-        pxMemoryReverse(value, sizeof * value);
+    if (pHostByteOrderIsReverse() != 0)
+        pMemoryReverse(value, sizeof * value);
 
     *size  -= sizeof *value;
     values += sizeof *value;
@@ -99,15 +99,15 @@ u8* connMemoryReadU16Net(u8* values, ssize* size, u16* value)
     return values;
 }
 
-u8* connMemoryReadU32Net(u8* values, ssize* size, u32* value)
+U8* connMemoryReadU32Net(U8* values, Int* size, U32* value)
 {
-    if (values == PX_NULL || size == PX_NULL || *size < sizeof *value)
-        return PX_NULL;
+    if (values == NULL || size == NULL || *size < sizeof *value)
+        return NULL;
 
-    pxMemoryCopy(value, sizeof *value, values);
+    pMemoryCopy(value, sizeof *value, values);
 
-    if (pxHostByteOrderIsReverse() != 0)
-        pxMemoryReverse(value, sizeof * value);
+    if (pHostByteOrderIsReverse() != 0)
+        pMemoryReverse(value, sizeof * value);
 
     *size  -= sizeof *value;
     values += sizeof *value;
@@ -115,15 +115,15 @@ u8* connMemoryReadU32Net(u8* values, ssize* size, u32* value)
     return values;
 }
 
-u8* connMemoryReadU64Net(u8* values, ssize* size, u64* value)
+U8* connMemoryReadU64Net(U8* values, Int* size, U64* value)
 {
-    if (values == PX_NULL || size == PX_NULL || *size < sizeof *value)
-        return PX_NULL;
+    if (values == NULL || size == NULL || *size < sizeof *value)
+        return NULL;
 
-    pxMemoryCopy(value, sizeof *value, values);
+    pMemoryCopy(value, sizeof *value, values);
 
-    if (pxHostByteOrderIsReverse() != 0)
-        pxMemoryReverse(value, sizeof * value);
+    if (pHostByteOrderIsReverse() != 0)
+        pMemoryReverse(value, sizeof * value);
 
     *size  -= sizeof *value;
     values += sizeof *value;

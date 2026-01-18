@@ -1,12 +1,12 @@
-#ifndef PX_BASE_DEFINE_H
-#define PX_BASE_DEFINE_H
+#ifndef P_BASE_DEFINE_H
+#define P_BASE_DEFINE_H
 
-#define pxMin(v1, v2) ((v1) < (v2) ? (v1) : (v2))
-#define pxMax(v1, v2) ((v1) < (v2) ? (v2) : (v1))
+#define pMin(v0, v1) ((v0) < (v1) ? (v0) : (v1))
+#define pMax(v0, v1) ((v0) < (v1) ? (v1) : (v0))
 
-#define pxClampTop(value, max) pxMin(value, max)
-#define pxClampBot(value, min) pxMax(value, min)
+#define pClampTop(value, max) pMin(value, max)
+#define pClampBot(value, min) pMax(value, min)
 
-#define pxClamp(value, min, max) pxMax(min, pxMin(value, max))
+#define pClamp(value, min, max) pMax(min, pMin(value, max))
 
-#endif // PX_BASE_DEFINE_H
+#endif // P_BASE_DEFINE_H

@@ -1,23 +1,23 @@
-#ifndef PX_SYSTEM_MEMORY_COMMON_C
-#define PX_SYSTEM_MEMORY_COMMON_C
+#ifndef P_SYSTEM_MEMORY_COMMON_C
+#define P_SYSTEM_MEMORY_COMMON_C
 
 #include "common.h"
 
-#if PX_SYSTEM == PX_SYSTEM_WINDOWS
+#if P_SYSTEM == P_SYSTEM_WINDOWS
 
-    #include "../win32/memory/export.c"
+    #include "win32/export.c"
 
-    #define __pxSystemMemoryPageSize__ pxWin32MemoryPageSize
-    #define __pxSystemMemoryReserve__  pxWin32MemoryReserve
-    #define __pxSystemMemoryRelease__  pxWin32MemoryRelease
+    #define __pSystemMemoryPageSize__ pWin32MemoryPageSize
+    #define __pSystemMemoryReserve__  pWin32MemoryReserve
+    #define __pSystemMemoryRelease__  pWin32MemoryRelease
 
-#elif PX_SYSTEM == PX_SYSTEM_LINUX
+#elif P_SYSTEM == P_SYSTEM_LINUX
 
-    #include "../linux/memory/export.c"
+    #include "linux/export.c"
 
-    #define __pxSystemMemoryPageSize__ pxLinuxMemoryPageSize
-    #define __pxSystemMemoryReserve__  pxLinuxMemoryReserve
-    #define __pxSystemMemoryRelease__  pxLinuxMemoryRelease
+    #define __pSystemMemoryPageSize__ pLinuxMemoryPageSize
+    #define __pSystemMemoryReserve__  pLinuxMemoryReserve
+    #define __pSystemMemoryRelease__  pLinuxMemoryRelease
 
 #else
 
@@ -25,19 +25,19 @@
 
 #endif
 
-ssize pxSystemMemoryPageSize()
+Int pSystemMemoryPageSize()
 {
-    return __pxSystemMemoryPageSize__();
+    return __pSystemMemoryPageSize__();
 }
 
-PxMemoryArena pxSystemMemoryReserve(ssize size)
+PMemoryArena pSystemMemoryReserve(Int size)
 {
-    return __pxSystemMemoryReserve__(size);
+    return __pSystemMemoryReserve__(size);
 }
 
-b32 pxSystemMemoryRelease(PxMemoryArena* arena)
+Bool pSystemMemoryRelease(PMemoryArena* arena)
 {
-    return __pxSystemMemoryRelease__(arena);
+    return __pSystemMemoryRelease__(arena);
 }
 
-#endif // PX_SYSTEM_MEMORY_COMMON_C
+#endif // P_SYSTEM_MEMORY_COMMON_C

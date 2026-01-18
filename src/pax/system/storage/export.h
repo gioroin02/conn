@@ -1,6 +1,0 @@
-#ifndef PX_SYSTEM_STORAGE_EXPORT_H
-#define PX_SYSTEM_STORAGE_EXPORT_H
-
-#include "file.h"
-
-#endif // PX_SYSTEM_STORAGE_EXPORT_H

@@ -1,6 +1,0 @@
-#ifndef PX_WIN32_STORAGE_EXPORT_H
-#define PX_WIN32_STORAGE_EXPORT_H
-
-#include "file.h"
-
-#endif // PX_WIN32_STORAGE_EXPORT_H

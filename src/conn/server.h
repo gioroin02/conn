@@ -4,8 +4,6 @@
 #include "message.h"
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
 
 typedef enum ConnServerState
 {
@@ -22,103 +20,77 @@ typedef enum ConnServerState
 }
 ConnServerState;
 
-typedef PxArray(ConnMessage) ConnMessageArray;
+typedef PArray(ConnMessage) ConnMessageArray;
 
 typedef struct ConnSession
 {
-    PxSocketTcp*     socket;
+    PSocketTcp*      socket;
     ConnMessageArray messages;
     ConnPlayer       player;
 
-    u8 buff_tcp_write[CONN_MESSAGE_SIZE];
-    u8 buff_tcp_read[CONN_MESSAGE_SIZE];
+    U8 buff_tcp_write[CONN_MESSAGE_SIZE];
+    U8 buff_tcp_read[CONN_MESSAGE_SIZE];
 }
 ConnSession;
 
-typedef PxArray(ConnSession) ConnSessionArray;
+typedef PArray(ConnSession) ConnSessionArray;
 
 typedef struct ConnServer
 {
-    PxAsync*         async;
-    PxSocketTcp*     listener;
+    PAsyncIoQueue*   queue;
+    PSocketTcp*      listener;
     ConnSessionArray sessions;
 
     ConnBoard board;
 
-    ssize spin_count;
-    ssize client_count;
-    ssize player_count;
-    ssize player_turn;
+    Int spin_count;
+    Int client_count;
+    Int player_count;
+    Int player_turn;
 
     ConnServerState state_curr;
     ConnServerState state_prev;
 }
 ConnServer;
 
-b32
-connServerStateIsEqual(ConnServer* self, ConnServerState state);
+Bool connServerCreate(ConnServer* self, PMemoryArena* arena);
 
-b32
-connServerStateIsActive(ConnServer* self);
+void connServerDestroy(ConnServer* self);
 
-void
-connServerStateSet(ConnServer* self, ConnServerState state);
+void connServerStart(ConnServer* self);
 
-void
-connServerStateSetError(ConnServer* self);
+void connServerStop(ConnServer* self);
 
-b32
-connServerCreate(ConnServer* self, PxMemoryArena* arena);
+void connServerUpdate(ConnServer* self, PMemoryArena* arena);
 
-void
-connServerDestroy(ConnServer* self);
+void connServerAccept(ConnServer* self, ConnSession* session);
 
-void
-connServerStart(ConnServer* self);
+void connServerMessageBroad(ConnServer* self, ConnMessage message, ConnSession* session);
 
-void
-connServerStop(ConnServer* self);
+void connServerMessageWrite(ConnServer* self, ConnSession* session, ConnMessage message);
 
-void
-connServerUpdate(ConnServer* self);
+void connServerTcpMessageRead(ConnServer* self, ConnSession* session);
 
-void
-connServerTcpAccept(ConnServer* self, ConnSession* session);
+void connServerOnAccept(ConnServer* self, ConnSession* session);
 
-void
-connServerTcpBroadcast(ConnServer* self, ConnSession* session, ConnMessage message);
+void connServerOnMessageWrite(ConnServer* self, ConnSession* session, ConnMessage message);
 
-void
-connServerTcpWrite(ConnServer* self, ConnSession* session, ConnMessage message);
+void connServerOnMessageRead(ConnServer* self, ConnSession* session, ConnMessage message);
 
-void
-connServerTcpRead(ConnServer* self, ConnSession* session);
+ConnServerState connServerOnUpdate(ConnServer* self);
 
-void
-connServerPollEvents(ConnServer* self);
+ConnServerState connServerOnStateChange(ConnServer* self);
 
-void
-connServerOnTcpEvent(ConnServer* self, PxSocketTcpEvent event);
+Bool connSessionCreate(ConnSession* self, PMemoryArena* arena);
 
-void
-connServerOnTcpAccept(ConnServer* self, ConnSession* session);
+void connSessionDestroy(ConnSession* self);
 
-void
-connServerOnTcpWrite(ConnServer* self, ConnSession* session, ConnMessage message);
+Bool connServerStateIsEqual(ConnServer* self, ConnServerState state);
 
-void
-connServerOnTcpRead(ConnServer* self, ConnSession* session, ConnMessage message);
+Bool connServerStateIsActive(ConnServer* self);
 
-ConnServerState
-connServerOnUpdate(ConnServer* self);
+void connServerStateSet(ConnServer* self, ConnServerState state);
 
-ConnServerState
-connServerOnStateChange(ConnServer* self);
-
-b32
-connSessionCreate(ConnSession* self, PxMemoryArena* arena);
-
-void
-connSessionDestroy(ConnSession* self);
+void connServerStateSetError(ConnServer* self);
 
 #endif // CONN_SERVER_H

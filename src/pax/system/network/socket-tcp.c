@@ -1,25 +1,25 @@
-#ifndef PX_SYSTEM_NETWORK_SOCKET_TCP_C
-#define PX_SYSTEM_NETWORK_SOCKET_TCP_C
+#ifndef P_SYSTEM_NETWORK_SOCKET_TCP_C
+#define P_SYSTEM_NETWORK_SOCKET_TCP_C
 
 #include "socket-tcp.h"
 
-#if PX_SYSTEM == PX_SYSTEM_WINDOWS
+#if P_SYSTEM == P_SYSTEM_WINDOWS
 
-    #include "../win32/network/export.c"
+    #include "win32/export.c"
 
-    #define __pxSocketTcpReserve__ pxWin32SocketTcpReserve
-    #define __pxSocketTcpCreate__  pxWin32SocketTcpCreate
-    #define __pxSocketTcpAccept__  pxWin32SocketTcpAccept
-    #define __pxSocketTcpDestroy__ pxWin32SocketTcpDestroy
-    #define __pxSocketTcpBind__    pxWin32SocketTcpBind
-    #define __pxSocketTcpBindTo__  pxWin32SocketTcpBindTo
-    #define __pxSocketTcpListen__  pxWin32SocketTcpListen
-    #define __pxSocketTcpConnect__ pxWin32SocketTcpConnect
-    #define __pxSocketTcpWrite__   pxWin32SocketTcpWrite
-    #define __pxSocketTcpRead__    pxWin32SocketTcpRead
+    #define __PSocketTcp__ PWin32SocketTcp
 
-    #define __pxSocketTcpGetAddress__ pxWin32SocketTcpGetAddress
-    #define __pxSocketTcpGetPort__    pxWin32SocketTcpGetPort
+    #define __pSocketTcpReserve__ pWin32SocketTcpReserve
+    #define __pSocketTcpCreate__  pWin32SocketTcpCreate
+    #define __pSocketTcpAccept__  pWin32SocketTcpAccept
+    #define __pSocketTcpDestroy__ pWin32SocketTcpDestroy
+    #define __pSocketTcpBind__    pWin32SocketTcpBind
+    #define __pSocketTcpBindAs__  pWin32SocketTcpBindAs
+    #define __pSocketTcpListen__  pWin32SocketTcpListen
+    #define __pSocketTcpConnect__ pWin32SocketTcpConnect
+    #define __pSocketTcpWrite__   pWin32SocketTcpWrite
+    #define __pSocketTcpRead__    pWin32SocketTcpRead
+    #define __pSocketTcpGetHost__ pWin32SocketTcpGetHost
 
 #else
 
@@ -27,65 +27,60 @@
 
 #endif
 
-PxSocketTcp* pxSocketTcpReserve(PxMemoryArena* arena)
+PSocketTcp* pSocketTcpReserve(PMemoryArena* arena)
 {
-    return __pxSocketTcpReserve__(arena);
+    return (PSocketTcp*)  __pSocketTcpReserve__(arena);
 }
 
-b32 pxSocketTcpCreate(PxSocketTcp* self, PxAddressIp address, u16 port)
+Bool pSocketTcpCreate(PSocketTcp* self, PHostIp host)
 {
-    return __pxSocketTcpCreate__(self, address, port);
+    return __pSocketTcpCreate__((__PSocketTcp__*) self, host);
 }
 
-b32 pxSocketTcpAccept(PxSocketTcp* self, PxSocketTcp* value)
+Bool pSocketTcpAccept(PSocketTcp* self, PSocketTcp* value)
 {
-    return __pxSocketTcpAccept__(self, value);
+    return __pSocketTcpAccept__((__PSocketTcp__*) self, (__PSocketTcp__*) value);
 }
 
-void pxSocketTcpDestroy(PxSocketTcp* self)
+void pSocketTcpDestroy(PSocketTcp* self)
 {
-    return __pxSocketTcpDestroy__(self);
+    return __pSocketTcpDestroy__((__PSocketTcp__*) self);
 }
 
-b32 pxSocketTcpBind(PxSocketTcp* self)
+Bool pSocketTcpBind(PSocketTcp* self)
 {
-    return __pxSocketTcpBind__(self);
+    return __pSocketTcpBind__((__PSocketTcp__*) self);
 }
 
-b32 pxSocketTcpBindTo(PxSocketTcp* self, PxAddressIp address, u16 port)
+Bool pSocketTcpBindAs(PSocketTcp* self, PHostIp host)
 {
-    return __pxSocketTcpBindTo__(self, address, port);
+    return __pSocketTcpBindAs__((__PSocketTcp__*) self, host);
 }
 
-b32 pxSocketTcpListen(PxSocketTcp* self)
+Bool pSocketTcpListen(PSocketTcp* self)
 {
-    return __pxSocketTcpListen__(self);
+    return __pSocketTcpListen__((__PSocketTcp__*) self);
 }
 
-b32 pxSocketTcpConnect(PxSocketTcp* self, PxAddressIp address, u16 port)
+Bool pSocketTcpConnect(PSocketTcp* self, PHostIp host)
 {
-    return __pxSocketTcpConnect__(self, address, port);
+    return __pSocketTcpConnect__((__PSocketTcp__*) self, host);
 }
 
-ssize
-pxSocketTcpWrite(PxSocketTcp* self, u8* pntr, ssize start, ssize stop)
+Int
+pSocketTcpWrite(PSocketTcp* self, U8* pntr, Int start, Int stop)
 {
-    return __pxSocketTcpWrite__(self, pntr, start, stop);
+    return __pSocketTcpWrite__((__PSocketTcp__*) self, pntr, start, stop);
 }
 
-ssize pxSocketTcpRead(PxSocketTcp* self, u8* pntr, ssize start, ssize stop)
+Int pSocketTcpRead(PSocketTcp* self, U8* pntr, Int start, Int stop)
 {
-    return __pxSocketTcpRead__(self, pntr, start, stop);
+    return __pSocketTcpRead__((__PSocketTcp__*) self, pntr, start, stop);
 }
 
-PxAddressIp pxSocketTcpGetAddress(PxSocketTcp* self)
+PHostIp pSocketTcpGetHost(PSocketTcp* self)
 {
-    return __pxSocketTcpGetAddress__(self);
+    return __pSocketTcpGetHost__((__PSocketTcp__*) self);
 }
 
-u16 pxSocketTcpGetPort(PxSocketTcp* self)
-{
-    return __pxSocketTcpGetPort__(self);
-}
-
-#endif // PX_SYSTEM_NETWORK_SOCKET_TCP_C
+#endif // P_SYSTEM_NETWORK_SOCKET_TCP_C

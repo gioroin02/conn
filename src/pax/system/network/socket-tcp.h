@@ -1,32 +1,30 @@
-#ifndef PX_SYSTEM_NETWORK_SOCKET_TCP_H
-#define PX_SYSTEM_NETWORK_SOCKET_TCP_H
+#ifndef P_SYSTEM_NETWORK_SOCKET_TCP_H
+#define P_SYSTEM_NETWORK_SOCKET_TCP_H
 
 #include "address-ip.h"
 
-typedef void PxSocketTcp;
+typedef struct PSocketTcp { U8 __private__; } PSocketTcp;
 
-PxSocketTcp* pxSocketTcpReserve(PxMemoryArena* arena);
+PSocketTcp* pSocketTcpReserve(PMemoryArena* arena);
 
-b32 pxSocketTcpCreate(PxSocketTcp* self, PxAddressIp address, u16 port);
+Bool pSocketTcpCreate(PSocketTcp* self, PHostIp host);
 
-b32 pxSocketTcpAccept(PxSocketTcp* self, PxSocketTcp* value);
+Bool pSocketTcpAccept(PSocketTcp* self, PSocketTcp* value);
 
-void pxSocketTcpDestroy(PxSocketTcp* self);
+void pSocketTcpDestroy(PSocketTcp* self);
 
-b32 pxSocketTcpBind(PxSocketTcp* self);
+Bool pSocketTcpBind(PSocketTcp* self);
 
-b32 pxSocketTcpBindTo(PxSocketTcp* self, PxAddressIp address, u16 port);
+Bool pSocketTcpBindAs(PSocketTcp* self, PHostIp host);
 
-b32 pxSocketTcpListen(PxSocketTcp* self);
+Bool pSocketTcpListen(PSocketTcp* self);
 
-b32 pxSocketTcpConnect(PxSocketTcp* self, PxAddressIp address, u16 port);
+Bool pSocketTcpConnect(PSocketTcp* self, PHostIp host);
 
-ssize pxSocketTcpWrite(PxSocketTcp* self, u8* pntr, ssize start, ssize stop);
+Int pSocketTcpWrite(PSocketTcp* self, U8* pntr, Int start, Int stop);
 
-ssize pxSocketTcpRead(PxSocketTcp* self, u8* pntr, ssize start, ssize stop);
+Int pSocketTcpRead(PSocketTcp* self, U8* pntr, Int start, Int stop);
 
-PxAddressIp pxSocketTcpGetAddress(PxSocketTcp* self);
+PHostIp pSocketTcpGetHost(PSocketTcp* self);
 
-u16 pxSocketTcpGetPort(PxSocketTcp* self);
-
-#endif // PX_SYSTEM_NETWORK_SOCKET_TCP_H
+#endif // P_SYSTEM_NETWORK_SOCKET_TCP_H

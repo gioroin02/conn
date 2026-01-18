@@ -1,71 +1,78 @@
-#ifndef PX_SYSTEM_NETWORK_ADDRESS_IP_H
-#define PX_SYSTEM_NETWORK_ADDRESS_IP_H
+#ifndef P_SYSTEM_NETWORK_ADDRESS_IP_H
+#define P_SYSTEM_NETWORK_ADDRESS_IP_H
 
 #include "import.h"
 
-#define PX_ADDRESS_IP4_SIZE ((ssize) 4)
-#define PX_ADDRESS_IP6_SIZE ((ssize) 8)
+#define P_ADDRESS_IP4_SIZE ((Int) 4)
+#define P_ADDRESS_IP6_SIZE ((Int) 8)
 
-#define pxAddressIp4Empty() pxAddressIp4Make(0x00, 0x00, 0x00, 0x00)
-#define pxAddressIp4Local() pxAddressIp4Make(0x7f, 0x00, 0x00, 0x01)
+#define pAddressIp4Any()  pAddressIp4Make(0x00, 0x00, 0x00, 0x00)
+#define pAddressIp4Self() pAddressIp4Make(0x7f, 0x00, 0x00, 0x01)
 
-#define pxAddressIp6Empty() pxAddressIp6Make(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00)
-#define pxAddressIp6Local() pxAddressIp6Make(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01)
+#define pAddressIp6Any()  pAddressIp6Make(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00)
+#define pAddressIp6Self() pAddressIp6Make(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01)
 
-typedef enum PxAddressIpKind
+typedef enum PAddressIpKind
 {
-    PxAddressIp_None,
-    PxAddressIp_Ver4,
-    PxAddressIp_Ver6,
+    PAddressIp_None,
+    PAddressIp_Ver4,
+    PAddressIp_Ver6,
 }
-PxAddressIpKind;
+PAddressIpKind;
 
-typedef union PxAddressIp4
+typedef union PAddressIp4
 {
-    u8 values[PX_ADDRESS_IP4_SIZE];
+    U8 values[P_ADDRESS_IP4_SIZE];
 
     struct
     {
-        u8 v0, v1;
-        u8 v2, v3;
+        U8 v0, v1, v2, v3;
     };
 }
-PxAddressIp4;
+PAddressIp4;
 
-typedef union PxAddressIp6
+typedef union PAddressIp6
 {
-    u16 values[PX_ADDRESS_IP6_SIZE];
+    U16 values[P_ADDRESS_IP6_SIZE];
 
     struct
     {
-        u16 v0, v1, v2, v3;
-        u16 v4, v5, v6, v7;
+        U16 v0, v1, v2, v3, v4, v5, v6, v7;
     };
 }
-PxAddressIp6;
+PAddressIp6;
 
-typedef struct PxAddressIp
+typedef struct PAddressIp
 {
-    PxAddressIpKind kind;
+    PAddressIpKind kind;
 
     union
     {
-        PxAddressIp4 ip4;
-        PxAddressIp6 ip6;
+        PAddressIp4 ip4;
+        PAddressIp6 ip6;
     };
 }
-PxAddressIp;
+PAddressIp;
 
-PxAddressIp pxAddressIp4Make(u8 v0, u8 v1, u8 v2, u8 v3);
+typedef struct PHostIp
+{
+    PAddressIp address;
+    U16        port;
+}
+PHostIp;
 
-PxAddressIp pxAddressIp6Make(u16 v0, u16 v1, u16 v2, u16 v3, u16 v4, u16 v5, u16 v6, u16 v7);
+PAddressIp pAddressIp4Make(U8 v0, U8 v1, U8 v2, U8 v3);
 
-PxAddressIp pxAddressIpNone();
+PAddressIp pAddressIp6Make(U16 v0, U16 v1, U16 v2, U16 v3, U16 v4, U16 v5, U16 v6, U16 v7);
 
-PxAddressIp pxAddressIpEmpty(PxAddressIpKind kind);
+PAddressIp pAddressIpNone();
 
-PxAddressIp pxAddressIpLocal(PxAddressIpKind kind);
+PAddressIp pAddressIpAny(PAddressIpKind kind);
 
-b32 pxAddressIpIsEqual(PxAddressIp self, PxAddressIp value);
+PAddressIp pAddressIpSelf(PAddressIpKind kind);
 
-#endif // PX_SYSTEM_NETWORK_ADDRESS_IP_H
+Bool pAddressIpIsEqual(PAddressIp self, PAddressIp value);
+
+PHostIp pHostIpMake(PAddressIp address, U16 port);
+
+#endif // P_SYSTEM_NETWORK_ADDRESS_IP_H

@@ -1,32 +1,32 @@
-#ifndef PX_SYSTEM_CONSOLE_CONSOLE_H
-#define PX_SYSTEM_CONSOLE_CONSOLE_H
+#ifndef P_SYSTEM_CONSOLE_CONSOLE_H
+#define P_SYSTEM_CONSOLE_CONSOLE_H
 
 #include "event.h"
 
-typedef enum PxConsoleMode
+typedef enum PConsoleMode
 {
-    PxConsoleMode_None,
-    PxConsoleMode_Cooked,
-    PxConsoleMode_Raw,
+    PConsoleMode_None,
+    PConsoleMode_Cooked,
+    PConsoleMode_Raw,
 }
-PxConsoleMode;
+PConsoleMode;
 
-typedef void PxConsole;
+typedef struct PConsole { U8 __private__; } PConsole;
 
-PxConsole* pxConsoleReserve(PxMemoryArena* arena);
+PConsole* pConsoleReserve(PMemoryArena* arena);
 
-b32 pxConsoleCreate(PxConsole* self);
+Bool pConsoleCreate(PConsole* self);
 
-void pxConsoleDestroy(PxConsole* self);
+void pConsoleDestroy(PConsole* self);
 
-b32 pxConsoleModeSet(PxConsole* self, PxConsoleMode mode);
+Bool pConsoleModeSet(PConsole* self, PConsoleMode mode);
 
-PxConsoleMode pxConsoleModeGet(PxConsole* self);
+PConsoleMode pConsoleModeGet(PConsole* self);
 
-ssize pxConsoleWrite(PxConsole* self, u8* pntr, ssize start, ssize stop);
+Int pConsoleWrite(PConsole* self, U8* pntr, Int start, Int stop);
 
-ssize pxConsoleRead(PxConsole* self, u8* pntr, ssize start, ssize stop);
+Int pConsoleRead(PConsole* self, U8* pntr, Int start, Int stop);
 
-b32 pxConsolePollEvent(PxConsole* self, PxConsoleEvent* event);
+Bool pConsolePollEvent(PConsole* self, PConsoleEvent* event);
 
-#endif // PX_SYSTEM_CONSOLE_CONSOLE_H
+#endif // P_SYSTEM_CONSOLE_CONSOLE_H

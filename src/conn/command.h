@@ -19,8 +19,8 @@ typedef struct ConnCommand
 }
 ConnCommand;
 
-ConnCommand connCommandDecode(PxConsoleEvent event);
+ConnCommand connCommandDecode(PConsoleEvent event);
 
-ssize connCommandToString(ConnCommand command, u8* pntr, ssize size);
+Int connCommandToString(ConnCommand command, U8* pntr, Int size);
 
 #endif // CONN_COMMAND_H

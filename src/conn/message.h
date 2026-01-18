@@ -4,8 +4,8 @@
 #include "memory.h"
 #include "game.h"
 
-#define CONN_MESSAGE_SIZE_HEADER ((ssize) 12)
-#define CONN_MESSAGE_SIZE        ((ssize) 18)
+#define CONN_MESSAGE_SIZE_HEADER ((Int) 12)
+#define CONN_MESSAGE_SIZE        ((Int) 18)
 
 typedef enum ConnMessageKind
 {
@@ -29,33 +29,33 @@ ConnMessageJoin;
 
 typedef struct ConnMessageQuit
 {
-    u16 client;
+    U16 client;
 }
 ConnMessageQuit;
 
 typedef struct ConnMessageData
 {
     ConnClientFlag flag;
-    u16            client;
+    U16            client;
 }
 ConnMessageData;
 
 typedef struct ConnMessageTurn
 {
-    u16 client;
+    U16 client;
 }
 ConnMessageTurn;
 
 typedef struct ConnMessageMove
 {
-    u16 client;
-    u16 column;
+    U16 client;
+    U16 column;
 }
 ConnMessageMove;
 
 typedef struct ConnMessageResult
 {
-    u16 client;
+    U16 client;
 }
 ConnMessageResult;
 
@@ -63,8 +63,8 @@ typedef struct ConnMessage
 {
     ConnMessageKind kind;
 
-    u32 version;
-    u32 length;
+    U32 version;
+    U32 length;
 
     union
     {
@@ -80,20 +80,20 @@ ConnMessage;
 
 ConnMessage connMessageJoin(ConnClientFlag flag);
 
-ConnMessage connMessageQuit(u16 client);
+ConnMessage connMessageQuit(U16 client);
 
-ConnMessage connMessageData(ConnClientFlag flag, u16 client);
+ConnMessage connMessageData(ConnClientFlag flag, U16 client);
 
-ConnMessage connMessageTurn(u16 client);
+ConnMessage connMessageTurn(U16 client);
 
-ConnMessage connMessageMove(u16 client, u16 column);
+ConnMessage connMessageMove(U16 client, U16 column);
 
-ConnMessage connMessageResult(u16 client);
+ConnMessage connMessageResult(U16 client);
 
-ConnMessage connMessageDecode(u8* pntr, ssize size);
+Bool connMessageDecode(ConnMessage* message, U8* pntr, Int size);
 
-ssize connMessageEncode(ConnMessage message, u8* pntr, ssize size);
+Int connMessageEncode(ConnMessage message, U8* pntr, Int size);
 
-ssize connMessageToString(ConnMessage message, u8* pntr, ssize size);
+Int connMessageToString(ConnMessage message, U8* pntr, Int size);
 
 #endif // CONN_MESSAGE_H

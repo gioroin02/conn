@@ -1,81 +1,83 @@
-#ifndef PX_SYSTEM_ASYNC_NETWORK_SOCKET_TCP_H
-#define PX_SYSTEM_ASYNC_NETWORK_SOCKET_TCP_H
+#ifndef P_SYSTEM_NETWORK_ASYNC_SOCKET_TCP_H
+#define P_SYSTEM_NETWORK_ASYNC_SOCKET_TCP_H
 
 #include "import.h"
 
-typedef enum PxSocketTcpEventKind
+typedef enum PSocketTcpEventKind
 {
-    PxSocketTcpEvent_None,
-    PxSocketTcpEvent_Error,
-    PxSocketTcpEvent_Accept,
-    PxSocketTcpEvent_Connect,
-    PxSocketTcpEvent_Write,
-    PxSocketTcpEvent_Read,
-    PxSocketTcpEvent_Close,
+    PSocketTcpEvent_None,
+    PSocketTcpEvent_Accept,
+    PSocketTcpEvent_Connect,
+    PSocketTcpEvent_Write,
+    PSocketTcpEvent_Read,
 }
-PxSocketTcpEventKind;
+PSocketTcpEventKind;
 
-typedef struct PxSocketTcpEventAccept
+typedef struct PSocketTcpEventAccept
 {
-    PxSocketTcp* value;
+    PSocketTcp* socket;
+    PSocketTcp* value;
 }
-PxSocketTcpEventAccept;
+PSocketTcpEventAccept;
 
-typedef struct PxSocketTcpEventConnect
+typedef struct PSocketTcpEventConnect
 {
-    b32 status;
+    PSocketTcp* socket;
+    PHostIp     host;
+    Bool        status;
 }
-PxSocketTcpEventConnect;
+PSocketTcpEventConnect;
 
-typedef struct PxSocketTcpEventWrite
+typedef struct PSocketTcpEventWrite
 {
-    u8*   pntr;
-    ssize start;
-    ssize stop;
+    PSocketTcp* socket;
+    U8*         pntr;
+    Int         start;
+    Int         stop;
+    Int         bytes;
 }
-PxSocketTcpEventWrite;
+PSocketTcpEventWrite;
 
-typedef struct PxSocketTcpEventRead
+typedef struct PSocketTcpEventRead
 {
-    u8*   pntr;
-    ssize start;
-    ssize stop;
+    PSocketTcp* socket;
+    U8*         pntr;
+    Int         start;
+    Int         stop;
+    Int         bytes;
 }
-PxSocketTcpEventRead;
+PSocketTcpEventRead;
 
-typedef struct PxSocketTcpEvent
+typedef struct PSocketTcpEvent
 {
-    PxSocketTcpEventKind kind;
+    PSocketTcpEventKind kind;
 
-    void*        ctxt;
-    PxSocketTcp* self;
+    void* ctxt;
 
     union
     {
-        PxSocketTcpEventAccept  accept;
-        PxSocketTcpEventConnect connect;
-        PxSocketTcpEventWrite   write;
-        PxSocketTcpEventRead    read;
+        PSocketTcpEventAccept  accept;
+        PSocketTcpEventConnect connect;
+        PSocketTcpEventWrite   write;
+        PSocketTcpEventRead    read;
     };
 }
-PxSocketTcpEvent;
+PSocketTcpEvent;
 
-PxSocketTcpEvent pxSocketTcpEventAccept(void* ctxt, PxSocketTcp* self, PxSocketTcp* value);
+PSocketTcpEvent pSocketTcpEventAccept(PSocketTcp* self, PSocketTcp* value, void* ctxt);
 
-PxSocketTcpEvent pxSocketTcpEventConnect(void* ctxt, PxSocketTcp* self, b32 status);
+PSocketTcpEvent pSocketTcpEventConnect(PSocketTcp* self, PHostIp host, Bool status, void* ctxt);
 
-PxSocketTcpEvent pxSocketTcpEventWrite(void* ctxt, PxSocketTcp* self, u8* pntr, ssize start, ssize stop);
+PSocketTcpEvent pSocketTcpEventWrite(PSocketTcp* self, U8* pntr, Int start, Int stop, Int bytes, void* ctxt);
 
-PxSocketTcpEvent pxSocketTcpEventRead(void* ctxt, PxSocketTcp* self, u8* pntr, ssize start, ssize stop);
+PSocketTcpEvent pSocketTcpEventRead(PSocketTcp* self, U8* pntr, Int start, Int stop, Int bytes, void* ctxt);
 
-PxSocketTcpEvent pxSocketTcpEventClose(void* ctxt, PxSocketTcp* self);
+Bool pSocketTcpAcceptAsync(PSocketTcp* self, PSocketTcp* value, PAsyncIoQueue* queue, void* ctxt);
 
-b32 pxSocketTcpAcceptAsync(PxAsync* async, void* ctxt, PxSocketTcp* self, PxSocketTcp* value);
+Bool pSocketTcpConnectAsync(PSocketTcp* self, PHostIp host, PAsyncIoQueue* queue, void* ctxt);
 
-b32 pxSocketTcpConnectAsync(PxAsync* async, void* ctxt, PxSocketTcp* self, PxAddressIp address, u16 port);
+Bool pSocketTcpWriteAsync(PSocketTcp* self, U8* pntr, Int start, Int stop, PAsyncIoQueue* queue, void* ctxt);
 
-b32 pxSocketTcpWriteAsync(PxAsync* async, void* ctxt, PxSocketTcp* self, u8* pntr, ssize start, ssize stop);
+Bool pSocketTcpReadAsync(PSocketTcp* self, U8* pntr, Int start, Int stop, PAsyncIoQueue* queue, void* ctxt);
 
-b32 pxSocketTcpReadAsync(PxAsync* async, void* ctxt, PxSocketTcp* self, u8* pntr, ssize start, ssize stop);
-
-#endif // PX_SYSTEM_ASYNC_NETWORK_SOCKET_TCP_H
+#endif // P_SYSTEM_NETWORK_ASYNC_SOCKET_TCP_H

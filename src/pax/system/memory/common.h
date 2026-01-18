@@ -1,12 +1,12 @@
-#ifndef PX_SYSTEM_MEMORY_COMMON_H
-#define PX_SYSTEM_MEMORY_COMMON_H
+#ifndef P_SYSTEM_MEMORY_COMMON_H
+#define P_SYSTEM_MEMORY_COMMON_H
 
 #include "import.h"
 
-ssize pxSystemMemoryPageSize();
+Int pSystemMemoryPageSize();
 
-PxMemoryArena pxSystemMemoryReserve(ssize size);
+PMemoryArena pSystemMemoryReserve(Int size);
 
-b32 pxSystemMemoryRelease(PxMemoryArena* arena);
+Bool pSystemMemoryRelease(PMemoryArena* arena);
 
-#endif // PX_SYSTEM_MEMORY_COMMON_H
+#endif // P_SYSTEM_MEMORY_COMMON_H

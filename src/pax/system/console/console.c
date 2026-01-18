@@ -1,20 +1,22 @@
-#ifndef PX_SYSTEM_CONSOLE_CONSOLE_C
-#define PX_SYSTEM_CONSOLE_CONSOLE_C
+#ifndef P_SYSTEM_CONSOLE_CONSOLE_C
+#define P_SYSTEM_CONSOLE_CONSOLE_C
 
 #include "console.h"
 
-#if PX_SYSTEM == PX_SYSTEM_WINDOWS
+#if P_SYSTEM == P_SYSTEM_WINDOWS
 
-    #include "../win32/console/export.c"
+    #include "win32/export.c"
 
-    #define __pxConsoleReserve__   pxWin32ConsoleReserve
-    #define __pxConsoleCreate__    pxWin32ConsoleCreate
-    #define __pxConsoleDestroy__   pxWin32ConsoleDestroy
-    #define __pxConsoleModeSet__   pxWin32ConsoleModeSet
-    #define __pxConsoleModeGet__   pxWin32ConsoleModeGet
-    #define __pxConsoleWrite__     pxWin32ConsoleWrite
-    #define __pxConsoleRead__      pxWin32ConsoleRead
-    #define __pxConsolePollEvent__ pxWin32ConsolePollEvent
+    #define __PConsole__ PWin32Console
+
+    #define __pConsoleReserve__   pWin32ConsoleReserve
+    #define __pConsoleCreate__    pWin32ConsoleCreate
+    #define __pConsoleDestroy__   pWin32ConsoleDestroy
+    #define __pConsoleModeSet__   pWin32ConsoleModeSet
+    #define __pConsoleModeGet__   pWin32ConsoleModeGet
+    #define __pConsoleWrite__     pWin32ConsoleWrite
+    #define __pConsoleRead__      pWin32ConsoleRead
+    #define __pConsolePollEvent__ pWin32ConsolePollEvent
 
 #else
 
@@ -22,44 +24,44 @@
 
 #endif
 
-PxConsole* pxConsoleReserve(PxMemoryArena* arena)
+PConsole* pConsoleReserve(PMemoryArena* arena)
 {
-    return __pxConsoleReserve__(arena);
+    return (PConsole*) __pConsoleReserve__(arena);
 }
 
-b32 pxConsoleCreate(PxConsole* self)
+Bool pConsoleCreate(PConsole* self)
 {
-    return __pxConsoleCreate__(self);
+    return __pConsoleCreate__((__PConsole__*) self);
 }
 
-void pxConsoleDestroy(PxConsole* self)
+void pConsoleDestroy(PConsole* self)
 {
-    return __pxConsoleDestroy__(self);
+    return __pConsoleDestroy__((__PConsole__*) self);
 }
 
-b32 pxConsoleModeSet(PxConsole* self, PxConsoleMode mode)
+Bool pConsoleModeSet(PConsole* self, PConsoleMode mode)
 {
-    return __pxConsoleModeSet__(self, mode);
+    return __pConsoleModeSet__((__PConsole__*) self, mode);
 }
 
-PxConsoleMode pxConsoleModeGet(PxConsole* self)
+PConsoleMode pConsoleModeGet(PConsole* self)
 {
-    return __pxConsoleModeGet__(self);
+    return __pConsoleModeGet__((__PConsole__*) self);
 }
 
-ssize pxConsoleWrite(PxConsole* self, u8* pntr, ssize start, ssize stop)
+Int pConsoleWrite(PConsole* self, U8* pntr, Int start, Int stop)
 {
-    return __pxConsoleWrite__(self, pntr, start, stop);
+    return __pConsoleWrite__((__PConsole__*) self, pntr, start, stop);
 }
 
-ssize pxConsoleRead(PxConsole* self, u8* pntr, ssize start, ssize stop)
+Int pConsoleRead(PConsole* self, U8* pntr, Int start, Int stop)
 {
-    return __pxConsoleRead__(self, pntr, start, stop);
+    return __pConsoleRead__((__PConsole__*) self, pntr, start, stop);
 }
 
-b32 pxConsolePollEvent(PxConsole* self, PxConsoleEvent* event)
+Bool pConsolePollEvent(PConsole* self, PConsoleEvent* event)
 {
-    return __pxConsolePollEvent__(self, event);
+    return __pConsolePollEvent__((__PConsole__*) self, event);
 }
 
-#endif // PX_SYSTEM_CONSOLE_CONSOLE_C
+#endif // P_SYSTEM_CONSOLE_CONSOLE_C

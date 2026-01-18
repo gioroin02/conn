@@ -1,14 +1,18 @@
-#ifndef PX_BASE_SYSTEM_H
-#define PX_BASE_SYSTEM_H
+#ifndef P_BASE_SYSTEM_H
+#define P_BASE_SYSTEM_H
 
-#define PX_NULL ((void*) 0)
+#ifndef NULL
 
-#define PX_WORD_NONE  0
-#define PX_WORD_32    1
-#define PX_WORD_64    2
-#define PX_WORD_COUNT 3
+    #define NULL ((void*) 0)
 
-#ifndef PX_WORD
+#endif
+
+#define P_WORD_NONE  0
+#define P_WORD_32    1
+#define P_WORD_64    2
+#define P_WORD_COUNT 3
+
+#ifndef P_WORD
 
     #if defined(_WIN64)     || \
         defined(__PL64__)   || \
@@ -16,44 +20,44 @@
         defined(__amd64__)  || \
         defined(__aarch64__)
 
-        #define PX_WORD PX_WORD_64
+        #define P_WORD P_WORD_64
 
     #elif defined(_WIN32)    || \
           defined(__ILP32__) || \
           defined(_i386_)
 
-        #define PX_WORD PX_WORD_32
+        #define P_WORD P_WORD_32
 
     #else
 
-        #define PX_WORD PX_WORD_NONE
+        #define P_WORD P_WORD_NONE
 
     #endif
 
 #endif
 
-#define PX_SYSTEM_NONE    0
-#define PX_SYSTEM_WINDOWS 1
-#define PX_SYSTEM_LINUX   2
-#define PX_SYSTEM_COUNT   3
+#define P_SYSTEM_NONE    0
+#define P_SYSTEM_WINDOWS 1
+#define P_SYSTEM_LINUX   2
+#define P_SYSTEM_COUNT   3
 
-#ifndef PX_SYSTEM
+#ifndef P_SYSTEM
 
     #if defined(_WIN32) || \
         defined(_WIN64)
 
-        #define PX_SYSTEM PX_SYSTEM_WINDOWS
+        #define P_SYSTEM P_SYSTEM_WINDOWS
 
     #elif defined(__linux__)
 
-        #define PX_SYSTEM PX_SYSTEM_LINUX
+        #define P_SYSTEM P_SYSTEM_LINUX
 
     #else
 
-        #define PX_SYSTEM PX_SYSTEM_NONE
+        #define P_SYSTEM P_SYSTEM_NONE
 
     #endif
 
 #endif
 
-#endif // PX_BASE_SYSTEM_H
+#endif // P_BASE_SYSTEM_H

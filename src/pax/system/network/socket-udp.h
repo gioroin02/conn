@@ -1,28 +1,24 @@
-#ifndef PX_SYSTEM_NETWORK_SOCKET_UDP_H
-#define PX_SYSTEM_NETWORK_SOCKET_UDP_H
+#ifndef P_SYSTEM_NETWORK_SOCKET_UDP_H
+#define P_SYSTEM_NETWORK_SOCKET_UDP_H
 
 #include "address-ip.h"
 
-typedef void PxSocketUdp;
+typedef struct PSocketUdp { U8 __private__; } PSocketUdp;
 
-PxSocketUdp* pxSocketUdpReserve(PxMemoryArena* arena);
+PSocketUdp* pSocketUdpReserve(PMemoryArena* arena);
 
-b32 pxSocketUdpCreate(PxSocketUdp* self, PxAddressIp address, u16 port);
+Bool pSocketUdpCreate(PSocketUdp* self, PHostIp host);
 
-void pxSocketUdpDestroy(PxSocketUdp* self);
+void pSocketUdpDestroy(PSocketUdp* self);
 
-b32 pxSocketUdpBind(PxSocketUdp* self);
+Bool pSocketUdpBind(PSocketUdp* self);
 
-b32 pxSocketUdpBindTo(PxSocketUdp* self, PxAddressIp address, u16 port);
+Bool pSocketUdpBindAs(PSocketUdp* self, PHostIp host);
 
-ssize pxSocketUdpWrite(PxSocketUdp* self, u8* pntr, ssize start, ssize stop,
-    PxAddressIp address, u16 port);
+Int pSocketUdpWrite(PSocketUdp* self, U8* pntr, Int start, Int stop, PHostIp host);
 
-ssize pxSocketUdpRead(PxSocketUdp* self, u8* pntr, ssize start, ssize stop,
-    PxAddressIp* address, u16* port);
+Int pSocketUdpRead(PSocketUdp* self, U8* pntr, Int start, Int stop, PHostIp* host);
 
-PxAddressIp pxSocketUdpGetAddress(PxSocketUdp* self);
+PHostIp pSocketUdpGetHost(PSocketUdp* self);
 
-u16 pxSocketUdpGetPort(PxSocketUdp* self);
-
-#endif // PX_SYSTEM_NETWORK_SOCKET_UDP_H
+#endif // P_SYSTEM_NETWORK_SOCKET_UDP_H

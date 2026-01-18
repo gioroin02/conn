@@ -1,34 +1,34 @@
-#ifndef PX_BASE_MEMORY_POOL_H
-#define PX_BASE_MEMORY_POOL_H
+#ifndef P_BASE_MEMORY_POOL_H
+#define P_BASE_MEMORY_POOL_H
 
 #include "common.h"
 
-#define pxMemoryPoolReserveManyOf(self, type, count) \
-    ((type*) pxMemoryPoolReserve(self, count, sizeof (type)))
+#define pMemoryPoolReserveManyOf(self, type, count) \
+    ((type*) pMemoryPoolReserve(self, count, sizeof (type)))
 
-#define pxMemoryPoolReserveOneOf(self, type) \
-    ((type*) pxMemoryPoolReserve(self, 1, sizeof (type)))
+#define pMemoryPoolReserveOneOf(self, type) \
+    ((type*) pMemoryPoolReserve(self, 1, sizeof (type)))
 
-typedef struct PxMemoryPool
+typedef struct PMemoryPool
 {
-    u8*   pntr_base;
-    u8*   pntr_next;
+    U8*   pntr_base;
+    U8*   pntr_next;
     void* list_head;
-    ssize size;
-    ssize step;
+    Int   size;
+    Int   step;
 }
-PxMemoryPool;
+PMemoryPool;
 
-PxMemoryPool pxMemoryPoolMake(void* pntr, ssize size, ssize step);
+PMemoryPool pMemoryPoolMake(void* pntr, Int size, Int step);
 
-void* pxMemoryPoolPntr(PxMemoryPool* self);
+void* pMemoryPoolPntr(PMemoryPool* self);
 
-ssize pxMemoryPoolSize(PxMemoryPool* self);
+Int pMemoryPoolSize(PMemoryPool* self);
 
-void pxMemoryPoolClear(PxMemoryPool* self);
+void pMemoryPoolClear(PMemoryPool* self);
 
-void* pxMemoryPoolReserve(PxMemoryPool* self, ssize count, ssize size);
+void* pMemoryPoolReserve(PMemoryPool* self, Int count, Int size);
 
-b32 pxMemoryPoolRelease(PxMemoryPool* self, void* pntr);
+Bool pMemoryPoolRelease(PMemoryPool* self, void* pntr);
 
-#endif // PX_BASE_MEMORY_POOL_H
+#endif // P_BASE_MEMORY_POOL_H

@@ -3,20 +3,20 @@
 
 #include "import.h"
 
-u8* connMemoryWriteU8Net(u8* values, ssize* size, u8 value);
+U8* connMemoryWriteU8Net(U8* values, Int* size, U8 value);
 
-u8* connMemoryWriteU16Net(u8* values, ssize* size, u16 value);
+U8* connMemoryWriteU16Net(U8* values, Int* size, U16 value);
 
-u8* connMemoryWriteU32Net(u8* values, ssize* size, u32 value);
+U8* connMemoryWriteU32Net(U8* values, Int* size, U32 value);
 
-u8* connMemoryWriteU64Net(u8* values, ssize* size, u64 value);
+U8* connMemoryWriteU64Net(U8* values, Int* size, U64 value);
 
-u8* connMemoryReadU8Net(u8* values, ssize* size, u8* value);
+U8* connMemoryReadU8Net(U8* values, Int* size, U8* value);
 
-u8* connMemoryReadU16Net(u8* values, ssize* size, u16* value);
+U8* connMemoryReadU16Net(U8* values, Int* size, U16* value);
 
-u8* connMemoryReadU32Net(u8* values, ssize* size, u32* value);
+U8* connMemoryReadU32Net(U8* values, Int* size, U32* value);
 
-u8* connMemoryReadU64Net(u8* values, ssize* size, u64* value);
+U8* connMemoryReadU64Net(U8* values, Int* size, U64* value);
 
 #endif // CONN_MEMORY_H

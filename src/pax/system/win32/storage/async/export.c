@@ -1,6 +1,0 @@
-#ifndef PX_WIN32_ASYNC_STORAGE_EXPORT_C
-#define PX_WIN32_ASYNC_STORAGE_EXPORT_C
-
-#include "file.c"
-
-#endif // PX_WIN32_ASYNC_STORAGE_EXPORT_C

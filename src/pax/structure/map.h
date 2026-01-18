@@ -1,69 +1,69 @@
-#ifndef PX_STRUCTURE_MAP_H
-#define PX_STRUCTURE_MAP_H
+#ifndef P_STRUCTURE_MAP_H
+#define P_STRUCTURE_MAP_H
 
 #include "import.h"
 
-#define __PxMapTag__(ktype) struct { \
-    ssize  map_size;                 \
-    ssize  map_count;                \
-    ssize  map_step_key;             \
-    ssize  map_step_value;           \
-    ssize* map_indices;              \
-    void*  map_proc_hash;            \
-    void*  map_proc_is_equal;        \
-    ssize  map_index;                \
-    ktype  map_key;                  \
+#define __PMapTag__(ktype) struct { \
+    Int   map_size;                 \
+    Int   map_count;                \
+    Int   map_step_key;             \
+    Int   map_step_value;           \
+    Int*  map_indices;              \
+    void* map_proc_hash;            \
+    void* map_proc_is_equal;        \
+    Int   map_index;                \
+    ktype map_key;                  \
 }
 
-typedef struct PxMapTag
+typedef struct PMapTag
 {
-    ssize  map_size;
-    ssize  map_count;
-    ssize  map_step_key;
-    ssize  map_step_value;
-    ssize* map_indices;
-    void*  map_proc_hash;
-    void*  map_proc_is_equal;
-    ssize  map_index;
+    Int   map_size;
+    Int   map_count;
+    Int   map_step_key;
+    Int   map_step_value;
+    Int*  map_indices;
+    void* map_proc_hash;
+    void* map_proc_is_equal;
+    Int   map_index;
 }
-PxMapTag;
+PMapTag;
 
-typedef ssize (PxMapProcHash)    (void*);
-typedef b32   (PxMapProcIsEqual) (void*, void*);
+typedef Int  (PMapProcHash)    (void*);
+typedef Bool (PMapProcIsEqual) (void*, void*);
 
-#define PxMap(ktype, vtype) struct {                 \
-    __PxMapTag__(ktype); ktype* keys; vtype* values; \
+#define PMap(ktype, vtype) struct {                 \
+    __PMapTag__(ktype); ktype* keys; vtype* values; \
 }
 
-#define pxMapSize(self)    __pxMapSize__(((PxMapTag*) self))
-#define pxMapCount(self)   __pxMapCount__(((PxMapTag*) self))
-#define pxMapIsEmpty(self) __pxMapIsEmpty__(((PxMapTag*) self))
-#define pxMapIsFull(self)  __pxMapIsFull__(((PxMapTag*) self))
+#define pMapSize(self)    __pMapSize__(((PMapTag*) self))
+#define pMapCount(self)   __pMapCount__(((PMapTag*) self))
+#define pMapIsEmpty(self) __pMapIsEmpty__(((PMapTag*) self))
+#define pMapIsFull(self)  __pMapIsFull__(((PMapTag*) self))
 
-#define pxMapIsKey(self, key) ( \
-    (self)->map_key = (key),    \
-    __pxMapIsKey__(             \
-        ((PxMapTag*) self),     \
-        (self)->keys,           \
-        &(self)->map_key)       \
+#define pMapIsKey(self, key) ( \
+    (self)->map_key = (key),   \
+    __pMapIsKey__(             \
+        ((PMapTag*) self),     \
+        (self)->keys,          \
+        &(self)->map_key)      \
 )
 
-#define pxMapClear(self) __pxMapClear__(((PxMapTag*) self))
+#define pMapClear(self) __pMapClear__(((PMapTag*) self))
 
-#define pxMapCreate(self, arena, size, proc_hash, proc_is_equal) ( \
-    __pxMapCreate__(                                               \
-        ((PxMapTag*) self),                                        \
-        ((void**) &(self)->keys),                                  \
-        sizeof *(self)->keys,                                      \
-        ((void**) &(self)->values),                                \
-        sizeof *(self)->values,                                    \
-        arena, size, proc_hash, proc_is_equal)                     \
+#define pMapCreate(self, arena, size, proc_hash, proc_is_equal) ( \
+    __pMapCreate__(                                               \
+        ((PMapTag*) self),                                        \
+        ((void**) &(self)->keys),                                 \
+        sizeof *(self)->keys,                                     \
+        ((void**) &(self)->values),                               \
+        sizeof *(self)->values,                                   \
+        arena, size, proc_hash, proc_is_equal)                    \
 )
 
-#define pxMapInsert(self, key, value) (                              \
+#define pMapInsert(self, key, value) (                               \
     (self)->map_key = (key),                                         \
-    __pxMapSlotOpen__(                                               \
-        ((PxMapTag*) self),                                          \
+    __pMapSlotOpen__(                                                \
+        ((PMapTag*) self),                                           \
         (self)->keys,                                                \
         &(self)->map_key) != 0 ?                                     \
     (                                                                \
@@ -74,28 +74,27 @@ typedef b32   (PxMapProcIsEqual) (void*, void*);
     ), 1 : 0                                                         \
 )
 
-#define pxMapGet(self, key, other) \
-    (pxMapIsKey(self, key) != 0 ? (self)->values[(self)->map_index] : (other))
+#define pMapGet(self, key, other) \
+    (pMapIsKey(self, key) != 0 ? (self)->values[(self)->map_index] : (other))
 
-#define pxMapGetPntr(self, key) \
-    (pxMapIsKey(self, key) != 0 ? &(self)->values[(self)->map_index] : PX_NULL)
+#define pMapGetPntr(self, key) \
+    (pMapIsKey(self, key) != 0 ? &(self)->values[(self)->map_index] : NULL)
 
-b32
-__pxMapCreate__(PxMapTag* self, void** pntr_keys, ssize step_key, void** pntr_values, ssize step_value,
-    PxMemoryArena* arena, ssize size, void* proc_hash, void* proc_is_equal);
+Bool __pMapCreate__(PMapTag* self, void** pntr_keys, Int step_key, void** pntr_values, Int step_value,
+    PMemoryArena* arena, Int size, void* proc_hash, void* proc_is_equal);
 
-ssize __pxMapSize__(PxMapTag* self);
+Int __pMapSize__(PMapTag* self);
 
-ssize __pxMapCount__(PxMapTag* self);
+Int __pMapCount__(PMapTag* self);
 
-b32 __pxMapIsEmpty__(PxMapTag* self);
+Bool __pMapIsEmpty__(PMapTag* self);
 
-b32 __pxMapIsFull__(PxMapTag* self);
+Bool __pMapIsFull__(PMapTag* self);
 
-b32 __pxMapIsKey__(PxMapTag* self, void* keys, void* key);
+Bool __pMapIsKey__(PMapTag* self, void* keys, void* key);
 
-void __pxMapClear__(PxMapTag* self);
+void __pMapClear__(PMapTag* self);
 
-b32 __pxMapSlotOpen__(PxMapTag* self, void* keys, void* key);
+Bool __pMapSlotOpen__(PMapTag* self, void* keys, void* key);
 
-#endif // PX_STRUCTURE_MAP_H
+#endif // P_STRUCTURE_MAP_H

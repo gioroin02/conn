@@ -5,9 +5,9 @@
 
 typedef struct ConnBoard
 {
-    u16*  values;
-    ssize width;
-    ssize height;
+    U16* values;
+    Int  width;
+    Int  height;
 }
 ConnBoard;
 
@@ -22,30 +22,30 @@ ConnClientFlag;
 typedef struct ConnPlayer
 {
     ConnClientFlag flag;
-    u16            client;
+    U16            client;
 }
 ConnPlayer;
 
-ConnPlayer connPlayerMake(ConnClientFlag flag, u16 client);
+ConnPlayer connPlayerMake(ConnClientFlag flag, U16 client);
 
-b32 connBoardCreate(ConnBoard* self, PxMemoryArena* arena, ssize width, ssize height);
+Bool connBoardCreate(ConnBoard* self, PMemoryArena* arena, Int width, Int height);
 
 void connBoardClear(ConnBoard* self);
 
-ssize connBoardCount(ConnBoard* self);
+Int connBoardCount(ConnBoard* self);
 
-ssize connBoardSize(ConnBoard* self);
+Int connBoardSize(ConnBoard* self);
 
-b32 connBoardIsEmpty(ConnBoard* self);
+Bool connBoardIsEmpty(ConnBoard* self);
 
-b32 connBoardIsFull(ConnBoard* self);
+Bool connBoardIsFull(ConnBoard* self);
 
-b32 connBoardHeight(ConnBoard* self, ssize column, ssize* height);
+Bool connBoardHeight(ConnBoard* self, Int column, Int* height);
 
-b32 connBoardInsert(ConnBoard* self, ssize column, u16 value);
+Bool connBoardInsert(ConnBoard* self, Int column, U16 value);
 
-u16 connBoardGet(ConnBoard* self, ssize column, ssize row);
+U16 connBoardGet(ConnBoard* self, Int column, Int row);
 
-b32 connBoardIsWinner(ConnBoard* self, ssize column, u16 value);
+Bool connBoardIsWinner(ConnBoard* self, Int column, U16 value);
 
 #endif // CONN_GAME_H

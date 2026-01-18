@@ -1,56 +1,60 @@
-#ifndef PX_STRUCTURE_ARRAY_C
-#define PX_STRUCTURE_ARRAY_C
+#ifndef P_STRUCTURE_ARRAY_C
+#define P_STRUCTURE_ARRAY_C
 
 #include "array.h"
 
-b32 __pxArrayCreate__(PxArrayTag* self, void** pntr, ssize step, PxMemoryArena* arena, ssize size)
+Bool __pArrayCreate__(PArrayTag* self, void** pntr, Int step, PMemoryArena* arena, Int size)
 {
-    pxMemorySet(self, sizeof *self, 0xAB);
+    pMemorySet(self, sizeof *self, 0xAB);
 
-    u8* values = pxMemoryArenaReserve(arena, size, step);
+    if (pntr == NULL || size < 0 || step <= 0) return 0;
 
-    if (values == PX_NULL) return 0;
+    U8* values = pMemoryArenaReserve(arena, size, step);
 
-    *pntr = values;
+    if (values != NULL) {
+        self->array_size  = size;
+        self->array_count = 0;
+        self->array_step  = step;
 
-    self->array_size  = size;
-    self->array_count = 0;
-    self->array_step  = step;
+        *pntr = values;
 
-    return 1;
+        return 1;
+    }
+
+    return 0;
 }
 
-ssize __pxArraySize__(PxArrayTag* self)
+Int __pArraySize__(PArrayTag* self)
 {
     return self->array_size;
 }
 
-ssize __pxArrayCount__(PxArrayTag* self)
+Int __pArrayCount__(PArrayTag* self)
 {
     return self->array_count;
 }
 
-ssize __pxArrayFront__(PxArrayTag* self)
+Int __pArrayFront__(PArrayTag* self)
 {
     return 0;
 }
 
-ssize __pxArrayBack__(PxArrayTag* self)
+Int __pArrayBack__(PArrayTag* self)
 {
     return self->array_count > 0 ? self->array_count - 1 : 0;
 }
 
-b32 __pxArrayIsEmpty__(PxArrayTag* self)
+Bool __pArrayIsEmpty__(PArrayTag* self)
 {
     return self->array_count == 0 ? 1 : 0;
 }
 
-b32 __pxArrayIsFull__(PxArrayTag* self)
+Bool __pArrayIsFull__(PArrayTag* self)
 {
     return self->array_count == self->array_size ? 1 : 0;
 }
 
-b32 __pxArrayIsIndex__(PxArrayTag* self, ssize index)
+Bool __pArrayIsIndex__(PArrayTag* self, Int index)
 {
     if (index < 0 || index >= self->array_count)
         return 0;
@@ -58,47 +62,47 @@ b32 __pxArrayIsIndex__(PxArrayTag* self, ssize index)
     return 1;
 }
 
-void __pxArrayClear__(PxArrayTag* self)
+void __pArrayClear__(PArrayTag* self)
 {
     self->array_count = 0;
 }
 
-b32 __pxArrayCopy__(PxArrayTag* self, void* values, ssize index, void* value)
+Bool __pArrayCopy__(PArrayTag* self, void* values, Int index, void* value)
 {
-    ssize start = self->array_step * index;
+    Int start = self->array_step * index;
 
     if (index < 0 || index >= self->array_count) return 0;
 
-    pxMemoryCopy(value, self->array_step,
-        &((u8*) values)[start]);
+    pMemoryCopy(value, self->array_step,
+        &((U8*) values)[start]);
 
     return 1;
 }
 
-b32 __pxArraySlotOpen__(PxArrayTag* self, void* values, ssize index)
+Bool __pArraySlotOpen__(PArrayTag* self, void* values, Int index)
 {
-    ssize start = self->array_step * index;
-    ssize stop  = self->array_step * self->array_size;
+    Int start = self->array_step * index;
+    Int stop  = self->array_step * self->array_size;
 
     if (index < 0 || index > self->array_count) return 0;
 
-    pxMemoryShiftForw(&((u8*) values)[start],
+    pMemoryShiftForw(&((U8*) values)[start],
         stop, self->array_step, 0xAB);
 
     return 1;
 }
 
-b32 __pxArraySlotClose__(PxArrayTag* self, void* values, ssize index)
+Bool __pArraySlotClose__(PArrayTag* self, void* values, Int index)
 {
-    ssize start = self->array_step * index;
-    ssize stop  = self->array_step * self->array_size;
+    Int start = self->array_step * index;
+    Int stop  = self->array_step * self->array_size;
 
     if (index < 0 || index >= self->array_count) return 0;
 
-    pxMemoryShiftBack(&((u8*) values)[start],
+    pMemoryShiftBack(&((U8*) values)[start],
         stop, self->array_step, 0xAB);
 
     return 1;
 }
 
-#endif // PX_STRUCTURE_ARRAY_C
+#endif // P_STRUCTURE_ARRAY_C

@@ -1,37 +1,53 @@
-#ifndef PX_BASE_MEMORY_COMMON_H
-#define PX_BASE_MEMORY_COMMON_H
+#ifndef P_BASE_MEMORY_COMMON_H
+#define P_BASE_MEMORY_COMMON_H
 
 #include "import.h"
 
-#define PX_MEMORY_DEFAULT_ALIGNMENT ((ssize) 16)
+#define P_MEMORY_DEFAULT_ALIGNMENT ((Int) 16)
 
-#define pxHostByteOrderIsNetwork() (pxGetHostByteOrder() == PxByteOrder_Network ? 1 : 0)
-#define pxHostByteOrderIsReverse() (pxGetHostByteOrder() == PxByteOrder_Reverse ? 1 : 0)
+#define P_MEMORY_KB ((Int) 1000ll)
+#define P_MEMORY_MB ((Int) 1000000ll)
+#define P_MEMORY_GB ((Int) 1000000000ll)
 
-typedef enum PxByteOrder
+#define pMemoryKB(value) (value < 0 || value > P_INT_MAX / P_MEMORY_KB ? 0 : value * P_MEMORY_KB)
+#define pMemoryMB(value) (value < 0 || value > P_INT_MAX / P_MEMORY_MB ? 0 : value * P_MEMORY_MB)
+#define pMemoryGB(value) (value < 0 || value > P_INT_MAX / P_MEMORY_GB ? 0 : value * P_MEMORY_GB)
+
+#define P_MEMORY_KIB ((Int) 1024ll)
+#define P_MEMORY_MIB ((Int) 1048576ll)
+#define P_MEMORY_GIB ((Int) 1073741824ll)
+
+#define pMemoryKIB(value) (value < 0 || value > P_INT_MAX / P_MEMORY_KIB ? 0 : value * P_MEMORY_KIB)
+#define pMemoryMIB(value) (value < 0 || value > P_INT_MAX / P_MEMORY_MIB ? 0 : value * P_MEMORY_MIB)
+#define pMemoryGIB(value) (value < 0 || value > P_INT_MAX / P_MEMORY_GIB ? 0 : value * P_MEMORY_GIB)
+
+#define pHostByteOrderIsNetwork() (pGetHostByteOrder() == PByteOrder_Network ? 1 : 0)
+#define pHostByteOrderIsReverse() (pGetHostByteOrder() == PByteOrder_Reverse ? 1 : 0)
+
+typedef enum PByteOrder
 {
-    PxByteOrder_None,
-    PxByteOrder_Network,
-    PxByteOrder_Reverse,
+    PByteOrder_None,
+    PByteOrder_Network,
+    PByteOrder_Reverse,
 }
-PxByteOrder;
+PByteOrder;
 
-PxByteOrder pxGetHostByteOrder();
+PByteOrder pGetHostByteOrder();
 
-void* pxMemorySet(void* pntr, ssize size, u8 value);
+void* pMemorySet(void* pntr, Int size, U8 value);
 
-void* pxMemoryCopy(void* pntr, ssize size, void* value);
+void* pMemoryCopy(void* pntr, Int size, void* value);
 
-void* pxMemoryCopyOrSet(void* pntr, ssize size, void* value, u8 other);
+void* pMemoryCopyOrSet(void* pntr, Int size, void* value, U8 other);
 
-void* pxMemoryShiftForw(void* pntr, ssize size, ssize about, u8 value);
+void* pMemoryShiftForw(void* pntr, Int size, Int about, U8 value);
 
-void* pxMemoryShiftBack(void* pntr, ssize size, ssize about, u8 value);
+void* pMemoryShiftBack(void* pntr, Int size, Int about, U8 value);
 
-void* pxMemoryReverse(void* pntr, ssize size);
+void* pMemoryReverse(void* pntr, Int size);
 
-void* pxMemoryAlignPntr(void* pntr, usize align);
+void* pMemoryAlignPntr(void* pntr, Uint align);
 
-ssize pxMemoryAlignSize(ssize size, usize align);
+Int pMemoryAlignSize(Int size, Uint align);
 
-#endif // PX_BASE_MEMORY_COMMON_H
+#endif // P_BASE_MEMORY_COMMON_H

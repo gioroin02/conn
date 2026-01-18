@@ -1,6 +1,6 @@
-#ifndef PX_STRING_EXPORT_H
-#define PX_STRING_EXPORT_H
+#ifndef P_STRING_EXPORT_H
+#define P_STRING_EXPORT_H
 
 #include "type.h"
 
-#endif // PX_BASE_STRING_EXPORT_H
+#endif // P_BASE_STRING_EXPORT_H

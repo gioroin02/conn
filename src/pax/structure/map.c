@@ -1,22 +1,22 @@
-#ifndef PX_STRUCTURE_MAP_C
-#define PX_STRUCTURE_MAP_C
+#ifndef P_STRUCTURE_MAP_C
+#define P_STRUCTURE_MAP_C
 
 #include "map.h"
 
-static ssize __pxMapHash__(PxMapTag* self, void* key)
+static Int __pMapHash__(PMapTag* self, void* key)
 {
-    return ((PxMapProcHash*) self->map_proc_hash)(key);
+    return ((PMapProcHash*) self->map_proc_hash)(key);
 }
 
-static b32 __pxMapIsEqual__(PxMapTag* self, void* key, void* other)
+static Bool __pMapIsEqual__(PMapTag* self, void* key, void* other)
 {
-    return ((PxMapProcIsEqual*) self->map_proc_is_equal)(key, other);
+    return ((PMapProcIsEqual*) self->map_proc_is_equal)(key, other);
 }
 
-static ssize __pxMapDistance__(PxMapTag* self, void* key, ssize index)
+static Int __pMapDistance__(PMapTag* self, void* key, Int index)
 {
-    ssize size  = self->map_size;
-    ssize probe = __pxMapHash__(self, key) % size;
+    Int size  = self->map_size;
+    Int probe = __pMapHash__(self, key) % size;
 
     if (index < probe)
         return size + index - probe;
@@ -24,21 +24,21 @@ static ssize __pxMapDistance__(PxMapTag* self, void* key, ssize index)
     return index - probe;
 }
 
-static ssize __pxMapIndexForKey__(PxMapTag* self, void* keys, void* key)
+static Int __pMapIndexForKey__(PMapTag* self, void* keys, void* key)
 {
-    ssize size  = self->map_size;
-    ssize probe = __pxMapHash__(self, key) % size;
-    ssize dist  = 0;
-    ssize index = self->map_indices[probe];
+    Int size  = self->map_size;
+    Int probe = __pMapHash__(self, key) % size;
+    Int dist  = 0;
+    Int index = self->map_indices[probe];
 
-    if (key == PX_NULL || self->map_count == 0) return -1;
+    if (key == NULL || self->map_count == 0) return -1;
 
     for (dist = 0; dist < size && index >= 0; dist += 1) {
-        void* other_key = &((u8*) keys)[index * self->map_step_key];
+        void* other_key = &((U8*) keys)[index * self->map_step_key];
 
-        if (__pxMapIsEqual__(self, key, other_key) != 0) return probe;
+        if (__pMapIsEqual__(self, key, other_key) != 0) return probe;
 
-        if (dist > __pxMapDistance__(self, other_key, index))
+        if (dist > __pMapDistance__(self, other_key, index))
             break;
 
         probe = (probe + 1) % size;
@@ -48,21 +48,21 @@ static ssize __pxMapIndexForKey__(PxMapTag* self, void* keys, void* key)
     return -1;
 }
 
-b32 __pxMapCreate__(PxMapTag* self, void** pntr_keys, ssize step_key, void** pntr_values, ssize step_value,
-    PxMemoryArena* arena, ssize size, void* proc_hash, void* proc_is_equal)
+Bool __pMapCreate__(PMapTag* self, void** pntr_keys, Int step_key, void** pntr_values, Int step_value,
+    PMemoryArena* arena, Int size, void* proc_hash, void* proc_is_equal)
 {
-    pxMemorySet(self, sizeof *self, 0xAB);
+    pMemorySet(self, sizeof *self, 0xAB);
 
-    void* mark = pxMemoryArenaTell(arena);
+    if (pntr_keys == NULL || pntr_values == NULL || size < 0 || step_key <= 0 || step_value <= 0)
+        return 0;
 
-    ssize* indices = pxMemoryArenaReserveManyOf(arena, ssize, size);
-    u8*    keys    = pxMemoryArenaReserve(arena, size, step_key);
-    u8*    values  = pxMemoryArenaReserve(arena, size, step_value);
+    void* mark = pMemoryArenaTell(arena);
 
-    if (indices != PX_NULL && keys != PX_NULL && values != PX_NULL) {
-        *pntr_keys   = keys;
-        *pntr_values = values;
+    Int* indices = pMemoryArenaReserveManyOf(arena, Int, size);
+    U8*  keys    = pMemoryArenaReserve(arena, size, step_key);
+    U8*  values  = pMemoryArenaReserve(arena, size, step_value);
 
+    if (indices != NULL && keys != NULL && values != NULL) {
         self->map_size          = size;
         self->map_count         = 0;
         self->map_step_key      = step_key;
@@ -71,39 +71,42 @@ b32 __pxMapCreate__(PxMapTag* self, void** pntr_keys, ssize step_key, void** pnt
         self->map_proc_hash     = proc_hash;
         self->map_proc_is_equal = proc_is_equal;
 
-        __pxMapClear__(self);
+        *pntr_keys   = keys;
+        *pntr_values = values;
+
+        __pMapClear__(self);
 
         return 1;
     }
 
-    pxMemoryArenaRewind(arena, mark);
+    pMemoryArenaRewind(arena, mark);
 
     return 0;
 }
 
-ssize __pxMapSize__(PxMapTag* self)
+Int __pMapSize__(PMapTag* self)
 {
     return self->map_size;
 }
 
-ssize __pxMapCount__(PxMapTag* self)
+Int __pMapCount__(PMapTag* self)
 {
     return self->map_count;
 }
 
-b32 __pxMapIsEmpty__(PxMapTag* self)
+Bool __pMapIsEmpty__(PMapTag* self)
 {
     return self->map_count == 0 ? 1 : 0;
 }
 
-b32 __pxMapIsFull__(PxMapTag* self)
+Bool __pMapIsFull__(PMapTag* self)
 {
     return self->map_count == self->map_size ? 1 : 0;
 }
 
-b32 __pxMapIsKey__(PxMapTag* self, void* keys, void* key)
+Bool __pMapIsKey__(PMapTag* self, void* keys, void* key)
 {
-    ssize index = __pxMapIndexForKey__(self, keys, key);
+    Int index = __pMapIndexForKey__(self, keys, key);
 
     if (index < 0) return 0;
 
@@ -112,9 +115,9 @@ b32 __pxMapIsKey__(PxMapTag* self, void* keys, void* key)
     return 1;
 }
 
-void __pxMapClear__(PxMapTag* self)
+void __pMapClear__(PMapTag* self)
 {
-    ssize index = 0;
+    Int index = 0;
 
     for (index = 0; index < self->map_size; index += 1)
         self->map_indices[index] = -1;
@@ -122,22 +125,22 @@ void __pxMapClear__(PxMapTag* self)
     self->map_count = 0;
 }
 
-b32 __pxMapSlotOpen__(PxMapTag* self, void* keys, void* key)
+Bool __pMapSlotOpen__(PMapTag* self, void* keys, void* key)
 {
     if (self->map_count == self->map_size) return 0;
 
-    ssize size  = self->map_size;
-    ssize probe = __pxMapHash__(self, key) % size;
-    ssize dist  = 0;
-    ssize index = self->map_indices[probe];
+    Int size  = self->map_size;
+    Int probe = __pMapHash__(self, key) % size;
+    Int dist  = 0;
+    Int index = self->map_indices[probe];
 
     for (dist = 0; dist < size && index >= 0; dist += 1) {
-        void* other_key  = &((u8*) keys)[index * self->map_step_key];
-        ssize other_dist = 0;
+        void* other_key  = &((U8*) keys)[index * self->map_step_key];
+        Int   other_dist = 0;
 
-        if (__pxMapIsEqual__(self, key, other_key) != 0) break;
+        if (__pMapIsEqual__(self, key, other_key) != 0) break;
 
-        other_dist = __pxMapDistance__(self, other_key, index);
+        other_dist = __pMapDistance__(self, other_key, index);
 
         if (dist > other_dist) {
             self->map_indices[probe] = index;
@@ -154,4 +157,4 @@ b32 __pxMapSlotOpen__(PxMapTag* self, void* keys, void* key)
     return 1;
 }
 
-#endif // PX_STRUCTURE_MAP_C
+#endif // P_STRUCTURE_MAP_C

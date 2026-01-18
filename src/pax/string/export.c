@@ -1,6 +1,6 @@
-#ifndef PX_STRING_EXPORT_C
-#define PX_STRING_EXPORT_C
+#ifndef P_STRING_EXPORT_C
+#define P_STRING_EXPORT_C
 
 #include "type.c"
 
-#endif // PX_STRING_EXPORT_C
+#endif // P_STRING_EXPORT_C

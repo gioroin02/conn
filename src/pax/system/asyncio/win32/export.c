@@ -1,0 +1,6 @@
+#ifndef P_SYSTEM_WIN32_ASYNCIO_EXPORT_C
+#define P_SYSTEM_WIN32_ASYNCIO_EXPORT_C
+
+#include "queue.c"
+
+#endif // P_SYSTEM_WIN32_ASYNCIO_EXPORT_C

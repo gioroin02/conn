@@ -1,22 +1,22 @@
-#ifndef PX_SYSTEM_NETWORK_SOCKET_UDP_C
-#define PX_SYSTEM_NETWORK_SOCKET_UDP_C
+#ifndef P_SYSTEM_NETWORK_SOCKET_UDP_C
+#define P_SYSTEM_NETWORK_SOCKET_UDP_C
 
 #include "socket-udp.h"
 
-#if PX_SYSTEM == PX_SYSTEM_WINDOWS
+#if P_SYSTEM == P_SYSTEM_WINDOWS
 
-    #include "../win32/network/export.c"
+    #include "win32/export.c"
 
-    #define __pxSocketUdpReserve__ pxWin32SocketUdpReserve
-    #define __pxSocketUdpCreate__  pxWin32SocketUdpCreate
-    #define __pxSocketUdpDestroy__ pxWin32SocketUdpDestroy
-    #define __pxSocketUdpBind__    pxWin32SocketUdpBind
-    #define __pxSocketUdpBindTo__  pxWin32SocketUdpBindTo
-    #define __pxSocketUdpWrite__   pxWin32SocketUdpWrite
-    #define __pxSocketUdpRead__    pxWin32SocketUdpRead
+    #define __PSocketUdp__ PWin32SocketUdp
 
-    #define __pxSocketUdpGetAddress__ pxWin32SocketUdpGetAddress
-    #define __pxSocketUdpGetPort__    pxWin32SocketUdpGetPort
+    #define __pSocketUdpReserve__ pWin32SocketUdpReserve
+    #define __pSocketUdpCreate__  pWin32SocketUdpCreate
+    #define __pSocketUdpDestroy__ pWin32SocketUdpDestroy
+    #define __pSocketUdpBind__    pWin32SocketUdpBind
+    #define __pSocketUdpBindAs__  pWin32SocketUdpBindAs
+    #define __pSocketUdpWrite__   pWin32SocketUdpWrite
+    #define __pSocketUdpRead__    pWin32SocketUdpRead
+    #define __pSocketUdpGetHost__ pWin32SocketUdpGetHost
 
 #else
 
@@ -24,51 +24,44 @@
 
 #endif
 
-PxSocketUdp* pxSocketUdpReserve(PxMemoryArena* arena)
+PSocketUdp* pSocketUdpReserve(PMemoryArena* arena)
 {
-    return __pxSocketUdpReserve__(arena);
+    return (PSocketUdp*) __pSocketUdpReserve__(arena);
 }
 
-b32 pxSocketUdpCreate(PxSocketUdp* self, PxAddressIp address, u16 port)
+Bool pSocketUdpCreate(PSocketUdp* self, PHostIp host)
 {
-    return __pxSocketUdpCreate__(self, address, port);
+    return __pSocketUdpCreate__((__PSocketUdp__*) self, host);
 }
 
-void pxSocketUdpDestroy(PxSocketUdp* self)
+void pSocketUdpDestroy(PSocketUdp* self)
 {
-    return __pxSocketUdpDestroy__(self);
+    return __pSocketUdpDestroy__((__PSocketUdp__*) self);
 }
 
-b32 pxSocketUdpBind(PxSocketUdp* self)
+Bool pSocketUdpBind(PSocketUdp* self)
 {
-    return __pxSocketUdpBind__(self);
+    return __pSocketUdpBind__((__PSocketUdp__*) self);
 }
 
-b32 pxSocketUdpBindTo(PxSocketUdp* self, PxAddressIp address, u16 port)
+Bool pSocketUdpBindAs(PSocketUdp* self, PHostIp host)
 {
-    return __pxSocketUdpBindTo__(self, address, port);
+    return __pSocketUdpBindAs__((__PSocketUdp__*) self, host);
 }
 
-ssize pxSocketUdpWrite(PxSocketUdp* self, u8* pntr, ssize start, ssize stop,
-    PxAddressIp address, u16 port)
+Int pSocketUdpWrite(PSocketUdp* self, U8* pntr, Int start, Int stop, PHostIp host)
 {
-    return __pxSocketUdpWrite__(self, pntr, start, stop, address, port);
+    return __pSocketUdpWrite__((__PSocketUdp__*) self, pntr, start, stop, host);
 }
 
-ssize pxSocketUdpRead(PxSocketUdp* self, u8* pntr, ssize start, ssize stop,
-    PxAddressIp* address, u16* port)
+Int pSocketUdpRead(PSocketUdp* self, U8* pntr, Int start, Int stop, PHostIp* host)
 {
-    return __pxSocketUdpRead__(self, pntr, start, stop, address, port);
+    return __pSocketUdpRead__((__PSocketUdp__*) self, pntr, start, stop, host);
 }
 
-PxAddressIp pxSocketUdpGetAddress(PxSocketUdp* self)
+PHostIp pSocketUdpGetHost(PSocketUdp* self)
 {
-    return __pxSocketUdpGetAddress__(self);
+    return __pSocketUdpGetHost__((__PSocketUdp__*) self);
 }
 
-u16 pxSocketUdpGetPort(PxSocketUdp* self)
-{
-    return __pxSocketUdpGetPort__(self);
-}
-
-#endif // PX_SYSTEM_NETWORK_SOCKET_UDP_C
+#endif // P_SYSTEM_NETWORK_SOCKET_UDP_C

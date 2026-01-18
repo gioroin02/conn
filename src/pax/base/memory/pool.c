@@ -1,122 +1,122 @@
-#ifndef PX_BASE_MEMORY_POOL_C
-#define PX_BASE_MEMORY_POOL_C
+#ifndef P_BASE_MEMORY_POOL_C
+#define P_BASE_MEMORY_POOL_C
 
 #include "pool.h"
 
-#define PX_MEMORY_POOL_NODE_SIZE ((ssize) sizeof (PxMemoryPoolNode))
+#define P_MEMORY_POOL_NODE_SIZE ((Int) sizeof (PMemoryPoolNode))
 
-typedef enum PxMemoryPoolFlag
+typedef enum PMemoryPoolFlag
 {
-    PxMemoryPoolFlag_None = 0,
-    PxMemoryPoolFlag_Free = 1 << 0,
+    PMemoryPoolFlag_None = 0,
+    PMemoryPoolFlag_Free = 1 << 0,
 }
-PxMemoryPoolFlag;
+PMemoryPoolFlag;
 
-typedef struct PxMemoryPoolNode PxMemoryPoolNode;
+typedef struct PMemoryPoolNode PMemoryPoolNode;
 
-struct PxMemoryPoolNode
+struct PMemoryPoolNode
 {
-    PxMemoryPoolFlag flag;
-    PxMemoryPoolNode* list_next;
+    PMemoryPoolFlag  flag;
+    PMemoryPoolNode* list_next;
 };
 
-PxMemoryPool pxMemoryPoolMake(void* pntr, ssize size, ssize step)
+PMemoryPool pMemoryPoolMake(void* pntr, Int size, Int step)
 {
-    PxMemoryPool result;
+    PMemoryPool result;
 
-    pxMemorySet(&result, sizeof result, 0xAB);
+    pMemorySet(&result, sizeof result, 0xAB);
 
-    if (pntr == PX_NULL || size <= 0 || step <= 0) return result;
+    if (pntr == NULL || size <= 0 || step <= 0) return result;
 
-    result.pntr_base = (u8*) pntr;
+    result.pntr_base = (U8*) pntr;
     result.pntr_next = result.pntr_base;
-    result.list_head = PX_NULL;
+    result.list_head = NULL;
     result.size      = size;
 
-    result.step =
-        pxMemoryAlignSize(step, PX_MEMORY_DEFAULT_ALIGNMENT);
+    result.step = pMemoryAlignSize(step, P_MEMORY_DEFAULT_ALIGNMENT);
 
-    pxMemorySet(result.pntr_base, result.size, 0xAB);
+    pMemorySet(result.pntr_base, result.size, 0xAB);
 
     return result;
 }
 
-void* pxMemoryPoolPntr(PxMemoryPool* self)
+void* pMemoryPoolPntr(PMemoryPool* self)
 {
     return self->pntr_base;
 }
 
-ssize pxMemoryPoolSize(PxMemoryPool* self)
+Int pMemoryPoolSize(PMemoryPool* self)
 {
     return self->size;
 }
 
-void pxMemoryPoolClear(PxMemoryPool* self)
+void pMemoryPoolClear(PMemoryPool* self)
 {
-    pxMemorySet(self->pntr_base, self->size, 0xAB);
+    pMemorySet(self->pntr_base, self->size, 0xAB);
 
     self->pntr_next = self->pntr_base;
-    self->list_head = PX_NULL;
+    self->list_head = NULL;
 }
 
-void* pxMemoryPoolReserve(PxMemoryPool* self, ssize count, ssize size)
+void* pMemoryPoolReserve(PMemoryPool* self, Int count, Int size)
 {
-    if (count <= 0 || size <= 0 || count > PX_SSIZE_MAX / size)
-        return PX_NULL;
+    if (count <= 0 || size <= 0 || count > P_INT_MAX / size)
+        return NULL;
 
-    ssize size_header = pxMemoryAlignSize(
-        PX_MEMORY_POOL_NODE_SIZE, PX_MEMORY_DEFAULT_ALIGNMENT);
+    Int size_header = pMemoryAlignSize(
+        P_MEMORY_POOL_NODE_SIZE, P_MEMORY_DEFAULT_ALIGNMENT);
 
-    ssize             bytes = count * size;
-    PxMemoryPoolNode* node  = self->list_head;
+    PMemoryPoolNode* node  = self->list_head;
+    Int              bytes = count * size;
 
-    if (bytes < 0 || bytes > self->step) return PX_NULL;
+    if (bytes < 0 || bytes > self->step) return NULL;
 
-    if (node == PX_NULL) {
-        u8* next = ((u8*) self->pntr_next) + size_header + self->step;
+    if (node == NULL) {
+        U8* next = ((U8*) self->pntr_next) + size_header + self->step;
 
         if (next < self->pntr_base || next > self->pntr_base + self->size)
-            return PX_NULL;
+            return NULL;
 
-        node            = (PxMemoryPoolNode*) self->pntr_next;
+        node = (PMemoryPoolNode*) self->pntr_next;
+
         self->pntr_next = next;
     }
     else self->list_head = node->list_next;
 
-    pxMemorySet(node, size_header + self->step, 0xAB);
+    pMemorySet(node, size_header + self->step, 0xAB);
 
-    node->flag      = PxMemoryPoolFlag_None;
-    node->list_next = PX_NULL;
+    node->flag      = PMemoryPoolFlag_None;
+    node->list_next = NULL;
 
-    return ((u8*) node) + size_header;
+    return ((U8*) node) + size_header;
 }
 
-b32 pxMemoryPoolRelease(PxMemoryPool* self, void* pntr)
+Bool pMemoryPoolRelease(PMemoryPool* self, void* pntr)
 {
-    if (pntr == PX_NULL) return 0;
+    Int size_header = pMemoryAlignSize(
+        P_MEMORY_POOL_NODE_SIZE, P_MEMORY_DEFAULT_ALIGNMENT);
 
-    ssize size_header = pxMemoryAlignSize(
-        PX_MEMORY_POOL_NODE_SIZE, PX_MEMORY_DEFAULT_ALIGNMENT);
+    if (pntr == NULL) return 0;
 
-    u8*   head = ((u8*) pntr) - size_header;
-    ssize dist = head - self->pntr_base;
+    U8* head = ((U8*) pntr) - size_header;
+    Int dist = head - self->pntr_base;
 
     if (head < self->pntr_base || head >= self->pntr_next)
         return 0;
 
     if (dist % (size_header + self->step) != 0) return 0;
 
-    PxMemoryPoolNode* node = (PxMemoryPoolNode*) head;
+    PMemoryPoolNode* node = (PMemoryPoolNode*) head;
 
-    if ((node->flag & PxMemoryPoolFlag_Free) != 0) return 0;
+    if ((node->flag & PMemoryPoolFlag_Free) != 0) return 0;
 
-    pxMemorySet(head, size_header + self->step, 0xAB);
+    pMemorySet(head, size_header + self->step, 0xAB);
 
-    node->flag      = PxMemoryPoolFlag_Free;
+    node->flag      = PMemoryPoolFlag_Free;
     node->list_next = self->list_head;
     self->list_head = node;
 
     return 1;
 }
 
-#endif // PX_BASE_MEMORY_POOL_C
+#endif // P_BASE_MEMORY_POOL_C

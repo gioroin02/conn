@@ -5,20 +5,20 @@
 
 #include <stdio.h>
 
-ConnCommand connCommandDecode(PxConsoleEvent event)
+ConnCommand connCommandDecode(PConsoleEvent event)
 {
     ConnCommand result;
 
-    pxMemorySet(&result, sizeof result, 0xAB);
+    pMemorySet(&result, sizeof result, 0xAB);
 
     result.kind = ConnCommand_None;
 
-    if (event.kind == PxConsoleEvent_Keyboard) {
-        switch (event.keyboard.key) {
-            case PxConsoleKey_A:      result.kind = ConnCommand_MoveLeft;  break;
-            case PxConsoleKey_D:      result.kind = ConnCommand_MoveRight; break;
-            case PxConsoleKey_Enter:  result.kind = ConnCommand_Place;     break;
-            case PxConsoleKey_Escape: result.kind = ConnCommand_Quit;      break;
+    if (event.kind == PConsoleEvent_KeyboardKey) {
+        switch (event.keyboard_key.key) {
+            case PConsoleKeyboard_A:      result.kind = ConnCommand_MoveLeft;  break;
+            case PConsoleKeyboard_D:      result.kind = ConnCommand_MoveRight; break;
+            case PConsoleKeyboard_Enter:  result.kind = ConnCommand_Place;     break;
+            case PConsoleKeyboard_Escape: result.kind = ConnCommand_Quit;      break;
 
             default: break;
         }
@@ -27,29 +27,29 @@ ConnCommand connCommandDecode(PxConsoleEvent event)
     return result;
 }
 
-ssize connCommandToString(ConnCommand command, u8* pntr, ssize size)
+Int connCommandToString(ConnCommand command, U8* pntr, Int size)
 {
-    ssize result = 0;
+    Int result = 0;
 
     switch (command.kind) {
         case ConnCommand_MoveLeft:
-            result = snprintf(((char*) pntr), size, "(MoveLeft) {}");
+            result = snprintf((I8*) pntr, size, "(MoveLeft) {}");
         break;
 
         case ConnCommand_MoveRight:
-            result = snprintf(((char*) pntr), size, "(MoveRight) {}");
+            result = snprintf((I8*) pntr, size, "(MoveRight) {}");
         break;
 
         case ConnCommand_Place:
-            result = snprintf(((char*) pntr), size, "(Place) {}");
+            result = snprintf((I8*) pntr, size, "(Place) {}");
         break;
 
         case ConnCommand_Quit:
-            result = snprintf(((char*) pntr), size, "(Quit) {}");
+            result = snprintf((I8*) pntr, size, "(Quit) {}");
         break;
 
         default:
-            result = snprintf(((char*) pntr), size, "(None) {}");
+            result = snprintf((I8*) pntr, size, "(None) {}");
         break;
     }
 

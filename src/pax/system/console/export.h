@@ -1,6 +1,7 @@
-#ifndef PX_SYSTEM_CONSOLE_EXPORT_H
-#define PX_SYSTEM_CONSOLE_EXPORT_H
+#ifndef P_SYSTEM_CONSOLE_EXPORT_H
+#define P_SYSTEM_CONSOLE_EXPORT_H
 
+#include "event.h"
 #include "console.h"
 
-#endif // PX_SYSTEM_CONSOLE_EXPORT_H
+#endif // P_SYSTEM_CONSOLE_EXPORT_H

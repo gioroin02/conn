@@ -1,124 +1,124 @@
-#ifndef PX_BASE_MEMORY_COMMON_C
-#define PX_BASE_MEMORY_COMMON_C
+#ifndef P_BASE_MEMORY_COMMON_C
+#define P_BASE_MEMORY_COMMON_C
 
 #include "common.h"
 
-PxByteOrder pxGetHostByteOrder()
+PByteOrder pGetHostByteOrder()
 {
-    static u16 value = 1;
+    static U16 value = 1;
 
-    u8 bytes[sizeof value];
+    U8 bytes[sizeof value];
 
-    pxMemoryCopy(bytes, sizeof value, &value);
+    pMemoryCopy(bytes, sizeof value, &value);
 
     if (bytes[0] == 1)
-        return PxByteOrder_Reverse;
+        return PByteOrder_Reverse;
 
-    return PxByteOrder_Network;
+    return PByteOrder_Network;
 }
 
-void* pxMemorySet(void* pntr, ssize size, u8 value)
+void* pMemorySet(void* pntr, Int size, U8 value)
 {
-    if (pntr == PX_NULL) return PX_NULL;
+    if (pntr == NULL) return NULL;
 
-    ssize index = 0;
+    Int index = 0;
 
     for (index = 0; index < size; index += 1)
-        ((u8*) pntr)[index] = value;
+        ((U8*) pntr)[index] = value;
 
     return pntr;
 }
 
-void* pxMemoryCopy(void* pntr, ssize size, void* value)
+void* pMemoryCopy(void* pntr, Int size, void* value)
 {
-    if (pntr == PX_NULL || value == PX_NULL) return PX_NULL;
+    if (pntr == NULL || value == NULL) return NULL;
 
-    ssize index = 0;
+    Int index = 0;
 
     for (index = 0; index < size; index += 1)
-        ((u8*) pntr)[index] = ((u8*) value)[index];
+        ((U8*) pntr)[index] = ((U8*) value)[index];
 
     return pntr;
 }
 
-void* pxMemoryCopyOrSet(void* pntr, ssize size, void* value, u8 other)
+void* pMemoryCopyOrSet(void* pntr, Int size, void* value, U8 other)
 {
-    if (pntr == PX_NULL) return PX_NULL;
+    if (pntr == NULL) return NULL;
 
-    if (value == PX_NULL)
-        return pxMemorySet(pntr, size, other);
+    if (value == NULL)
+        return pMemorySet(pntr, size, other);
 
-    return pxMemoryCopy(pntr, size, value);
+    return pMemoryCopy(pntr, size, value);
 }
 
-void* pxMemoryShiftForw(void* pntr, ssize size, ssize about, u8 value)
+void* pMemoryShiftForw(void* pntr, Int size, Int about, U8 value)
 {
-    if (pntr == PX_NULL || size < 0 || about < 0 || about >= size)
+    if (pntr == NULL || size < 0 || about < 0 || about >= size)
         return pntr;
 
-    ssize index = 0;
+    Int index = 0;
 
     for (index = size; index > about; index -= 1)
-        ((u8*) pntr)[index - 1] = ((u8*) pntr)[index - about - 1];
+        ((U8*) pntr)[index - 1] = ((U8*) pntr)[index - about - 1];
 
     for (index = about; index > 0; index -= 1)
-        ((u8*) pntr)[index - 1] = value;
+        ((U8*) pntr)[index - 1] = value;
 
     return pntr;
 }
 
-void* pxMemoryShiftBack(void* pntr, ssize size, ssize about, u8 value)
+void* pMemoryShiftBack(void* pntr, Int size, Int about, U8 value)
 {
-    if (pntr == PX_NULL || size < 0 || about < 0 || about >= size)
+    if (pntr == NULL || size < 0 || about < 0 || about >= size)
         return pntr;
 
-    ssize index = 0;
+    Int index = 0;
 
     for (index = 0; index < size - about; index += 1)
-        ((u8*) pntr)[index] = ((u8*) pntr)[index + about];
+        ((U8*) pntr)[index] = ((U8*) pntr)[index + about];
 
     for (index = size - about; index < size; index += 1)
-        ((u8*) pntr)[index] = value;
+        ((U8*) pntr)[index] = value;
 
     return pntr;
 }
 
-void* pxMemoryReverse(void* pntr, ssize size)
+void* pMemoryReverse(void* pntr, Int size)
 {
-    if (pntr == PX_NULL || size <= 0) return PX_NULL;
+    if (pntr == NULL || size <= 0) return NULL;
 
-    ssize index = 0;
-    ssize other = 0;
+    Int index = 0;
+    Int other = 0;
 
     for (other = size - 1; index < other; index += 1, other -= 1) {
-        u8 temp = ((u8*) pntr)[index];
+        U8 temp = ((U8*) pntr)[index];
 
-        ((u8*) pntr)[index] = ((u8*) pntr)[other];
-        ((u8*) pntr)[other] = temp;
+        ((U8*) pntr)[index] = ((U8*) pntr)[other];
+        ((U8*) pntr)[other] = temp;
     }
 
     return pntr;
 }
 
-void* pxMemoryAlignPntr(void* pntr, usize align)
+void* pMemoryAlignPntr(void* pntr, Uint align)
 {
-    if (pntr == PX_NULL || (align & (align - 1)) != 0)
-        return PX_NULL;
+    if (pntr == NULL || (align & (align - 1)) != 0)
+        return NULL;
 
-    usize dist = ((usize) pntr) % align;
+    Uint dist = ((Uint) pntr) % align;
 
     if (dist != 0)
-        return ((u8*) pntr) + (align - dist);
+        return ((U8*) pntr) + (align - dist);
 
     return pntr;
 }
 
-ssize  pxMemoryAlignSize(ssize size, usize align)
+Int pMemoryAlignSize(Int size, Uint align)
 {
     if (size <= 0 || (align & (align - 1)) != 0)
         return 0;
 
-    usize dist = ((usize) size) % align;
+    Uint dist = ((Uint) size) % align;
 
     if (dist != 0)
         return size + (align - dist);
@@ -126,4 +126,4 @@ ssize  pxMemoryAlignSize(ssize size, usize align)
     return size;
 }
 
-#endif // PX_BASE_MEMORY_COMMON_C
+#endif // P_BASE_MEMORY_COMMON_C
